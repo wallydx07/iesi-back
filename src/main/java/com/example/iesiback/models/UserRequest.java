@@ -8,51 +8,50 @@ import jakarta.validation.constraints.Size;
 public class UserRequest implements IUser {
 
     @NotBlank
-    private String name;
+    private String userNombre;
 
     @NotBlank
-    private String lastname;
+    private String userApellido;
 
     @NotEmpty
     @Email
-    private String email;
+    private String userEmail;
 
     @NotBlank
-    @Size(min = 4, max = 12)
-    private String username;
+    private String userDni;
 
     private boolean admin;
 
-    public String getName() {
-        return name;
+    public @NotBlank String getUserNombre() {
+        return userNombre;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUserNombre(@NotBlank String userNombre) {
+        this.userNombre = userNombre;
     }
 
-    public String getLastname() {
-        return lastname;
+    public @NotBlank String getUserApellido() {
+        return userApellido;
     }
 
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setUserApellido(@NotBlank String userApellido) {
+        this.userApellido = userApellido;
     }
 
-    public String getEmail() {
-        return email;
+    public @NotEmpty @Email String getUserEmail() {
+        return userEmail;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUserEmail(@NotEmpty @Email String userEmail) {
+        this.userEmail = userEmail;
     }
 
-    public String getUsername() {
-        return username;
+    public @NotBlank String getUserDni() {
+        return userDni;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserDni(@NotBlank String userDni) {
+        this.userDni = userDni;
     }
 
     public boolean isAdmin() {

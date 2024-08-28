@@ -8,6 +8,6 @@ import com.example.iesiback.entities.Role;
 
 public interface RoleRepository extends CrudRepository<Role, Long>{
 
-    Optional<Role> findByName(String name);
+    Optional<Role> findByRoleNombre(String name);
 
 }

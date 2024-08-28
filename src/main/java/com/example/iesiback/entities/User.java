@@ -1,8 +1,7 @@
 package com.example.iesiback.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.*;
+
 import static jakarta.persistence.GenerationType.*;
 
 import java.util.ArrayList;
@@ -12,13 +11,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.example.iesiback.models.IUser;
 
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -29,79 +21,83 @@ import jakarta.validation.constraints.Size;
 public class User implements IUser {
 
     @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
+    @Column(name = "user_dni")  // Mapea el atributo
+    private String userDni;
 
     @NotBlank
-    private String name;
+    @Column(name = "user_nombre")  // Mapea el atributo
+    private String userNombre;
 
     @NotBlank
-    private String lastname;
+    @Column(name = "user_apellido")  // Mapea el atributo
+    private String userApellido;
 
     @NotEmpty
     @Email
-    private String email;
+    @Column(name = "user_email")  // Mapea el atributo
+    private String userEmail;
 
-    @NotBlank
-    @Size(min=4, max = 12)
-    private String username;
 
     @Transient
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private boolean admin;
 
     @NotBlank
-    private String password;
+    @Column(name = "user_password")  // Mapea el atributo
+    private String userPassword;
 
     @JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name="users_roles",
-        joinColumns = {@JoinColumn(name="user_id")},
+        name="user_role",
+        joinColumns = {@JoinColumn(name="user_dni")},
         inverseJoinColumns = @JoinColumn(name="role_id"),
-        uniqueConstraints = { @UniqueConstraint(columnNames = {"user_id", "role_id"})}
+        uniqueConstraints = { @UniqueConstraint(columnNames = {"user_dni", "role_id"})}
     )
     private List<Role> roles;
-
     public User() {
         this.roles = new ArrayList<>();
     }
 
-    public Long getId() {
-        return id;
+
+    public String getUserDni() {
+        return userDni;
     }
-    public void setId(Long id) {
-        this.id = id;
+
+    public void setUserDni(String userDni) {
+        this.userDni = userDni;
     }
-    public String getName() {
-        return name;
+
+    public @NotBlank String getUserNombre() {
+        return userNombre;
     }
-    public void setName(String name) {
-        this.name = name;
+
+    public void setUserNombre(@NotBlank String userNombre) {
+        this.userNombre = userNombre;
     }
-    public String getLastname() {
-        return lastname;
+
+    public @NotBlank String getUserApellido() {
+        return userApellido;
     }
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+
+    public void setUserApellido(@NotBlank String userApellido) {
+        this.userApellido = userApellido;
     }
-    public String getEmail() {
-        return email;
+
+    public @NotEmpty @Email String getUserEmail() {
+        return userEmail;
     }
-    public void setEmail(String email) {
-        this.email = email;
+
+    public void setUserEmail(@NotEmpty @Email String userEmail) {
+        this.userEmail = userEmail;
     }
-    public String getUsername() {
-        return username;
+
+    public @NotBlank String getUserPassword() {
+        return userPassword;
     }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
+
+    public void setUserPassword(@NotBlank String userPassword) {
+        this.userPassword = userPassword;
     }
 
     public List<Role> getRoles() {

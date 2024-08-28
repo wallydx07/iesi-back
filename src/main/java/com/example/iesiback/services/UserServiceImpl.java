@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public User save(User user) {
         user.setRoles(getRoles(user));
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
         return repository.save(user);
     }
     
@@ -66,11 +66,10 @@ public class UserServiceImpl implements UserService{
 
         if (userOptional.isPresent()) {
             User userDb = userOptional.get();
-            userDb.setEmail(user.getEmail());
-            userDb.setLastname(user.getLastname());
-            userDb.setName(user.getName());
-            userDb.setUsername(user.getUsername());
-
+            userDb.setUserEmail(user.getUserEmail());
+            userDb.setUserApellido(user.getUserApellido());
+            userDb.setUserNombre(user.getUserNombre());
+            userDb.setUserDni(user.getUserDni());
             userDb.setRoles(getRoles(user));
             return Optional.of(repository.save(userDb));
         }
@@ -85,11 +84,11 @@ public class UserServiceImpl implements UserService{
 
     private List<Role> getRoles(IUser user) {
         List<Role> roles = new ArrayList<>();
-        Optional<Role> optionalRoleUser = roleRepository.findByName("ROLE_USER");
+        Optional<Role> optionalRoleUser = roleRepository.findByRoleNombre("ROLE_USER");
         optionalRoleUser.ifPresent(roles::add);
 
         if (user.isAdmin()) {
-            Optional<Role> optionalRoleAdmin = roleRepository.findByName("ROLE_ADMIN");
+            Optional<Role> optionalRoleAdmin = roleRepository.findByRoleNombre("ROLE_ADMIN");
             optionalRoleAdmin.ifPresent(roles::add);
         }
         return roles;

@@ -1,43 +1,35 @@
 package com.example.iesiback.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name="roles")
+@Table(name="role")
 public class Role {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+   // @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "role_id")  // Mapea el atributo id a la columna role_id en la base de datos
+    private long roleId;
 
-    private String name;
+    @Column(name = "role_nombre")  // Mapea el atributo name a la columna role_nombre en la base de datos
+    private String roleNombre;
 
     public Role() {
+
     }
 
-    public Role(String name) {
-        this.name = name;
+    public Long getRoleId() {
+        return roleId;
     }
 
-    public Long getId() {
-        return id;
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getRoleNombre() {
+        return roleNombre;
     }
 
-    public String getName() {
-        return name;
+    public void setRoleNombre(String roleNombre) {
+        this.roleNombre = roleNombre;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    
 }
