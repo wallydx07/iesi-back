@@ -3,7 +3,6 @@ package com.example.iesiback.models;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 
 public class UserRequest implements IUser {
 
@@ -18,7 +17,7 @@ public class UserRequest implements IUser {
     private String userEmail;
 
     @NotBlank
-    private String userDni;
+    private String username;
 
     private boolean admin;
 
@@ -46,12 +45,12 @@ public class UserRequest implements IUser {
         this.userEmail = userEmail;
     }
 
-    public @NotBlank String getUserDni() {
-        return userDni;
+    public @NotBlank String getUsername() {
+        return username;
     }
 
-    public void setUserDni(@NotBlank String userDni) {
-        this.userDni = userDni;
+    public void setUsername(@NotBlank String username) {
+        this.username = username;
     }
 
     public boolean isAdmin() {

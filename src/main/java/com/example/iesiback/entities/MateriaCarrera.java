@@ -1,0 +1,157 @@
+package com.example.iesiback.entities;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "materia_carrera")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})  // Ignora los proxies
+public class MateriaCarrera {
+    @Id
+    @ColumnDefault("nextval('materia_carrera_id_seq')")
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "carrera_id")
+
+    private Carrera carrera;
+
+    @Size(max = 10)
+    @Column(name = "libro", length = 10)
+    private String libro;
+
+    @Size(max = 10)
+    @Column(name = "folio", length = 10)
+    private String folio;
+
+    @Column(name = "fecha")
+    private LocalDate fecha;
+
+    @Column(name = "firma")
+    private Boolean firma;
+
+    @Column(name = "fmc_docente")
+    private Long fmcDocente;
+
+    @Size(max = 100)
+    @Column(name = "division", length = 100)
+    private String division;
+
+    @Size(max = 100)
+    @Column(name = "turno", length = 100)
+    private String turno;
+
+    @Size(max = 20)
+    @Column(name = "dia", length = 20)
+    private String dia;
+
+    @Size(max = 10)
+    @Column(name = "inicio", length = 10)
+    private String inicio;
+
+    @Size(max = 10)
+    @Column(name = "fin", length = 10)
+    private String fin;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Carrera getCarrera() {
+        return carrera;
+    }
+
+    public void setCarrera(Carrera carrera) {
+        this.carrera = carrera;
+    }
+
+    public String getLibro() {
+        return libro;
+    }
+
+    public void setLibro(String libro) {
+        this.libro = libro;
+    }
+
+    public String getFolio() {
+        return folio;
+    }
+
+    public void setFolio(String folio) {
+        this.folio = folio;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        this.fecha = fecha;
+    }
+
+    public Boolean getFirma() {
+        return firma;
+    }
+
+    public void setFirma(Boolean firma) {
+        this.firma = firma;
+    }
+
+    public Long getFmcDocente() {
+        return fmcDocente;
+    }
+
+    public void setFmcDocente(Long fmcDocente) {
+        this.fmcDocente = fmcDocente;
+    }
+
+    public String getDivision() {
+        return division;
+    }
+
+    public void setDivision(String division) {
+        this.division = division;
+    }
+
+    public String getTurno() {
+        return turno;
+    }
+
+    public void setTurno(String turno) {
+        this.turno = turno;
+    }
+
+    public String getDia() {
+        return dia;
+    }
+
+    public void setDia(String dia) {
+        this.dia = dia;
+    }
+
+    public String getInicio() {
+        return inicio;
+    }
+
+    public void setInicio(String inicio) {
+        this.inicio = inicio;
+    }
+
+    public String getFin() {
+        return fin;
+    }
+
+    public void setFin(String fin) {
+        this.fin = fin;
+    }
+
+}

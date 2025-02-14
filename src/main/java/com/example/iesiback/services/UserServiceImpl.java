@@ -3,6 +3,8 @@ package com.example.iesiback.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,20 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.iesiback.entities.Role;
 import com.example.iesiback.entities.User;
-import com.example.iesiback.models.IUser;
 import com.example.iesiback.models.UserRequest;
 import com.example.iesiback.repositories.RoleRepository;
 import com.example.iesiback.repositories.UserRepository;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
-    private UserRepository repository;
-    private RoleRepository roleRepository;
+    private final UserRepository repository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    private PasswordEncoder passwordEncoder;
-    
-    
     public UserServiceImpl(UserRepository repository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
@@ -36,13 +35,14 @@ public class UserServiceImpl implements UserService{
     @Override
     @Transactional(readOnly = true)
     public List<User> findAll() {
-        return (List) this.repository.findAll();
+        return StreamSupport.stream(repository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<User> findAll(Pageable pageable) {
-        return this.repository.findAll(pageable);
+        return repository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
@@ -54,23 +54,23 @@ public class UserServiceImpl implements UserService{
     @Transactional
     @Override
     public User save(User user) {
-        user.setRoles(getRoles(user));
-        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
+        user.setRoles(getRolesFromRequest(user)); // Asignar roles desde el JSON
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return repository.save(user);
     }
-    
+
     @Override
     @Transactional
-    public Optional<User> update(UserRequest user, Long id) {
+    public Optional<User> update(UserRequest userRequest, Long id) {
         Optional<User> userOptional = repository.findById(id);
 
         if (userOptional.isPresent()) {
             User userDb = userOptional.get();
-            userDb.setUserEmail(user.getUserEmail());
-            userDb.setUserApellido(user.getUserApellido());
-            userDb.setUserNombre(user.getUserNombre());
-            userDb.setUserDni(user.getUserDni());
-            userDb.setRoles(getRoles(user));
+            userDb.setUserEmail(userRequest.getUserEmail());
+            userDb.setUserApellido(userRequest.getUserApellido());
+            userDb.setUserNombre(userRequest.getUserNombre());
+            userDb.setUsername(userRequest.getUsername());
+            userDb.setRoles(getRolesFromRequest(userDb)); // Corregido para usar User en lugar de UserRequest
             return Optional.of(repository.save(userDb));
         }
         return Optional.empty();
@@ -82,16 +82,36 @@ public class UserServiceImpl implements UserService{
         repository.deleteById(id);
     }
 
-    private List<Role> getRoles(IUser user) {
+    private List<Role> getRolesFromRequest(User user) {
         List<Role> roles = new ArrayList<>();
-        Optional<Role> optionalRoleUser = roleRepository.findByRoleNombre("ROLE_USER");
-        optionalRoleUser.ifPresent(roles::add);
 
-        if (user.isAdmin()) {
-            Optional<Role> optionalRoleAdmin = roleRepository.findByRoleNombre("ROLE_ADMIN");
-            optionalRoleAdmin.ifPresent(roles::add);
+        // Asignar roles desde el JSON si existen
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            for (Role role : user.getRoles()) {
+                if (role.getRoleId() != null) {
+                    Role roleFromDb = roleRepository.findById(role.getRoleId())
+                            .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + role.getRoleId()));
+                    roles.add(roleFromDb);
+                } else {
+                    throw new IllegalArgumentException("Cada rol debe tener un 'roleId' válido.");
+                }
+            }
         }
+
+        // Agregar ROLE_USER por defecto si no está presente
+        Optional<Role> defaultRole = roleRepository.findByRoleNombre("ROLE_USER");
+        defaultRole.ifPresent(role -> {
+            if (roles.stream().noneMatch(r -> r.getRoleNombre().equals("ROLE_USER"))) {
+                roles.add(role);
+            }
+        });
+
+        // Si es admin, agregar ROLE_ADMIN
+        if (user.isAdmin()) {
+            Optional<Role> adminRole = roleRepository.findByRoleNombre("ROLE_ADMIN");
+            adminRole.ifPresent(roles::add);
+        }
+
         return roles;
     }
-
 }

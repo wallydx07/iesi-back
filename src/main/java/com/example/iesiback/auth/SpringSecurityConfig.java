@@ -1,6 +1,7 @@
 package com.example.iesiback.auth;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -44,7 +45,7 @@ private AuthenticationConfiguration authenticationConfiguration;
         return http.authorizeHttpRequests(authz -> authz
                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/page/{page}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
                 .anyRequest().authenticated())

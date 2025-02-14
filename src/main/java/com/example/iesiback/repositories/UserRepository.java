@@ -7,10 +7,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 import com.example.iesiback.entities.User;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface UserRepository extends CrudRepository<User, Long>{
 
     Page<User> findAll(Pageable pageable);
 
-    Optional<User> findByUserDni(String username);
+    Optional<User> findByUsername(String username);
 }

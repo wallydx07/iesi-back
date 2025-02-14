@@ -13,8 +13,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.iesiback.entities.User;
 
@@ -27,6 +25,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import static com.example.iesiback.auth.TokenJwtConfig.*;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
+    private String attemptedUsername;
+    private String attemptedPassword;
+
 
     private AuthenticationManager authenticationManager;
 
@@ -42,21 +44,29 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String password = null;
 
         try {
-            User user = new ObjectMapper().readValue(request.getInputStream(), User.class);
-            username = user.getUserDni();
-            password = user.getUserPassword();
-        } catch (StreamReadException e) {
-            e.printStackTrace();
-        } catch (DatabindException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            // Leer el cuerpo de la solicitud como un String para depurar
+            String requestBody = new String(request.getInputStream().readAllBytes());
+            System.out.println("Request Body: " + requestBody);
+
+            // Convertir el String a la clase User
+            User user = new ObjectMapper().readValue(requestBody, User.class);
+            username = user.getUsername();
+            password = user.getPassword();
+
+            // Mostrar en consola los datos extraídos
+            System.out.println("Extracted Username: " + username);
+            System.out.println("Extracted Password: " + password);
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Generar el token de autenticación
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
                 password);
         return this.authenticationManager.authenticate(authenticationToken);
     }
+
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
@@ -99,8 +109,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             AuthenticationException failed) throws IOException, ServletException {
 
         Map<String, String> body = new HashMap<>();
-       body.put("message", "Error en la autenticacion con username o password incorrecto!");
+       body.put("message", "Se ha producido un error F :(");
         body.put("error", failed.getMessage());
+
+
+        // Incluir las credenciales enviadas para depuración
+        body.put("attemptedUsername", this.attemptedUsername);
+        body.put("attemptedPassword", this.attemptedPassword);
+
+
+
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);

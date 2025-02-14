@@ -27,7 +27,7 @@ public class JpaUserDetailsService implements UserDetailsService {
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Optional<User> optionalUser = repository.findByUserDni(username);
+        Optional<User> optionalUser = repository.findByUsername(username);
 
         if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException(String.format("Username %s no existe en el sistema", username));
@@ -41,7 +41,7 @@ public class JpaUserDetailsService implements UserDetailsService {
                 .collect(Collectors.toList());
 
         return new org.springframework.security.core.userdetails.User(username,
-                user.getUserPassword(),
+                user.getPassword(),
                 true,
                 true,
                 true,
