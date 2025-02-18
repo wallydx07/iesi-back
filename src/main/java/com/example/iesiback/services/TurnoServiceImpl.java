@@ -13,8 +13,10 @@ public class TurnoServiceImpl implements TurnoService {
     @Autowired
     private TurnoRepository turnoRepository;
 
+
+
     @Override
     public List<Turno> obtenerTurnos() {
-        return turnoRepository.findAll();
+        return turnoRepository.findAllByOrderByTurnoLimiteDesc();
     }
 }

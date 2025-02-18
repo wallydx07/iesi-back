@@ -94,15 +94,22 @@ public class Legajo {
     private Set<Inscripcion> inscripcions = new LinkedHashSet<>();
 
 
-    @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    @JsonIgnore
-    private Set<Nota> notas = new LinkedHashSet<>();
 
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<Observacione> observaciones = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Cursada> cursadas = new LinkedHashSet<>();
+
+    public Set<Cursada> getCursadas() {
+        return cursadas;
+    }
+
+    public void setCursadas(Set<Cursada> cursadas) {
+        this.cursadas = cursadas;
+    }
 
 
     // Getters y Setters
@@ -163,13 +170,6 @@ public class Legajo {
         this.inscripcions = inscripcions;
     }
 
-    public Set<Nota> getNotas() {
-        return notas;
-    }
-
-    public void setNotas(Set<Nota> notas) {
-        this.notas = notas;
-    }
 
     public Set<Observacione> getObservaciones() {
         return observaciones;

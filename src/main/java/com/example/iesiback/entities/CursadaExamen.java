@@ -1,6 +1,7 @@
 package com.example.iesiback.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -35,8 +36,9 @@ public class CursadaExamen {
     @Column(name = "hora", length = 10)
     private String hora;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "turno_id")
+    @JoinColumn(name = "turno_id", referencedColumnName = "turno_id") // Referencia correcta a Turno
     @JsonBackReference
     private Turno turno;
 
@@ -59,7 +61,7 @@ public class CursadaExamen {
     private Long docenteDni;
 
     @OneToMany(mappedBy = "cursadaExamen")
-    @JsonManagedReference
+    @JsonIgnore // ✅ Evita que Jackson serialice esta relación
     private Set<Examen> examen = new LinkedHashSet<>();
 
     public Integer getId() {

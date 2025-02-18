@@ -17,12 +17,12 @@ public class Examen {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nota_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("examen") // ✅ Evita referencia cíclica en CursadaExamen
     private Nota nota;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cursada_examen_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("examen") // ✅ Evita referencia cíclica en CursadaExamen
     private CursadaExamen cursadaExamen;
 
     @Column(name = "examen_inscripto")
@@ -30,7 +30,7 @@ public class Examen {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permiso_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("examen") // ✅ Evita referencia cíclica
     private Permiso permiso;
 
     @Size(max = 50)

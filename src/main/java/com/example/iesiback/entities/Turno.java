@@ -2,7 +2,6 @@ package com.example.iesiback.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
@@ -33,6 +32,18 @@ public class Turno {
     @OneToMany(mappedBy = "turno")
     @JsonIgnore
     private Set<CursadaExamen> cursadaExamen = new LinkedHashSet<>();
+
+    @Size(max = 50)
+    @Column(name = "llamado", length = 50)
+    private String llamado;
+
+    public String getLlamado() {
+        return llamado;
+    }
+
+    public void setLlamado(String llamado) {
+        this.llamado = llamado;
+    }
 
     public Set<CursadaExamen> getCursadaExamen() {
         return cursadaExamen;

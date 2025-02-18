@@ -8,7 +8,7 @@ import java.util.List;
 @Service
 public interface NotaService {
     List<Nota> obtenerNotas();
-    List<Nota> obtenerNotasPorLegajo(String legajoId);
+//    List<Nota> obtenerNotasPorLegajo(String legajoId);
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId);
     List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); // ✅ Corregido, sin implementación en la interfaz
 }

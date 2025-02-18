@@ -23,11 +23,11 @@ public class NotaController {
         return notaService.obtenerNotas();
     }
 
-    @GetMapping("/{legajoId}")
-    public ResponseEntity<List<Nota>> obtenerNotasPorLegajo(@PathVariable String legajoId) {
-        List<Nota> notas = notaService.obtenerNotasPorLegajo(legajoId);
-        return ResponseEntity.ok(notas);
-    }
+   // @GetMapping("/{legajoId}")
+   // public ResponseEntity<List<Nota>> obtenerNotasPorLegajo(@PathVariable String legajoId) {
+   //     List<Nota> notas = notaService.obtenerNotasPorLegajo(legajoId);
+   //     return ResponseEntity.ok(notas);
+  //  }
 
     @GetMapping("/obtenerTodasNotasPorLegajo/{legajoId}")
     public ResponseEntity<List<NotaMateriaDTO>> obtenerTodasNotasPorLegajo(@PathVariable String legajoId) {

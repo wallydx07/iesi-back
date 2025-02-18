@@ -111,6 +111,37 @@
             <scope>provided</scope>
         </dependency>
 
+            <!-- PDFBox para manipulación de PDF -->
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>2.0.30</version>
+            </dependency>
+
+            <!-- Boxable para creación de tablas en PDF -->
+            <dependency>
+                <groupId>com.github.dhorions</groupId>
+                <artifactId>boxable</artifactId>
+                <version>1.6</version>
+            </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.1.22</version>
+        </dependency>
+
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>html2pdf</artifactId>
+                <version>3.0.3</version>
+            </dependency>
+
+
     </dependencies>
 
     <build>

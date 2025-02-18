@@ -101,4 +101,15 @@ public class UserController {
         });
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<Object> getCurrentUser() {
+        Optional<User> user = service.getAuthenticatedUser();
+
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
+        }
+    }
 }

@@ -23,4 +23,5 @@ public interface UserService {
     Optional<User> update(UserRequest user, Long id);
 
     void deleteById(Long id);
+    Optional<User> getAuthenticatedUser();
 }

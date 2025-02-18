@@ -1,6 +1,7 @@
 package com.example.iesiback.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
@@ -33,9 +34,9 @@ public class Carrera {
     @JsonIgnore
     private Set<Inscripcion> inscripcions = new LinkedHashSet<>();
 
-    @OneToMany
+    @OneToMany(mappedBy = "carrera", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    private Set<com.example.iesiback.entities.MateriaCarrera> materiaCarreras = new LinkedHashSet<>();
+    private Set<MateriaCarrera> materiaCarreras = new LinkedHashSet<>();
 
     public Set<com.example.iesiback.entities.MateriaCarrera> getMateriaCarreras() {
         return materiaCarreras;

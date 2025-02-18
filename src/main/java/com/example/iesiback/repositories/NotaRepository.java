@@ -12,11 +12,11 @@ import java.util.List;
 @Repository
 public interface NotaRepository extends JpaRepository<Nota, Long> {
 
-    @Query("SELECT n FROM Nota n LEFT JOIN FETCH n.cursadas LEFT JOIN FETCH n.equivalencias LEFT JOIN FETCH n.examen")
-    List<Nota> findAllWithRelations();
+  //  @Query("SELECT n FROM Nota n LEFT JOIN FETCH n.cursadas LEFT JOIN FETCH n.equivalencias LEFT JOIN FETCH n.examen")
+   // List<Nota> findAllWithRelations();
 
-    @Query("SELECT n FROM Nota n LEFT JOIN FETCH n.cursadas LEFT JOIN FETCH n.equivalencias LEFT JOIN FETCH n.examen WHERE n.legajo.legajoId = :legajoId")
-    List<Nota> findNotasByLegajoId(@Param("legajoId") String legajoId);
+ //   @Query("SELECT n FROM Nota n LEFT JOIN FETCH n.cursadas LEFT JOIN FETCH n.equivalencias LEFT JOIN FETCH n.examen WHERE n.legajo.legajoId = :legajoId")
+ //   List<Nota> findNotasByLegajoId(@Param("legajoId") String legajoId);
 
         @Query(value = """
         SELECT 
@@ -37,7 +37,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
         INNER JOIN cursada c ON n.nota_id = c.cursada_nota_id
         INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
         INNER JOIN materia m ON mc.materia_id = m.materia_id
-        WHERE n.legajo_id = :legajoId
+        WHERE c.cursada_legajo_id = :legajoId
 
         UNION ALL
 
@@ -60,7 +60,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
         INNER JOIN permiso p ON e.permiso_id = p.permiso_id
         INNER JOIN cursada_examen ce ON e.cursada_examen_id = ce.cursada_examen_id
         INNER JOIN materia m ON ce.materia_id = m.materia_id
-        WHERE n.legajo_id = :legajoId
+        WHERE p.permiso_legajo_id = :legajoId
         ORDER BY materia_orden ASC, nota_estado
         """, nativeQuery = true)
         List<Object[]> findTodasNotasByLegajo(@Param("legajoId") String legajoId);

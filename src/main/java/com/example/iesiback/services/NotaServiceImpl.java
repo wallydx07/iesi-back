@@ -19,15 +19,20 @@ public class NotaServiceImpl implements NotaService {  // ✅ Implementa la inte
     @Autowired
     private NotaRepository notaRepository;
 
+ //   @Override
+  //  public List<Nota> obtenerNotas() {
+  //      return notaRepository.findAllWithRelations();  // 🚀 Optimización aplicada
+
+  //  }
+
+
+  //  public List<Nota> obtenerNotasPorLegajo(String legajoId) {
+  //      return notaRepository.findNotasByLegajoId(legajoId);
+   // }
+
     @Override
     public List<Nota> obtenerNotas() {
-        return notaRepository.findAllWithRelations();  // 🚀 Optimización aplicada
-
-    }
-
-
-    public List<Nota> obtenerNotasPorLegajo(String legajoId) {
-        return notaRepository.findNotasByLegajoId(legajoId);
+        return List.of();
     }
 
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {

@@ -1,11 +1,11 @@
 package com.example.iesiback.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "cursada")
@@ -13,11 +13,9 @@ import org.hibernate.annotations.ColumnDefault;
 public class Cursada {
 
     @Id
-    @ColumnDefault("nextval('cursada_cursada_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Usa auto incremento en PostgreSQL
     @Column(name = "cursada_id", nullable = false)
     private Integer id;
-
-
 
     @Column(name = "cursada_inscripto")
     private Boolean cursadaInscripto;
@@ -26,35 +24,50 @@ public class Cursada {
     @Column(name = "status", length = 50)
     private String status;
 
+    // Relación con MateriaCarrera (Ya está bien)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cursada_materia_carrera_id")
-    @JsonBackReference
+    @JsonIgnore
     private MateriaCarrera cursadaMateriaCarrera;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cursada_nota_id")
-    @JsonManagedReference
-    private Nota cursadaNota;
-
-    @Size(max = 50)
-    @Column(name = "cursada_legajo_id", length = 50)
-    private String cursadaLegajoId;
-
-    public String getCursadaLegajoId() {
-        return cursadaLegajoId;
+    @JsonProperty("materia_carrera_id") // Expone solo el ID
+    public Integer getMateriaCarreraId() {
+        return cursadaMateriaCarrera != null ? cursadaMateriaCarrera.getId() : null;
     }
 
-    public void setCursadaLegajoId(String cursadaLegajoId) {
-        this.cursadaLegajoId = cursadaLegajoId;
+    @JsonProperty("materia_id") // Expone solo el ID
+    public String getMateriaId() {
+        return cursadaMateriaCarrera != null ? cursadaMateriaCarrera.getMateria().getMateriaId() : null;
     }
+
+    @JsonProperty("carrera_id") // Expone solo el ID
+    public String getCarreraId() {
+        return cursadaMateriaCarrera != null ? cursadaMateriaCarrera.getCarrera().getCarreraId() : null;
+    }
+
+   @ManyToOne(fetch = FetchType.LAZY)  // Relación correcta con Legajo
+    @JoinColumn(name = "cursada_legajo_id", nullable = false)  // Clave foránea en la BD
+    @JsonIgnore
+    private Legajo legajo;
+
+    @OneToMany(mappedBy = "notaCursada", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Nota> notas = new LinkedHashSet<>();
 
     // Getters y Setters
-    public Nota getCursadaNota() {
-        return cursadaNota;
+    public Set<Nota> getNotas() {
+        return notas;
     }
 
-    public void setCursadaNota(Nota cursadaNota) {
-        this.cursadaNota = cursadaNota;
+    public void setNotas(Set<Nota> notas) {
+        this.notas = notas;
+    }
+
+    public Legajo getLegajo() {
+        return legajo;
+    }
+
+    public void setLegajo(Legajo legajo) {
+        this.legajo = legajo;
     }
 
     public MateriaCarrera getCursadaMateriaCarrera() {
@@ -72,7 +85,6 @@ public class Cursada {
     public void setId(Integer id) {
         this.id = id;
     }
-
 
     public Boolean getCursadaInscripto() {
         return cursadaInscripto;

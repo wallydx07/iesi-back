@@ -11,4 +11,5 @@ public interface CursadaService {
     void deleteCursada(Integer id);
     List<Cursada> findByLegajoId(String legajoId);
     List<Cursada> getCursadasNoAprobadas(String legajoId);
+    List<String> obtenerCorrelativasPendientes(Cursada cursada);
 }

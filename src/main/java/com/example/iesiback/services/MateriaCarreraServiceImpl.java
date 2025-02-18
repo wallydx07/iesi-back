@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MateriaCarreraServiceImpl implements MateriaCarreraService {
@@ -16,5 +17,10 @@ public class MateriaCarreraServiceImpl implements MateriaCarreraService {
     @Override
     public List<MateriaCarrera> obtenerMateriaCarreras() {
         return materiaCarreraRepository.findAll();
+    }
+
+    // 🔹 Nuevo método para buscar por ID
+    public Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id) {
+        return materiaCarreraRepository.findById(id);
     }
 }

@@ -1,9 +1,6 @@
 package com.example.iesiback.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.BatchSize;
@@ -55,11 +52,6 @@ public class Nota {
     @Column(name = "nota_usuario", length = 50)
     private String notaUsuario;
 
-    @OneToMany(mappedBy = "cursadaNota", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @BatchSize(size = 100)
-    @JsonIgnore
-    private Set<Cursada> cursadas = new LinkedHashSet<>();
-
     @OneToMany(mappedBy = "nota", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
     @JsonIgnore
@@ -67,14 +59,21 @@ public class Nota {
 
     @OneToMany(mappedBy = "nota", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
-    @JsonIgnore
+    @JsonIgnore // ✅ Evita que Jackson serialice esta relación
     private Set<Examen> examen = new LinkedHashSet<>();
 
-  @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "legajo_id")
-  @JsonIgnore // Evita que se serialice la entidad completa
-   private Legajo legajo;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nota_cursada_id")
+    @JsonIgnore
+    private Cursada notaCursada;
 
+    public Cursada getNotaCursada() {
+        return notaCursada;
+    }
+
+    public void setNotaCursada(Cursada notaCursada) {
+        this.notaCursada = notaCursada;
+    }
 
 
     // Getters y Setters
@@ -158,13 +157,6 @@ public class Nota {
         this.notaUsuario = notaUsuario;
     }
 
-    public Set<Cursada> getCursadas() {
-        return cursadas;
-    }
-
-    public void setCursadas(Set<Cursada> cursadas) {
-        this.cursadas = cursadas;
-    }
 
     public Set<Equivalencia> getEquivalencias() {
         return equivalencias;
@@ -182,19 +174,6 @@ public class Nota {
         this.examen = examen;
     }
 
-    @JsonProperty("legajo_id") // Agrega solo el ID de Legajo en el JSON
-    public String getLegajoId() {
-        return legajo != null ? legajo.getLegajoId() : null;
-    }
 
 
-
-
-    public Legajo getLegajo() {
-        return legajo;
-    }
-
-    public void setLegajo(Legajo legajo) {
-        this.legajo = legajo;
-    }
 }

@@ -43,7 +43,7 @@ public class CursadaController {
                     cursada.setCursadaInscripto(cursadaDetails.getCursadaInscripto());
                     cursada.setStatus(cursadaDetails.getStatus());
                     cursada.setCursadaMateriaCarrera(cursadaDetails.getCursadaMateriaCarrera());
-                    cursada.setCursadaNota(cursadaDetails.getCursadaNota());
+                    cursada.setNotas(cursadaDetails.getNotas());
                     return cursadaService.saveCursada(cursada);
                 })
                 .orElseGet(() -> {

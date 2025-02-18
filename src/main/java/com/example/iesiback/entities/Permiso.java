@@ -3,7 +3,6 @@ package com.example.iesiback.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
-
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -11,10 +10,12 @@ import java.util.Set;
 @Entity
 @Table(name = "permiso")
 public class Permiso {
+
     @Id
-    @ColumnDefault("nextval('permiso_permiso_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 🔥 Hibernate delega la generación del ID a PostgreSQL
     @Column(name = "permiso_id", nullable = false)
     private Integer id;
+
 
     @Column(name = "permiso_fecha")
     private LocalDate permisoFecha;
