@@ -1,6 +1,8 @@
 package com.example.iesiback.services;
 
-import be.quodlibet.boxable.line.LineStyle;
+import com.example.iesiback.dto.AporteDTO;
+import com.example.iesiback.entities.Aporte;
+import com.example.iesiback.repositories.AporteRepository;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.*;
@@ -8,14 +10,17 @@ import be.quodlibet.boxable.*;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class AporteServiceImpl implements AporteService {
-
+    private final AporteRepository aporteRepository;
+    public AporteServiceImpl(AporteRepository aporteRepository) {
+        this.aporteRepository = aporteRepository;
+    }
     private static final Color PRIMARY_COLOR = new Color(109, 40, 217); // Morado fuerte
     private static final Color TEXT_PRIMARY = new Color(17, 24, 39);  // Negro intenso
     private static final Color TEXT_SECONDARY = new Color(75, 85, 99);  // Gris oscuro
@@ -28,21 +33,15 @@ public class AporteServiceImpl implements AporteService {
         try {
             PDPage page = new PDPage(PDRectangle.A5);
             document.addPage(page);
-
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
-
             // Fondo del documento
             drawBackground(contentStream, page);
-
             // Encabezado
             drawHeader(contentStream, page);
-
             // Dibujar información en tarjetas
             drawDataTable(document, page);
-
             // Mensaje de confirmación
             drawFooter(contentStream, page);
-
             contentStream.close();  // ✅ Cerrar el contenido del PDF
         } catch (IOException e) {
             throw new RuntimeException("Error al generar el recibo PDF", e);
@@ -50,6 +49,10 @@ public class AporteServiceImpl implements AporteService {
         return document;  // ✅ Retorna el documento abierto para que el Controller lo maneje
     }
 
+    @Override
+    public Aporte save(Aporte aporte) {
+        return aporteRepository.save(aporte);
+    }
 
     private void drawBackground(PDPageContentStream contentStream, PDPage page) throws IOException {
         contentStream.setNonStrokingColor(BACKGROUND_COLOR);
@@ -162,5 +165,26 @@ public class AporteServiceImpl implements AporteService {
         contentStream.newLineAtOffset(80, yPosition);
         contentStream.showText("Instituto de Educación Superior Intercultural");
         contentStream.endText();
+    }
+
+    @Override
+    public Aporte crearAporte(Aporte aporte) {
+        // Si no se envía la fecha, se asigna la fecha actual
+        if (aporte.getAporteFecha() == null) {
+            aporte.setAporteFecha(LocalDate.now());
+        }
+        return aporteRepository.save(aporte);
+    }
+
+
+    @Override
+    public Aporte findAporteById(String id) {
+        return aporteRepository.findById(Integer.valueOf(id)).orElse(null);
+    }
+
+
+    @Override
+    public List<AporteDTO> getAportesConDatos() {
+        return aporteRepository.findAportesConDatos();
     }
 }

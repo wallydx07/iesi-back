@@ -1,13 +1,13 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.ExamenCursadaDTO;
 import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.services.CursadaExamenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api/cursada-examen")
 public class CursadaExamenController {
@@ -34,6 +34,12 @@ public class CursadaExamenController {
     @GetMapping("/todas")
     public ResponseEntity<List<CursadaExamen>> obtenerTodasLasCursadas() {
         List<CursadaExamen> cursadas = cursadaExamenService.obtenerTodasLasCursadas();
+        return ResponseEntity.ok(cursadas);
+    }
+
+    @GetMapping("/ordenadas")
+    public ResponseEntity<List<ExamenCursadaDTO>> obtenerCursadasPorTurno(@RequestParam String turnoId) {
+        List<ExamenCursadaDTO> cursadas = cursadaExamenService.obtenerCursadasPorTurno(turnoId);
         return ResponseEntity.ok(cursadas);
     }
 }

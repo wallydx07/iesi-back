@@ -4,110 +4,80 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Recibo de Inscripción</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet"/>
 
     <style>
-        :root {
-            --primary-color: #4F46E5;
-            --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            --secondary-color: #6B7280;
-            --background-color: #F9FAFB;
-            --card-background: #FFFFFF;
-            --text-primary: #111827;
-            --text-secondary: #4B5563;
-            --border-radius: 16px;
-            --transition: all 0.3s ease;
-        }
-
         body {
-            background-color: var(--background-color);
+            background-color: #F9FAFB;
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
-            display: grid;
-            place-items: center;
-            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #111827;
         }
 
         .a5-container {
-            background: var(--card-background);
+            background: #FFFFFF;
             width: 100%;
             max-width: 125mm;
             padding: 32px;
-            border-radius: var(--border-radius);
+            border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transition: var(--transition);
-        }
-
-        .a5-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 32px;
-            position: relative;
-        }
-
-        .logo {
-            width: 80px;
-            height: auto;
-            margin: 0 auto 16px;
-            border-radius: 12px;
-            padding: 8px;
-            background: var(--background-color);
+            margin-bottom: 24px;
         }
 
         .title {
             font-size: 24px;
             font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-            padding: 8px 0;
+            color: #4F46E5;
         }
 
         .content {
-            background: var(--background-color);
+            background: #F9FAFB;
             padding: 24px;
-            border-radius: var(--border-radius);
-            margin: 24px 0;
+            border-radius: 16px;
+            margin: 16px 0;
         }
 
-        .greeting {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
+        /* 📌 Convertimos en una tabla para forzar las 2 columnas en iText7 */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin: 24px 0;
+        .details-table td {
+            padding: 10px;
+            border: none;
+            vertical-align: top;
+            width: 50%; /* 📌 Siempre 2 columnas */
         }
 
         .detail-item {
-            background: var(--card-background);
-            padding: 16px;
-            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .detail-item i {
             font-size: 20px;
-            color: var(--primary-color);
+            color: #4F46E5;
         }
 
         .detail-label {
             font-size: 12px;
-            color: var(--text-secondary);
+            color: #6B7280;
             margin: 0;
         }
 
@@ -119,136 +89,101 @@
 
         .message {
             background: rgba(79, 70, 229, 0.1);
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid #4F46E5;
             padding: 16px;
             border-radius: 8px;
-            margin: 24px 0;
+            margin: 16px 0;
         }
 
         .footer {
             text-align: center;
-            color: var(--secondary-color);
+            color: #6B7280;
             font-size: 13px;
-            padding-top: 24px;
+            padding-top: 16px;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 16px;
-            }
-
-            .a5-container {
-                padding: 24px;
-            }
-
-            .details-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media print {
-            body {
-                background: white;
-            }
-
-            .a5-container {
-                box-shadow: none;
-                max-width: 100%;
-            }
-
-            .a5-container:hover {
-                transform: none;
-                box-shadow: none;
-            }
         }
     </style>
 </head>
 <body>
 <div class="a5-container">
     <div class="header">
-       <!-- <img src="'iesijujuy.edu.ar/images/LI.png'" alt="Logo de la Institución" class="logo"> -->
         <h1 class="title">Recibo de Inscripción</h1>
     </div>
 
     <div class="content">
-        <p class="greeting">¡Hola {$nombre}!</p>
-        <p>Te confirmamos que hemos recibido tu pago de inscripción al curso <strong>{$curso}</strong> en el Instituto de Educación Superior Intercultural.</p>
-
-        <div class="details-grid">
-            <div class="detail-item">
-                <i class="ri-user-line"></i>
-                <div>
-                    <p class="detail-label">Nombre</p>
-                    <p class="detail-value">{$nombre}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-bookmark-line"></i>
-                <div>
-                    <p class="detail-label">Legajo</p>
-                    <p class="detail-value">{$legajo}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-book-open-line"></i>
-                <div>
-                    <p class="detail-label">Curso</p>
-                    <p class="detail-value">{$curso}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-calendar-line"></i>
-                <div>
-                    <p class="detail-label">Fecha de pago</p>
-                    <p class="detail-value">{$fecha_pago}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-money-dollar-circle-line"></i>
-                <div>
-                    <p class="detail-label">Monto</p>
-                    <p class="detail-value">$ {$monto}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-user-settings-line"></i>
-                <div>
-                    <p class="detail-label">Usuario</p>
-                    <p class="detail-value">{$usuario}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-receipt-line"></i>
-                <div>
-                    <p class="detail-label">Recibo</p>
-                    <p class="detail-value">{$id_pago}</p>
-                </div>
-            </div>
-
-            <div class="detail-item">
-                <i class="ri-exchange-line"></i>
-                <div>
-                    <p class="detail-label">Transacción</p>
-                    <p class="detail-value">{$id_transaccion}</p>
-                </div>
-            </div>
-        </div>
+        <p class="greeting">¡Hola [[${nombre}]]!</p>
+        <p>Te confirmamos que hemos recibido tu pago de inscripción a la Carrera <strong>[[${curso}]]</strong>.</p>
+        <!-- 📌 Ahora usamos una tabla en lugar de grid o flex -->
+        <table class="details-table">
+            <tr>
+                <td>
+                    <div class="detail-item">
+                        <i class="ri-user-line"></i>
+                        <div>
+                            <p class="detail-label">Nombre</p>
+                            <p class="detail-value">[[${nombre}]]</p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="detail-item">
+                        <i class="ri-bookmark-line"></i>
+                        <div>
+                            <p class="detail-label">Legajo</p>
+                            <p class="detail-value">[[${legajoId}]]</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="detail-item">
+                        <i class="ri-id-card-fill"></i>
+                        <div>
+                            <p class="detail-label">Recibo</p>
+                            <p class="detail-value">[[${id_pago}]]</p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="detail-item">
+                        <i class="ri-calendar-line"></i>
+                        <div>
+                            <p class="detail-label">Fecha de pago</p>
+                            <p class="detail-value">[[${fecha_pago}]]</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="detail-item">
+                        <i class="ri-money-dollar-circle-line"></i>
+                        <div>
+                            <p class="detail-label">Monto</p>
+                            <p class="detail-value">[[${monto}]]</p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="detail-item">
+                        <i class="ri-user-settings-line"></i>
+                        <div>
+                            <p class="detail-label">Usuario</p>
+                            <p class="detail-value">[[${usuario}]]</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <div class="message">
-            <p>Este recibo confirma tu inscripción. Conserva este documento para futuras referencias.</p>
+            <p>Conserva este documento para futuras referencias.</p>
         </div>
     </div>
 
     <div class="footer">
         Departamento de Sistemas y Soporte<br/>
-        Instituto de Educación Superior Intercultural
     </div>
 </div>
 </body>

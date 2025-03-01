@@ -1,9 +1,7 @@
     package com.example.iesiback.entities;
 
-    import com.fasterxml.jackson.annotation.JsonBackReference;
     import com.fasterxml.jackson.annotation.JsonIgnore;
     import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-    import com.fasterxml.jackson.annotation.JsonManagedReference;
     import jakarta.persistence.*;
     import jakarta.validation.constraints.Size;
     import org.hibernate.annotations.ColumnDefault;
@@ -58,7 +56,7 @@
         @Column(name = "fin", length = 10)
         private String fin;
 
-        @OneToMany(mappedBy = "cursadaMateriaCarrera")
+        @OneToMany(mappedBy = "materiaCarrera")
 
         private Set<Cursada> cursadas = new LinkedHashSet<>();
 

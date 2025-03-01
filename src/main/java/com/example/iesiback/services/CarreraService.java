@@ -1,19 +1,23 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.entities.Carrera;
-import com.example.iesiback.repositories.CarreraRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import java.util.Optional;
 @Service
-public class CarreraService {
+public interface CarreraService {
 
-    @Autowired
-    private CarreraRepository carreraRepository;
+    List<Carrera> findCarrerasByAlumnoDni(String alumnoDni);
 
-    public List<Carrera> obtenerCarreras() {
-        return carreraRepository.findAll();
-    }
+    List<Carrera> obtenerCarreras();
+
+    Carrera findCarreraById(String id);
+
+    Optional<Carrera> obtenerCarreraPorId(String id);
+    Carrera guardarCarrera(Carrera carrera);
+    Carrera actualizarCarrera(String id, Carrera carrera);
+    void eliminarCarrera(String id);
+    List<Carrera> obtenerCarrerasOrdenadas();
+    List<Carrera> obtenerCarreraInstcripcion(Long alumnoDni);
 }

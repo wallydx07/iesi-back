@@ -1,56 +1,67 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.AporteDTO;
+import com.example.iesiback.entities.Aporte;
+import com.example.iesiback.repositories.AporteRepository;
 import com.example.iesiback.repositories.HtmlService;
+import com.example.iesiback.services.AporteService;
+import com.example.iesiback.services.UserService;
+import com.itextpdf.html2pdf.ConverterProperties;
+import com.itextpdf.html2pdf.HtmlConverter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins={"http://localhost:4200"})
 @RestController
 @RequestMapping("/api/aportes")
 public class AporteController {
 
     private final HtmlService htmlService;
+    private final AporteService aporteService;
+    private UserService userService;
 
-    public AporteController(HtmlService htmlService) {
+    public AporteController(HtmlService htmlService, AporteService aporteService,UserService userService) {
         this.htmlService = htmlService;
+        this.aporteService = aporteService;
+        this.userService = userService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AporteDTO>> getAportes() {
+        List<AporteDTO> aportes = aporteService.getAportesConDatos();
+        return ResponseEntity.ok(aportes);
     }
 
     @PostMapping("/recibo")
     public ResponseEntity<byte[]> generarRecibo(@RequestBody Map<String, String> datos) {
         try {
-            // Validación de datos
-            if (!datos.containsKey("legajoId") || !datos.containsKey("tipoPago")) {
-                return ResponseEntity.badRequest().body("Faltan parámetros obligatorios".getBytes());
-            }
-
-            // Crear datos dinámicos
             Map<String, Object> templateData = new HashMap<>();
-            templateData.put("nombre", "Geronimo Walter");
-            templateData.put("curso", "Spring Angular");
-            templateData.put("legajo", datos.get("legajoId"));
-            templateData.put("fecha_pago", "2024-02-17");
-            templateData.put("monto", "$5,000.00");
-            templateData.put("usuario", "jperez");
-            templateData.put("id_pago", "REC-001");
-            templateData.put("id_transaccion", "TRX-001");
+            templateData.put("nombre", datos.get("nombre"));
+            templateData.put("curso", datos.get("carrera"));
+            templateData.put("legajoId", datos.get("legajoId"));
+            templateData.put("fecha_pago", datos.get("fecha"));
+            templateData.put("monto", datos.get("monto"));
+            templateData.put("usuario", userService.getAuthenticatedUser().get().getUserApellido());
+            templateData.put("id_pago", datos.get("idAporte"));
+
+
             // Generar HTML
             String html = htmlService.procesarHtml("recibo", templateData);
             System.out.println("HTML Generado: \n" + html); // Debug para revisar el HTML
 
             // Convertir HTML a PDF
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ITextRenderer renderer = new ITextRenderer();
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-            renderer.finishPDF();
-
+            ConverterProperties properties = new ConverterProperties();
+            HtmlConverter.convertToPdf(html, outputStream, properties);
 
             byte[] pdfBytes = outputStream.toByteArray();
             outputStream.close();
@@ -65,4 +76,19 @@ public class AporteController {
             return ResponseEntity.internalServerError().body(("Error en la generación del PDF: " + e.getMessage()).getBytes());
         }
     }
+
+    @PostMapping
+    public ResponseEntity<Aporte> crearAporte(@RequestBody Aporte aporte) {
+        if (aporte.getAporteFecha() == null) {
+            aporte.setAporteFecha(LocalDate.now());
+        }
+
+        // Guardar en la base de datos
+        Aporte nuevoAporte = aporteService.save(aporte);
+
+        // Retornar el objeto completo en lugar de solo el ID
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoAporte);
+    }
+
+
 }

@@ -57,5 +57,83 @@ public class Materia {
     @JsonIgnore
     private Set<MateriaCarrera> materiaCarreras = new LinkedHashSet<>();
 
+    public Integer getCatedras() {
+        return catedras;
+    }
 
+    public void setCatedras(Integer catedras) {
+        this.catedras = catedras;
+    }
+
+    public Set<MateriaCarrera> getMateriaCarreras() {
+        return materiaCarreras;
+    }
+
+    public void setMateriaCarreras(Set<MateriaCarrera> materiaCarreras) {
+        this.materiaCarreras = materiaCarreras;
+    }
+
+    public String getMateriaCursada() {
+        return materiaCursada;
+    }
+
+    public void setMateriaCursada(String materiaCursada) {
+        this.materiaCursada = materiaCursada;
+    }
+
+    public String getMateriaExamen() {
+        return materiaExamen;
+    }
+
+    public void setMateriaExamen(String materiaExamen) {
+        this.materiaExamen = materiaExamen;
+    }
+
+    public String getMateriaId() {
+        return materiaId;
+    }
+
+    public void setMateriaId(String materiaId) {
+        this.materiaId = materiaId;
+    }
+
+    public String getMateriaModalidad() {
+        return materiaModalidad;
+    }
+
+    public void setMateriaModalidad(String materiaModalidad) {
+        this.materiaModalidad = materiaModalidad;
+    }
+
+    public String getMateriaNivel() {
+        return materiaNivel;
+    }
+
+    public void setMateriaNivel(String materiaNivel) {
+        this.materiaNivel = materiaNivel;
+    }
+
+    public String getMateriaNombre() {
+        return materiaNombre;
+    }
+
+    public void setMateriaNombre(String materiaNombre) {
+        this.materiaNombre = materiaNombre;
+    }
+
+    public Integer getMateriaOrden() {
+        return materiaOrden;
+    }
+
+    public void setMateriaOrden(Integer materiaOrden) {
+        this.materiaOrden = materiaOrden;
+    }
+
+    public String getMateriaRegimen() {
+        return materiaRegimen;
+    }
+
+    public void setMateriaRegimen(String materiaRegimen) {
+        this.materiaRegimen = materiaRegimen;
+    }
 }

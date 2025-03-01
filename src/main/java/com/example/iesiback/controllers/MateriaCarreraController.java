@@ -23,6 +23,8 @@ public class MateriaCarreraController {
     }
 
 
+
+
     // 🔹 Nuevo método para obtener MateriaCarrera por ID
     @GetMapping("/{id}")
     public ResponseEntity<MateriaCarrera> obtenerMateriaCarreraPorId(@PathVariable Long id) {

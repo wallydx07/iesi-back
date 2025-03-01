@@ -1,11 +1,14 @@
 package com.example.iesiback.controllers;
 import com.example.iesiback.entities.Alumno;
-import com.example.iesiback.entities.Preinscripcion;
 import com.example.iesiback.services.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Map;
+import java.util.HashMap;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,13 +25,43 @@ public class AlumnoController {
         return alumnoService.obtenerAlumnos();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Alumno> getAlumnoById(@PathVariable String id) {
-        return alumnoService.findById(id)
-                .map(alumno -> ResponseEntity.ok().body(alumno))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PostMapping
+    public ResponseEntity<Alumno> createAlumno(@RequestBody Alumno alumno) {
+        Alumno nuevoAlumno = alumnoService.createAlumno(alumno);
+        return ResponseEntity.ok(nuevoAlumno);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getAlumnoById(@PathVariable String id) {
+        var alumnoOpt = alumnoService.findById(id);
+
+        if (alumnoOpt.isPresent()) {
+            return ResponseEntity.ok().body(alumnoOpt.get());
+        } else {
+            // ✅ Crear JSON de respuesta
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 404);
+            response.put("message", "Alumno no encontrado");
+
+            // ✅ Configurar las cabeceras correctamente
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .headers(headers) // ✅ Agregar las cabeceras manualmente
+                    .body(response);
+        }
+    }
+
+    @GetMapping("/buscar")
+    public List<String> buscarAlumnos(@RequestParam String apellido) {
+        return alumnoService.buscarAlumnosPorApellido(apellido);
+    }
+
+    @GetMapping("/buscar/dni")
+    public List<Alumno> buscarAlumnosDni(@RequestParam String dni) {
+        return alumnoService.buscarPorDni(dni);
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<Alumno> actualizarAlumno(@PathVariable String id, @RequestBody Alumno alumno) {
@@ -52,5 +85,3 @@ public class AlumnoController {
         }
     }
 }
-
-

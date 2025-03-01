@@ -3,6 +3,7 @@ package com.example.iesiback.controllers;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.services.CarreraService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,5 +18,18 @@ public class CarreraController {
     @GetMapping
     public List<Carrera> obtenerCarreras() {
         return carreraService.obtenerCarreras();
+    }
+
+    @GetMapping("/ordenadas")
+    public ResponseEntity<List<Carrera>> obtenerCarrerasOrdenadas() {
+        List<Carrera> carreras = carreraService.obtenerCarrerasOrdenadas();
+        return ResponseEntity.ok(carreras);
+    }
+
+
+    @GetMapping("/inscripcion")
+    public ResponseEntity<List<Carrera>> obtenerCarrerasInscripcion(@RequestParam Long alumnoDni) {
+        List<Carrera> carreras = carreraService.obtenerCarreraInstcripcion(alumnoDni);
+        return ResponseEntity.ok(carreras);
     }
 }

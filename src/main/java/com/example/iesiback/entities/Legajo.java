@@ -1,9 +1,6 @@
 package com.example.iesiback.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
@@ -19,10 +16,18 @@ public class Legajo {
     @Column(name = "legajo_id", nullable = false, length = 50)
     private String legajoId;
 
+   // @ManyToOne(fetch = FetchType.LAZY)
+   // @JoinColumn(name = "legajo_alumno_dni")
+    //@JsonIgnore
+   // private Alumno legajoAlumnoDni;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "legajo_alumno_dni")
-    @JsonIgnore
+    @JoinColumn(name = "legajo_alumno_dni", nullable = false)
+    @JsonProperty(value = "alumno", access = JsonProperty.Access.WRITE_ONLY)
     private Alumno legajoAlumnoDni;
+
+
 
     @Size(max = 50)
     @Column(name = "legajo_sede", length = 50)

@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.ExamenRequestDTO;
 import com.example.iesiback.dto.InscripcionExamenDTO;
+import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Examen;
 import com.example.iesiback.services.ExamenService;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api/examenes")
 public class ExamenController {
@@ -75,19 +76,23 @@ public class ExamenController {
 
     @PostMapping("/cursadas/registrar")
     public ResponseEntity<Examen> registrarExamen(@RequestBody ExamenRequestDTO request) {
-        // ✅ Logger para imprimir los valores recibidos
-        Logger logger = LoggerFactory.getLogger(ExamenController.class);
 
+        Logger logger = LoggerFactory.getLogger(ExamenController.class);
         logger.info("📌 Recibiendo solicitud de inscripción:");
-        logger.info("   🔹 Examen: {}", request.getExamen());
+       // logger.info("   🔹 Examen: {}", request.getExamen());
         logger.info("   🔹 Legajo ID: {}", request.getLegajoId());
         logger.info("   🔹 Turno ID: {}", request.getTurnoId());
         logger.info("   🔹 Materia ID: {}", request.getMateriaId());
+        logger.info("   🔹 Nota ID: {}", request.getNota());
+        logger.info("   🔹 Nota ID: {}", request.getExamenCondicion());
+
         Examen nuevoExamen = examenService.registrarExamen(
-                request.getExamen(),
+           //     request.getExamen(),
                 request.getLegajoId(),
                 request.getTurnoId(),
-                request.getMateriaId()
+                request.getMateriaId(),
+                request.getExamenCondicion(),
+                request.getCursada()
         );
         return ResponseEntity.ok(nuevoExamen);
     }

@@ -1,11 +1,13 @@
 package com.example.iesiback.repositories;
 
+import com.example.iesiback.dto.ExamenCursadaDTO;
 import com.example.iesiback.entities.CursadaExamen;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface CursadaExamenRepository extends JpaRepository<CursadaExamen, Integer> {
@@ -17,4 +19,13 @@ public interface CursadaExamenRepository extends JpaRepository<CursadaExamen, In
     boolean existsByTurno_TurnoIdAndMateriaId(String turnoId, String materiaId);
 
     Optional<CursadaExamen> findByMateriaIdAndTurno_TurnoId(String materiaId, String turnoId);
+
+    @Query(value = """
+        SELECT ce.cursada_examen_id, m.materia_id, m.materia_nombre 
+        FROM cursada_examen ce
+        INNER JOIN materia m ON ce.materia_id = m.materia_id
+        WHERE ce.turno_id = :turnoId
+        ORDER BY m.materia_nombre ASC
+    """, nativeQuery = true)
+    List<Object[]> findByTurno(@Param("turnoId") String turnoId);
 }

@@ -1,24 +1,16 @@
 package com.example.iesiback.services;
-import com.example.iesiback.entities.Alumno;
+
+import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
-import com.example.iesiback.repositories.LegajoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+public interface LegajoService {
+    Legajo findLegajoById(String id);
 
-@Service
-public class LegajoService {
-
-@Autowired
-private LegajoRepository LegajoRepository;
-
-public List<Legajo> obtenerLegajos() {
-    return LegajoRepository.findAll();
-}
-
-    public Optional<Legajo> findById(String id) {
-        return LegajoRepository.findById(id);
-    }
+    List<Legajo> obtenerLegajos();
+    Optional<Legajo> findById(String id);
+    Legajo guardarLegajo(Legajo legajo, Carrera carrera);
+    String generaLegajo(String prefijo);
 }

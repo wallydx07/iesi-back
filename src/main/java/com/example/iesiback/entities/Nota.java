@@ -14,7 +14,7 @@ public class Nota {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Hibernate maneja la secuencia automáticamente
     @Column(name = "nota_id", nullable = false)
-    private Integer id;
+    private Integer notaId;
 
     @Size(max = 50)
     @Column(name = "nota_calificacion_nota_numero", length = 50)
@@ -62,27 +62,31 @@ public class Nota {
     @JsonIgnore // ✅ Evita que Jackson serialice esta relación
     private Set<Examen> examen = new LinkedHashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nota_cursada_id")
-    @JsonIgnore
-    private Cursada notaCursada;
+   // @ManyToOne(fetch = FetchType.LAZY)
+   // @JoinColumn(name = "nota_cursada_id")
+    //@JsonIgnore
 
-    public Cursada getNotaCursada() {
-        return notaCursada;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nota_cursada_id", nullable = false)
+    @JsonProperty(value = "cursada", access = JsonProperty.Access.WRITE_ONLY)
+    private Cursada cursada;
+
+    public Cursada getCursada() {
+        return cursada;
     }
 
-    public void setNotaCursada(Cursada notaCursada) {
-        this.notaCursada = notaCursada;
+    public void setCursada(Cursada notaCursada) {
+        this.cursada = notaCursada;
     }
 
 
     // Getters y Setters
-    public Integer getId() {
-        return id;
+    public Integer getNotaId() {
+        return notaId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setNotaId(Integer id) {
+        this.notaId = id;
     }
 
     public String getNotaCalificacionNotaNumero() {
@@ -173,7 +177,4 @@ public class Nota {
     public void setExamen(Set<Examen> examen) {
         this.examen = examen;
     }
-
-
-
 }

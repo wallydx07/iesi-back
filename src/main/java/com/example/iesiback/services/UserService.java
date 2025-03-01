@@ -9,7 +9,9 @@ import org.springframework.lang.NonNull;
 
 import com.example.iesiback.entities.User;
 import com.example.iesiback.models.UserRequest;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface UserService {
 
     List<User> findAll();

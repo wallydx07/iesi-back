@@ -1,6 +1,7 @@
 package com.example.iesiback.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class NotaMateriaDTO {
     private Integer notaId;
@@ -15,13 +16,14 @@ public class NotaMateriaDTO {
     private LocalDate notaFecha;
     private String notaObservaciones;
     private String notaUsuario;
+    private String notaStatus;
+    private List<String> correlativas; // 📌 Ahora es una lista
     private String materiaId;
-
 
     public NotaMateriaDTO(Integer notaId, Integer materiaOrden, String materiaNombre, String notaCalificacionNumero,
                           String notaCalificacionLetra, String notaCondicion, String notaEstado, String notaLibro,
                           String notaFolio, LocalDate notaFecha, String notaObservaciones, String notaUsuario,
-                          String materiaId) {
+                          String notaStatus, List<String> correlativas, String materiaId) { // 📌 Se actualizó el constructor
         this.notaId = notaId;
         this.materiaOrden = materiaOrden;
         this.materiaNombre = materiaNombre;
@@ -34,10 +36,18 @@ public class NotaMateriaDTO {
         this.notaFecha = notaFecha;
         this.notaObservaciones = notaObservaciones;
         this.notaUsuario = notaUsuario;
+        this.notaStatus = notaStatus;
+        this.correlativas = correlativas; // 📌 Asignación correcta de la lista
         this.materiaId = materiaId;
     }
 
-    // Getters y Setters
+    // 📌 Getters y Setters actualizados
+    public List<String> getCorrelativas() { return correlativas; }
+    public void setCorrelativas(List<String> correlativas) { this.correlativas = correlativas; }
+
+    public String getNotaStatus() { return notaStatus; }
+    public void setNotaStatus(String notaStatus) { this.notaStatus = notaStatus; }
+
     public Integer getNotaId() { return notaId; }
     public void setNotaId(Integer notaId) { this.notaId = notaId; }
     public Integer getMateriaOrden() { return materiaOrden; }
@@ -64,5 +74,4 @@ public class NotaMateriaDTO {
     public void setNotaUsuario(String notaUsuario) { this.notaUsuario = notaUsuario; }
     public String getMateriaId() { return materiaId; }
     public void setMateriaId(String materiaId) { this.materiaId = materiaId; }
-
 }

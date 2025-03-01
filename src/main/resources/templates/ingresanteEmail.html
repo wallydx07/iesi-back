@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Aceptación de Inscripción - Instituto de Educación Superior</title>
+  <style type="text/css">
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #f6f6f6;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border: 1px solid #dddddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #dddddd;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #2a7ae2;
+    }
+    .content {
+      padding: 20px 0;
+      line-height: 1.1;
+      font-size: 15px;
+    }
+    .content p {
+      margin: 0 0 15px;
+    }
+    .content strong {
+      color: #2a7ae2;
+    }
+    .doc-section {
+      background-color: #f9f9f9;
+      padding: 15px;
+      margin: 20px 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+    }
+    .doc-section h3 {
+      margin-top: 0;
+      text-align: center;
+      color: #2a7ae2;
+    }
+    .doc-section ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .doc-section li {
+      margin-bottom: 8px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #777777;
+      border-top: 1px solid #dddddd;
+      padding-top: 10px;
+      margin-top: 20px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #2a7ae2;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 4px;
+      margin: 20px 0;
+      font-size: 16px;
+    }
+    @media only screen and (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      .header h1 {
+        font-size: 22px;
+      }
+      .button {
+        font-size: 14px;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Cabecera -->
+  <div class="header">
+    <h1>Instituto de Educación Superior Intercultural</h1>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="content">
+    <p>Estimado(a) <strong>[[${nombre}]]</strong>,</p>
+    <p>Nos complace comunicarle que su inscripción a la <strong>Tecnicatura Superior en [[${tecnicatura}]] </strong>  ha sido <strong>aceptada</strong> en nuestro Instituto de Educación Superior.</p>
+    <p>Le damos la más cordial <strong>bienvenida</strong> a nuestra comunidad educativa. A continuación, le invitamos a confirmar su <strong>inscripcion definitiva</strong> en las siguientes fechas:</p>
+    <p><strong>Fechas asignadas:</strong> [[${fecha}]]</p>
+    <p>Por favor, asegúrese de presentarse en nuestras instalaciones en cualquiera de las fechas asignadas, con toda la documentación requerida.</p>
+
+    <!-- Sección de Documentación Requerida -->
+    <div class="doc-section">
+      <h3>Documentación Requerida</h3>
+      <ul>
+        <li>Copia del Documento Nacional de Identidad (DNI).</li>
+        <li>Fotocopia del título secundario autenticado por el Departamento de Titulos del Ministerio de Educacion.</li>
+        <li>Fotocopia original del certificado de nacimiento expedido por el Registro Civil.</li>
+        <li>Certificado de buena salud o carnet sanitario.</li>
+        <li>Pago Arancel de inscripcion.</li>
+        <li>2 Fotos tamaño 4x4.</li>
+        <li>1 Folio Tamaño legal.</li>
+      </ul>
+    </div>
+    <p>Recuerde que su inscripción solo podrá gestionarse con la presentación de la <strong>Toda la documentacion</strong>.</p>
+    <p>En caso de no presentarse en las <strong>fechas asignadas</strong>, su cupo se asignará a los aspirantes en lista de espera.</p>
+    <p>Si necesita mayor información, llamar al 3883428370(9hs-19hs)</p>
+    <p>Atentamente,</p>
+    <p><strong>El equipo del Instituto de Educación Superior Intercultural</strong></p>
+  </div>
+
+  <!-- Pie de página -->
+  <div class="footer">
+    <p>Este correo ha sido generado automáticamente. Por favor, no responda a este mensaje.</p>
+    <p>Instituto de Educación Superior Intercultural- Bahia blanca 235 San Salvador de jujuy</p>
+  </div>
+</div>
+</body>
+</html>

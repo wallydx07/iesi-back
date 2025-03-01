@@ -3,6 +3,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.entities.Preinscripcion;
 import com.example.iesiback.repositories.PreinscripcionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +17,8 @@ public class PreinscripcionServiceImpl implements PreinscripcionService {
 
     @Override
     public List<Preinscripcion> obtenerPreinscripcion() {
-        return preinscripcionRepository.findAll();
+       // return preinscripcionRepository.findAll();
+        return preinscripcionRepository.findAll(Sort.by(Sort.Direction.ASC, "fecha"));
     }
 
     @Override

@@ -9,12 +9,14 @@ import com.example.iesiback.repositories.NotaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ExamenServiceImpl implements ExamenService {
+    private final NotaService notaService;
     private PermisoService permisoService; // ✅ Inyectamos PermisoService
     private final ExamenRepository examenRepository;
     private final CursadaExamenService cursadaExamenService;
@@ -32,7 +34,7 @@ public class ExamenServiceImpl implements ExamenService {
             CursadaRepository cursadaRepository,
             CursadaService cursadaService,
             CursadaExamenRepository cursadaExamenRepository,
-            PermisoService permisoService) {
+            PermisoService permisoService, NotaService notaService) {
         this.examenRepository = examenRepository;
         this.cursadaExamenService = cursadaExamenService; // ✅ Ahora está correctamente inyectado
         this.notaRepository = notaRepository;
@@ -40,8 +42,8 @@ public class ExamenServiceImpl implements ExamenService {
         this.cursadaService = cursadaService;
         this.cursadaExamenRepository = cursadaExamenRepository;
         this.permisoService = permisoService;
+        this.notaService = notaService;
     }
-
 
 
     @Override
@@ -79,39 +81,40 @@ public class ExamenServiceImpl implements ExamenService {
     public List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno) {
         List<Cursada> cursadas = cursadaService.getCursadasNoAprobadas(legajoId);
         List<InscripcionExamenDTO> inscripciones = new ArrayList<>();
+
         cursadas.forEach(cursada -> {
-        System.out.println("Cursada ID: " + cursada.getId() + " - Estado: " + cursada.getStatus());
-        InscripcionExamenDTO inscripcion= new InscripcionExamenDTO();
-        inscripcion.setCursadaId(cursada.getId());
-        inscripcion.setMateriaCarreraId(cursada.getCursadaMateriaCarrera().getId());
-        inscripcion.setMateriaOrden(cursada.getCursadaMateriaCarrera().getMateria().getMateriaOrden());
-        inscripcion.setCurso(cursada.getCursadaMateriaCarrera().getMateria().getMateriaNivel());
-        inscripcion.setMateriaId(cursada.getCursadaMateriaCarrera().getMateria().getMateriaId());
-        inscripcion.setMateriaNombre(cursada.getCursadaMateriaCarrera().getMateria().getMateriaNombre());
-        List<Nota> notas = new ArrayList<>(cursada.getNotas());
+            System.out.println("Cursada ID: " + cursada.getId() + " - Estado: " + cursada.getStatus());
+            InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
+            inscripcion.setCursadaId(cursada.getId());
+            inscripcion.setMateriaCarreraId(cursada.getMateriaCarrera().getId());
+            inscripcion.setMateriaOrden(cursada.getMateriaCarrera().getMateria().getMateriaOrden());
+            inscripcion.setCurso(cursada.getMateriaCarrera().getMateria().getMateriaNivel());
+            inscripcion.setMateriaId(cursada.getMateriaCarrera().getMateria().getMateriaId());
+            inscripcion.setMateriaNombre(cursada.getMateriaCarrera().getMateria().getMateriaNombre());
+            List<Nota> notas = new ArrayList<>(cursada.getNotas());
             for (Nota nota : notas) {
-        //    if (nota.getNotaCondicion().equals("Cursada")||nota.getNotaCondicion().equals("Cursando")) {
+                //    if (nota.getNotaCondicion().equals("Cursada")||nota.getNotaCondicion().equals("Cursando")) {
                 if (nota.getNotaCondicion().equals("Cursada")) {
-                if (nota.getNotaEstado().equals("Regular")) {
-                    inscripcion.setCondicion("Regular");
-                }else{
-                    inscripcion.setCondicion("Libre");
+                    if (nota.getNotaEstado().equals("Regular")) {
+                        inscripcion.setCondicion("Regular");
+                    } else {
+                        inscripcion.setCondicion("Libre");
+                    }
                 }
             }
-        }
             inscripcion.setFecha(
-                    cursada.getCursadaMateriaCarrera().getFecha() != null
-                            ? cursada.getCursadaMateriaCarrera().getFecha().toString()
+                    cursada.getMateriaCarrera().getFecha() != null
+                            ? cursada.getMateriaCarrera().getFecha().toString()
                             : "Fecha no disponible"
             );
 
-            Boolean estado = examenRepository.getEstadoExamen(turno,cursada.getMateriaId(),legajoId);
+            Boolean estado = examenRepository.getEstadoExamen(turno, cursada.getMateriaId(), legajoId);
             boolean inscripto = estado != null && estado;  // ✅ Si es null, devuelve false
-                inscripcion.setInscripto(inscripto);
+            inscripcion.setInscripto(inscripto);
 
             String fecha = cursadaExamenService.obtenerFechaPorMateriaYTurno(cursada.getMateriaId(), turno);
             inscripcion.setFechaHoraMesa(fecha);
-           inscripcion.setCorrelativas(cursadaService.obtenerCorrelativasPendientes(cursada));
+            inscripcion.setCorrelativas(cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria()));
             inscripciones.add(inscripcion);
         });
 
@@ -119,18 +122,15 @@ public class ExamenServiceImpl implements ExamenService {
     }
 
     @Override
-    public Examen registrarExamen(Examen examen, String legajoId, String turnoId, String materiaId) {
+    public Examen registrarExamen(String legajoId, String turnoId, String materiaId, String condicionExamen, Cursada cursada) {
         // ✅ 1. Obtener o crear el permiso
         Permiso permiso = permisoService.obtenerOCrearPermiso(legajoId, turnoId);
-
         // ✅ 2. Verificar si la cursada_examen existe
         Optional<CursadaExamen> cursadaExistente = cursadaExamenRepository.findByMateriaIdAndTurno_TurnoId(materiaId, turnoId);
-
         // 📌 Depuración: imprimir los parámetros de búsqueda
         System.out.println("🔍 Buscando CursadaExamen con:");
         System.out.println("   🔹 Materia ID: " + materiaId);
         System.out.println("   🔹 Turno ID: " + turnoId);
-
         // 📌 Depuración: imprimir si se encontró o no la cursada
         if (cursadaExistente.isPresent()) {
             System.out.println("✅ Se encontró CursadaExamen:");
@@ -140,28 +140,35 @@ public class ExamenServiceImpl implements ExamenService {
         } else {
             System.out.println("❌ No se encontró ninguna CursadaExamen para los datos especificados.");
         }
-
         if (cursadaExistente.isEmpty()) {
             throw new RuntimeException("❌ No existe una cursada para la materia y turno especificados.");
         }
-
         CursadaExamen cursadaExamen = cursadaExistente.get();
-
         // ✅ 3. Verificar si ya existe un examen para este permiso y cursada
         Optional<Examen> examenExistente = examenRepository.findByPermisoAndCursadaExamen(permiso, cursadaExamen);
-
         if (examenExistente.isPresent()) {
             // ✅ Si existe, alternar el estado de examen_inscripto
             Examen examenActualizado = examenExistente.get();
             examenActualizado.setExamenInscripto(!examenActualizado.getExamenInscripto()); // Alternar estado
             return examenRepository.save(examenActualizado);
-        }
+        }else {
+            // ✅ 4. Si no existe, crear un nuevo examen con examen_inscripto = true
+            Nota nota = new Nota();
+            Nota aux = new Nota();
+            nota.setNotaCondicion(condicionExamen);
+            nota.setNotaEstado("Pendiente");
+            nota.setCursada(cursada);
+            aux=notaService.guardarNota(nota);
+            Examen examen = new Examen();
+            examen.setStatus("Pendiente");
+            examen.setNota(aux);
+            examen.setPermiso(permiso);
+            examen.setCursadaExamen(cursadaExamen);
+            examen.setExamenInscripto(true); // Se inscribe por primera vez
 
-        // ✅ 4. Si no existe, crear un nuevo examen con examen_inscripto = true
-        examen.setPermiso(permiso);
-        examen.setCursadaExamen(cursadaExamen);
-        examen.setExamenInscripto(true); // Se inscribe por primera vez
-        return examenRepository.save(examen);
+            notaService.guardarNota(nota);
+            return examenRepository.save(examen);
+        }
     }
 
     @Override
@@ -181,7 +188,6 @@ public class ExamenServiceImpl implements ExamenService {
         examen.setExamenInscripto(true); // ✅ Se reactiva el examen
         examenRepository.save(examen);
     }
-
 
 
 }

@@ -1,12 +1,17 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.Preinscripcion;
+import com.example.iesiback.services.EmailService;
 import com.example.iesiback.services.PreinscripcionService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = {"http://localhost:4200"})
@@ -16,6 +21,10 @@ public class PreinscripcionController {
 
     @Autowired
     private PreinscripcionService preinscripcionService;
+
+    @Autowired
+    private EmailService emailService;
+
 
     // Obtener todas las preinscripciones
     @GetMapping

@@ -9,6 +9,9 @@ import java.util.Optional;
 @Service
 public interface MateriaCarreraService {
     List<MateriaCarrera> obtenerMateriaCarreras();
+
+    List<MateriaCarrera> obtenerMateriasPorCarrera(String carreraId);
+
     // 🔹 Nuevo método para buscar por ID
     Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id);
 }

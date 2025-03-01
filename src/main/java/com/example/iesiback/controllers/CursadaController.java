@@ -1,16 +1,21 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.Cursada;
+import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.services.CursadaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins={"http://localhost:4200"})
 @RestController
 @RequestMapping("/api/cursadas")
-@CrossOrigin(origins = "*")  // Permitir acceso desde el frontend
 public class CursadaController {
 
     @Autowired
@@ -21,6 +26,25 @@ public class CursadaController {
         return cursadaService.getAllCursadas();
     }
 
+    @PostMapping("/inscribir/{carreraId}")
+    public ResponseEntity<Map<String, String>> agregarMateriasACursada(
+            @PathVariable String carreraId,
+            @RequestBody Legajo legajo) {
+        try {
+            cursadaService.agregarMateriasACursadaPorCarrera(carreraId, legajo);
+
+            // ✅ Crear un JSON con un mensaje
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Materias agregadas correctamente a la cursada.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error al agregar materias: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+
     @GetMapping("/{id}")
     public Optional<Cursada> getCursadaById(@PathVariable Integer id) {
         return cursadaService.getCursadaById(id);
@@ -30,6 +54,7 @@ public class CursadaController {
     public List<Cursada> getCursadaByLegajoId(@PathVariable String id) {
         return cursadaService.findByLegajoId(id);
     }
+
 
     @PostMapping
     public Cursada createCursada(@RequestBody Cursada cursada) {
@@ -42,7 +67,7 @@ public class CursadaController {
                 .map(cursada -> {
                     cursada.setCursadaInscripto(cursadaDetails.getCursadaInscripto());
                     cursada.setStatus(cursadaDetails.getStatus());
-                    cursada.setCursadaMateriaCarrera(cursadaDetails.getCursadaMateriaCarrera());
+                    cursada.setMateriaCarrera(cursadaDetails.getMateriaCarrera());
                     cursada.setNotas(cursadaDetails.getNotas());
                     return cursadaService.saveCursada(cursada);
                 })
@@ -51,6 +76,7 @@ public class CursadaController {
                     return cursadaService.saveCursada(cursadaDetails);
                 });
     }
+
 
     @DeleteMapping("/{id}")
     public void deleteCursada(@PathVariable Integer id) {

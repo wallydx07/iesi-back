@@ -13,6 +13,19 @@ public class AlumnoServiceImpl implements AlumnoService {
 
     @Autowired
     private AlumnoRepository alumnoRepository;
+    @Override
+    public Alumno createAlumno(Alumno alumno) {
+        return alumnoRepository.save(alumno);
+    }
+
+    @Override
+    public Alumno findAlumnoById(String id) {
+        return alumnoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado con ID: " + id));
+    }
+
+
+
 
     @Override
     public List<Alumno> obtenerAlumnos() {
@@ -35,5 +48,15 @@ public class AlumnoServiceImpl implements AlumnoService {
             alumnoRepository.delete(alumno);
             return true;
         }).orElse(false);
+    }
+
+@Override
+    public List<String> buscarAlumnosPorApellido(String apellido) {
+        return alumnoRepository.buscarPorApellido(apellido);
+    }
+
+    @Override
+    public List<Alumno> buscarPorDni(String dni) {
+        return alumnoRepository.buscarPorDni(dni);
     }
 }

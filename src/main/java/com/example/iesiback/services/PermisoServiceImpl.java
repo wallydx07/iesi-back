@@ -43,18 +43,14 @@ public class PermisoServiceImpl implements PermisoService {
 
     public Permiso obtenerOCrearPermiso(String legajoId, String turnoId) {
         Optional<Permiso> permiso = permisoRepository.findPermisoByLegajoAndTurnoOrdered(legajoId, turnoId);
-
         return permiso.orElseGet(() -> {
             Permiso nuevoPermiso = new Permiso();
             nuevoPermiso.setPermisoLegajoId(legajoId);
-            nuevoPermiso.setPermisoFecha(LocalDate.now()); // Puede omitirse si la fecha no es relevante
+            nuevoPermiso.setPermisoFecha(LocalDate.now());
             nuevoPermiso.setPermisoObs("Generado automáticamente");
             return permisoRepository.save(nuevoPermiso);
         });
     }
-
-
-
 
     private static float charspacing(float width, float size, String par) throws IOException {
         float espacio = 0;
@@ -196,7 +192,7 @@ public class PermisoServiceImpl implements PermisoService {
             cell = headerRow.createCell(5, "Hora");
             cell.setAlign(HorizontalAlignment.CENTER);
             cell.setValign(VerticalAlignment.MIDDLE);
-            cell = headerRow.createCell(9, "Firma");
+            cell = headerRow.createCell(9, "Nota");
             cell.setAlign(HorizontalAlignment.CENTER);
             cell.setValign(VerticalAlignment.MIDDLE);
             yStart = yStart - headerRow.getHeight();
@@ -270,7 +266,7 @@ public class PermisoServiceImpl implements PermisoService {
             String fec = form.format(fechaDatee);
             String p1 = "San salvador de jujuy " + fec;
             String firma = "    ______________________                                  ________________________";
-            String firma1 = "         " + userService.getAuthenticatedUser().get().getUserApellido()+"                                               Firma Alumno";
+            String firma1 = "               " + userService.getAuthenticatedUser().get().getUserApellido()+"                                               Firma Alumno";
             String p2 = "El dia del examen el estudiante debera presentar: Libreta - Permiso de examen - D.N.I";
             String p6 = "-----------------------------------------------------";
             fin.showText(firma);
@@ -357,7 +353,7 @@ public class PermisoServiceImpl implements PermisoService {
             System.out.println("res yStart vale:" + yStart);
             System.out.println("res vale:" + res);
             fin.newLineAtOffset(0, -delta - 15);//-tam+80
-            String j = "Usuario: " + usuarioNombre + ", Recibo N°____, Fecha: " + fec + ", Firma Rendido________";
+            String j = "Usuario: " + userService.getAuthenticatedUser().get().getUserApellido()+ ", Recibo N°____, Fecha: " + fec + ", Firma Rendido________";
             fin.setCharacterSpacing(charspacing(longitud, tamaño(j, letra, normal), j));//espacio entre caracteres
             fin.showText(j);
             // fin.setCharacterSpacing(0);//espacio entre caracteres

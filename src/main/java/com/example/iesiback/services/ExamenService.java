@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.dto.InscripcionExamenDTO;
+import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Examen;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,9 @@ public interface ExamenService {
     List<Examen> findByPermisoLegajoIdAndTurnoId(String permisoLegajoId, String turnoId);
     List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno);
     boolean verificarPermisoParaTurno(String permisoLegajoId, String turnoId);
-    Examen registrarExamen(Examen examen, String legajoId, String turnoId, String materiaId);
+    //Examen registrarExamen(String legajoId, String turnoId, String materiaId, String examenCondicion);
+    Examen registrarExamen(String legajoId, String turnoId, String materiaId, String condicionExamen, Cursada cursada);
+
     void darDeBajaExamen(Long examenId);
     void activarExamen(Long examenId);
 
