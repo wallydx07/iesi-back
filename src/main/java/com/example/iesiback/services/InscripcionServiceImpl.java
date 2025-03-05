@@ -3,6 +3,10 @@ import com.example.iesiback.entities.Inscripcion;
 import com.example.iesiback.repositories.InscripcionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
 @Service
 public class InscripcionServiceImpl implements InscripcionService {
 
@@ -24,6 +28,41 @@ public class InscripcionServiceImpl implements InscripcionService {
     @Override
     public boolean existsByAlumnoDniAndCarreraNombre(Long alumnoDni, String carreraId) {
         return inscripcionRepository.existsByAlumnoDniAndCarreraNombre(alumnoDni,carreraId);
+    }
+
+@Override
+public List<String> rellenarAnyo(String legajoId) {
+        List<String> opciones = new ArrayList<>();
+
+        // Obtener la inscripción del estudiante
+        Inscripcion inscripcionOpt = inscripcionRepository.findInscripcionByLegajoId(legajoId);
+
+        int fin = Calendar.getInstance().get(Calendar.YEAR);
+        int ini = Integer.parseInt(inscripcionOpt.getCarrera().getCarreraYear());
+        System.out.println("ini: " + ini + " fin: " + fin);
+
+        int anio = fin - ini;
+        System.out.println("anio: " + anio);
+
+        // Determinar el estado del estudiante y agregar las opciones
+        switch (anio) {
+            case 0:
+                opciones.add("es estudiante del 1er año de la: ");
+                break;
+            case 1:
+                opciones.add("es estudiante del 2do año de la: ");
+                break;
+            case 2:
+                opciones.add("es estudiante del 3er año de la: ");
+                break;
+            default:
+                opciones.add("es estudiante de la carrera de: ");
+                break;
+        }
+            opciones.add("ha egresado de la carrera: ");
+            opciones.add("se encuentra cursando la carrera: ");
+            opciones.add("curso la carrera: ");
+        return opciones;
     }
 
 }

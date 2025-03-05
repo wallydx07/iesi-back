@@ -10,6 +10,9 @@ import java.util.Optional;
 public interface MateriaCarreraService {
     List<MateriaCarrera> obtenerMateriaCarreras();
 
+    int obtenerCantidadMateriasPorNivel(String carreraId, String nivel);
+
+    MateriaCarrera obtenerMateriaCarrera(String carreraId, String materiaId);
     List<MateriaCarrera> obtenerMateriasPorCarrera(String carreraId);
 
     // 🔹 Nuevo método para buscar por ID

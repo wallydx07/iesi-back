@@ -28,7 +28,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
             n.nota_observaciones,
             n.nota_usuario,
             n.nota_cursada_id,
-            mc.materia_id 
+            mc.materia_id,
+            m.materia_nivel
         FROM nota n
         INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
         INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
@@ -49,7 +50,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
             n.nota_observaciones,
             n.nota_usuario,
             n.nota_cursada_id,
-            m.materia_id 
+            m.materia_id,
+            m.materia_nivel
         FROM nota n
         INNER JOIN examen e ON e.nota_id = n.nota_id
         INNER JOIN permiso p ON e.permiso_id = p.permiso_id
@@ -82,12 +84,14 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     WHERE carrera.carrera_id = :carreraId\s
       AND materia.materia_id = :materiaId
       AND cursada_inscripto = :cursadaInscripto\s
+       AND nota.nota_condicion= :notaCondicion\s
     ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
    \s""", nativeQuery = true)
     List<NotaCursadaDTO> findNotasByCarreraAndMateria(
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
-            @Param("cursadaInscripto") boolean cursadaInscripto
+            @Param("cursadaInscripto") boolean cursadaInscripto,
+            @Param("notaCondicion") String notaCondicion
     );
 
 

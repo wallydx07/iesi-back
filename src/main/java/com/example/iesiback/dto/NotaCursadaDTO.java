@@ -16,6 +16,7 @@ public interface NotaCursadaDTO {
     String getCursadaStatus();
     String getNotaObservaciones();
     String getNotaUsuario();
+
 }
 
 

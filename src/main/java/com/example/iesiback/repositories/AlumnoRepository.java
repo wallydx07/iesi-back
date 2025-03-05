@@ -19,4 +19,8 @@ public interface AlumnoRepository extends JpaRepository<Alumno, String> {
     @Query(value = "SELECT * FROM alumno WHERE CAST(alumno_dni AS text) LIKE CONCAT('%', :dni, '%')", nativeQuery = true)
     List<Alumno> buscarPorDni(@Param("dni") String dni);
 
+    @Query("SELECT a FROM Alumno a " +
+            "JOIN Legajo l ON l.legajoAlumnoDni.alumnoDni = a.alumnoDni" +
+            " WHERE l.legajoId = :legajoId")
+    Alumno findAlumnoByLegajoId(@Param("legajoId") String legajoId);
 }

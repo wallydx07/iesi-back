@@ -2,13 +2,11 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.dto.ProcesadoReinscripcionMateriaDTO;
-import com.example.iesiback.dto.ReinscripcionMateriaDTO;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.services.MateriaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +22,8 @@ public class MateriaController {
     public List<Materia> obtenerTodasMaterias() {
         return materiaService.obtenerTodasMaterias();
     }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Materia> obtenerMateriaPorId(@PathVariable String id) {
@@ -51,10 +51,11 @@ public class MateriaController {
         materiaService.eliminarMateria(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("/carrera/{carreraId}")
-    public List<MateriaDTO> obtenerMateriasPorCarrera(@PathVariable String carreraId) {
-        return materiaService.obtenerMateriasPorCarrera(carreraId);
-    }
+
+        @GetMapping("/carrera/{carreraId}")
+        public List<MateriaDTO> obtenerMateriasPorCarrera(@PathVariable String carreraId) {
+            return materiaService.obtenerMateriasPorCarrera(carreraId);
+        }
     @GetMapping("/reinscripciones")
     public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(
             @RequestParam("cicloLectivo") Integer cicloLectivo,

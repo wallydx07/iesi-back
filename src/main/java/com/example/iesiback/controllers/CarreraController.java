@@ -32,4 +32,14 @@ public class CarreraController {
         List<Carrera> carreras = carreraService.obtenerCarreraInstcripcion(alumnoDni);
         return ResponseEntity.ok(carreras);
     }
+
+    @GetMapping("/anio-cursada")
+    public ResponseEntity<String> getAnioCursada(@RequestParam String libretaEstudiantil) {
+        try {
+            String anioCursada = carreraService.obtenerAnioCursada(libretaEstudiantil);
+            return ResponseEntity.ok(anioCursada);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 }

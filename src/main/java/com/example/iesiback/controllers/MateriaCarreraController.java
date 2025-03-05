@@ -17,12 +17,18 @@ public class MateriaCarreraController {
     @Autowired
     private MateriaCarreraService materiaCarreraService;
 
+
     @GetMapping
     public List<MateriaCarrera> obtenerMateriaCarreras() {
         return materiaCarreraService.obtenerMateriaCarreras();
     }
 
-
+    @GetMapping("/{carreraId}/{materiaId}")
+    public ResponseEntity<MateriaCarrera> obtenerMateriaCarrera(@PathVariable String carreraId,
+                                                                @PathVariable String materiaId) {
+        MateriaCarrera materiaCarrera = materiaCarreraService.obtenerMateriaCarrera(carreraId, materiaId);
+        return ResponseEntity.ok(materiaCarrera);
+    }
 
 
     // 🔹 Nuevo método para obtener MateriaCarrera por ID

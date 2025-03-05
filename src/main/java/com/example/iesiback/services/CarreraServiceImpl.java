@@ -3,6 +3,8 @@ import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.repositories.CarreraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +20,12 @@ public class CarreraServiceImpl implements CarreraService {
 
     @Autowired
     private CarreraRepository carreraRepository;
+
+    @Override
+    public Carrera obtenerCarreraPorLegajoId(String legajoId) {
+        return carreraRepository.findCarreraByLegajoId(legajoId);
+    }
+
 
     @Override
     public List<Carrera> findCarrerasByAlumnoDni(String alumnoDni) {
@@ -71,5 +79,48 @@ public class CarreraServiceImpl implements CarreraService {
         List<Carrera> carreras = this.obtenerCarreras();
         carreras.removeIf(carrera -> inscripcionService.existsByAlumnoDniAndCarreraNombre(alumnoDni, carrera.getCarreraNombre()));
         return carreras;
+    }
+
+    @Override
+    public String obtenerAnioCursada(String libretaEstudiantil) throws Exception {
+        // Obtener el año actual
+        int anioActual = Calendar.getInstance().get(Calendar.YEAR);
+
+        // Obtener el año de inicio usando el repositorio
+        Integer anioInicio = carreraRepository.findCarreraYearByLibreta(libretaEstudiantil);
+
+        if (anioInicio == null) {
+            throw new Exception("No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
+        }
+
+        int diferencia = anioActual - anioInicio;
+        switch (diferencia) {
+            case 0:
+                return "1er año";
+            case 1:
+                return "2do año";
+            case 2:
+                return "3er año";
+            default:
+                return "Definir Manualmente";
+        }
+    }
+
+
+    @Override
+    public Integer obtenerDuracionCarrera(String libretaEstudiantil) throws Exception {
+        // Obtener el año actual
+        int anioActual = Calendar.getInstance().get(Calendar.YEAR);
+
+        // Obtener el año de inicio usando el repositorio
+        Integer anioInicio = carreraRepository.findCarreraYearByLibreta(libretaEstudiantil);
+
+        if (anioInicio == null) {
+            throw new Exception("No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
+        }
+
+        int diferencia = anioActual - anioInicio;
+        return diferencia+1;
+
     }
 }

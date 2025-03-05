@@ -13,12 +13,19 @@ import java.util.List;
 public interface MateriaRepository extends JpaRepository<Materia, String> {
     @Query(value = """
         SELECT m.materia_id,
-               m.materia_nombre
+               m.materia_nombre,
+               m.materia_orden,
+               m.materia_nivel,
+               m.materia_regimen,  \s
+               m.materia_cursada,
+               m.materia_modalidad,
+               m.materia_examen,
+               m.catedras
         FROM materia m
         INNER JOIN materia_carrera mc ON m.materia_id = mc.materia_id
         WHERE mc.carrera_id = :carreraId
         ORDER BY m.materia_orden ASC
-        """, nativeQuery = true)
+       \s""", nativeQuery = true)
     List<MateriaDTO> findMateriasByCarrera(@Param("carreraId") String carreraId);
 
     @Query(value = """
@@ -48,6 +55,12 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
             @Param("cicloLectivo") Integer cicloLectivo,
             @Param("carreraNombre")    String carreraNombre
     );
+
+
+        @Query(value = "SELECT COUNT(*) FROM materia_carrera mc INNER JOIN materia m ON mc.materia_id = m.materia_id WHERE mc.carrera_id = :carreraId AND m.materia_nivel = :nivel", nativeQuery = true)
+        int countMateriasPorNivel(@Param("carreraId") String carreraId, @Param("nivel") String nivel);
+
+
 }
 
 

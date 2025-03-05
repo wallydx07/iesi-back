@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,7 +22,6 @@ public class NotaServiceImpl implements NotaService {
     private final CursadaService cursadaService;
 
     @Autowired
-
     public NotaServiceImpl(
             CursadaService cursadaService) {
         this.cursadaService = cursadaService;
@@ -32,7 +31,6 @@ public class NotaServiceImpl implements NotaService {
 
     @Autowired
     private NotaRepository notaRepository;
-
 
     @Override
     public List<Nota> obtenerNotas() {
@@ -44,13 +42,10 @@ public class NotaServiceImpl implements NotaService {
         return cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria());
     }
 
-
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
         List<Object[]> resultados = notaRepository.findTodasNotasByLegajo(legajoId);
-
         // 📌 Ajustar el formato de fecha según la entrada
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
         return resultados.stream().map(obj -> {
             LocalDate fechaNota = null;
 
@@ -83,7 +78,8 @@ public class NotaServiceImpl implements NotaService {
 
                     "---",             // nota_status (asumí que es un placeholder)
                     correlativas,      // 📌 Lista de correlativas corregida
-                    (obj[13] != null) ? obj[13].toString() : null   // materia_id (evita ClassCastException)
+                    (obj[13] != null) ? obj[13].toString() : null  , // materia_id (evita ClassCastException)//aca decia 13
+                    (String) obj[14]   // materia_nivel
             );
         }).collect(Collectors.toList());
     }
@@ -126,7 +122,8 @@ public class NotaServiceImpl implements NotaService {
                             (String) obj[11],  // nota_usuario
                             "---",             // nota_status (asumí que no se usa en la consulta)
                             correlativas,      // 📌 Lista de correlativas corregida
-                            (String) obj[12]   // materia_id
+                            (String) obj[12] ,  // materia_id
+                            (String) obj[13]   // materia_nivel
                     );
                 }).collect(Collectors.toList());
     }
@@ -147,7 +144,7 @@ public class NotaServiceImpl implements NotaService {
 
     @Override
     public List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materaId,boolean cursadaInscripto) {
-        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId,cursadaInscripto);
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId,cursadaInscripto,"Cursada");
         return todasLasNotas;
     }
 
@@ -186,6 +183,195 @@ public class NotaServiceImpl implements NotaService {
 
         // Guarda la nota actualizada y la retorna
         return notaRepository.save(notaExistente);
+    }
+
+    @Override
+    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
+        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>();
+        List<NotaMateriaDTO> notasOrigen    = new ArrayList<>();
+        notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
+
+        boolean checkCorrelativas = true;//si es verdadero va a analizar las correlativas, caso contrario no analiza correlativas
+
+
+        for (NotaMateriaDTO nota : notasOrigen) {
+
+            if (nota.getNotaEstado().equals("Desaprobado")) {
+                nota.setNotaEstado("Desaprobado");
+            } else if (nota.getNotaEstado().endsWith("Cursando")) {
+                LocalDate fechaNota = nota.getNotaFecha(); // Asegúrate de que es LocalDate
+                int anioNota = fechaNota.getYear();
+                int anioActual = LocalDate.now().getYear();
+                if (anioNota == anioActual) {
+                    nota.setNotaFinal("Cursando");
+                } else {
+                    nota.setNotaFinal("(-)");
+                }
+            } else if (nota.getNotaEstado().endsWith("Regular")) {
+                nota.setNotaFinal("Regular");
+            } else if (nota.getNotaEstado().endsWith("Libre")) {
+                nota.setNotaFinal("Desaprobado");
+            } else if (nota.getNotaEstado().endsWith("Ausente")) {
+                nota.setNotaFinal("Desaprobado");
+            } else {
+                nota.setNotaFinal(nota.getNotaCalificacionNumero() + "(" + nota.getNotaCalificacionLetra() + ")");
+            }
+
+            if (buscarClaveAnalitico(notasRefinadas, nota)) {
+                notasRefinadas = validadorAnalitico(notasRefinadas, nota);
+            } else {
+                notasRefinadas.add(nota);
+            }
+        }
+
+        if (checkCorrelativas) {
+
+            for (NotaMateriaDTO notas : notasRefinadas) {
+                List<String> correlativas=notas.getCorrelativas();
+                for (String numero : correlativas) {
+                    if (!correlativas(Integer.parseInt(numero), notasRefinadas, "aprobado")) {
+                        notas.setNotaFinal("(-)");  //dESACTIVAR PARA VER CSIN CORRELATIVAS===========================
+                        break;
+                    }
+                }
+            }
+
+        }
+        return notasRefinadas;
+    }
+
+
+    public boolean correlativas(int materia_orden, List<NotaMateriaDTO> analitico, String tipo) {
+        boolean aux = false;
+        System.out.println("+materiaOrden" + materia_orden);
+        System.out.println("Tamaño del linkedlist" + analitico.size());
+        if (analitico != null && !analitico.isEmpty() && materia_orden >= 0 && materia_orden < analitico.size()) {
+            NotaMateriaDTO xd = analitico.get(materia_orden - 1);
+            if (xd != null) {
+                String cond = xd.getNotaEstado() != null ? xd.getNotaEstado() : "";
+                String valorString = xd.getNotaCalificacionNumero()!= null ? xd.getNotaCalificacionNumero() : "";
+                System.out.println("Nota numero" + valorString + " materia: " + xd.getMateriaNombre() + " notaletra " + xd.getNotaCalificacionLetra());
+                double nota;
+                try {
+                    nota = Double.parseDouble(valorString);
+                } catch (NumberFormatException e) {
+                    // En caso de error, establecer el valor en 1
+                    nota = 1.0;
+                }
+                switch (tipo) {
+                    case "regular":
+                        if (nota >= 4) {
+                            System.out.println("Correlativa aceptada " + materia_orden + "nota: " + nota);
+                            aux = true;
+                        } else {
+                            System.out.println("Correlativa rechazada " + materia_orden + "nota: " + nota);
+                        }
+                        break;
+                    case "aprobado":
+                        if (nota >= 4 && cond.equals("Aprobado")) {
+                            aux = true;
+                            System.out.println("Correlativa aprobada " + materia_orden + "nota: " + nota);
+                        } else {
+                            System.out.println("Correlativa desaprobada " + materia_orden + "nota: " + nota + " Cond: " + cond);
+                        }
+                        break;
+                }
+            } else {
+                System.out.println("El objeto xd no tiene la estructura esperada.");
+            }
+        } else {
+            System.out.println("Los datos de entrada no son válidos.");
+        }
+
+        return aux;
+    }
+
+public boolean buscarClaveAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
+    return analitico.stream()
+            .anyMatch(xd -> Objects.equals(xd.getMateriaNombre(), materia.getMateriaNombre()));
+}
+
+
+    public List<NotaMateriaDTO> validadorAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
+        List<NotaMateriaDTO> nuevalista = new ArrayList<>();
+        System.out.println(".-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.");
+        for (NotaMateriaDTO xd : analitico) {
+            System.out.println("_________________________________________________________________________");
+           // System.out.println("materias son " + xd.getMateriaNombre() + "|" + materia.getNombre());
+
+            if (xd.getMateriaNombre().equals(materia.getMateriaNombre())) {
+                // Si las materias se repiten
+                String cond1 = xd.getNotaEstado();
+                String cond2 = materia.getNotaEstado();
+                System.out.println("condicion 1: " + cond1 + " | condicion 2: " + cond2);
+
+                if (cond1.equals("Aprobado")) {
+                    // Si la primera materia está aprobada, no hacer nada y conservar su estado
+                    System.out.println("La primera materia está aprobada, se conserva");
+                    nuevalista.add(xd);
+                } else if (cond2.equals("Aprobado")) {
+                    // Si la segunda materia está aprobada, actualizar y conservar su estado
+                    System.out.println("La segunda materia está aprobada, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Cursando") && (cond2.equals("Regular") || cond2.equals("Libre") || cond2.equals("Desaprobado") || cond2.equals("Ausente"))) {
+                    // La primera materia está cursando y la segunda está en estado regular o libre, actualizar a cursando
+                    System.out.println("La primera materia está cursando y la segunda está en estado regular o libre, se conserva");
+                    nuevalista.add(xd);
+                } else if (cond1.equals("Regular") && cond2.equals("Regular")) {
+                    // Ambas materias están regulares, actualizar a la última
+                    System.out.println("Ambas materias están regulares, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Desaprobado") && cond2.equals("Desaprobado")) {
+                    // Ambas materias están desaprobadas, actualizar a la última
+                    System.out.println("Ambas materias están desaprobadas, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Regular") && cond2.equals("Desaprobado")) {
+                    // La primera materia está en estado regular y la segunda está desaprobada, conservar el estado de la primera
+                    System.out.println("La primera materia está regular y la segunda está desaprobada, se conserva");
+                    nuevalista.add(xd);
+                } else if (cond1.equals("Regular") && cond2.equals("Cursando")) {
+                    // La primera materia está en estado regular y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está regular y la segunda está cursando, se conserva");
+                    nuevalista.add(xd);
+                } else if (cond1.equals("Regular") && cond2.equals("Ausente")) {
+                    // La primera materia está en estado regular y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está regular y la segunda está Ausente, se conserva");
+                    nuevalista.add(xd);
+                } else if (cond1.equals("Desaprobado") && cond2.equals("Regular")) {
+                    // La primera materia está desaprobada y la segunda está en estado regular, actualizar a regular
+                    System.out.println("La primera materia está desaprobada y la segunda está regular, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Desaprobado") && cond2.equals("Cursando")) {
+                    // La primera materia está desaprobada y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está desaprobada y la segunda está cursando, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Libre") && cond2.equals("Cursando")) {
+                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está libre y la segunda está cursando, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Libre") && cond2.equals("Ausente")) {
+                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está libre y la segunda está Ausente, se conserva");
+                    nuevalista.add(xd);
+                } else if (cond1.equals("Ausente") && cond2.equals("Libre")) {
+                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está Ausente y la segunda está Libre, se reemplaza");
+                    nuevalista.add(materia);
+                } else if (cond1.equals("Ausente") && cond2.equals("Regular")) {
+                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+                    System.out.println("La primera materia está Ausente y la segunda está Libre, se reemplaza");
+                    nuevalista.add(materia);
+                } else {
+                    // Agregar cualquier otra combinación de estados
+                    System.out.println("Combinación de estados no contemplada, se conserva");
+                    nuevalista.add(xd);
+                }
+            } else {
+                nuevalista.add(xd);
+            }
+        }
+
+        return nuevalista;
     }
 }
 

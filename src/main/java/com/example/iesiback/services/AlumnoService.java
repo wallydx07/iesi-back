@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface AlumnoService {
     Alumno findAlumnoById(String id);
 
+    Alumno obtenerAlumnoPorLegajoId(String legajoId);
+
     List<Alumno> obtenerAlumnos();
     Optional<Alumno> findById(String id);
     Alumno save(Alumno alumno);

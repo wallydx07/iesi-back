@@ -20,4 +20,6 @@ public interface NotaService {
     Nota obtenerNotaPorId(Long notaId);
 
     Nota actualizarNota(Long id, Nota nota) throws ResourceNotFoundException;
+
+    List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId);
 }

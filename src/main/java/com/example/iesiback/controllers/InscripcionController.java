@@ -17,7 +17,11 @@ public class InscripcionController {
         this.inscripcionService = inscripcionService;
     }
 
-
+    @GetMapping("/estado-estudiante")
+    public ResponseEntity<List<String>> obtenerEstadoEstudiante(@RequestParam String legajoId) {
+        List<String> opciones = inscripcionService.rellenarAnyo(legajoId);
+        return ResponseEntity.ok(opciones);
+    }
     
     @PostMapping
     public ResponseEntity<Inscripcion> crearInscripcion(@RequestBody Inscripcion inscripcion) {

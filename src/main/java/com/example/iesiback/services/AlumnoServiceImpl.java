@@ -25,7 +25,10 @@ public class AlumnoServiceImpl implements AlumnoService {
     }
 
 
-
+@Override
+public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
+        return alumnoRepository.findAlumnoByLegajoId(legajoId);
+    }
 
     @Override
     public List<Alumno> obtenerAlumnos() {

@@ -17,13 +17,14 @@ public class NotaMateriaDTO {
     private String notaObservaciones;
     private String notaUsuario;
     private String notaStatus;
+    private String notaFinal;
     private List<String> correlativas; // 📌 Ahora es una lista
     private String materiaId;
-
+    private String materiaNivel;
     public NotaMateriaDTO(Integer notaId, Integer materiaOrden, String materiaNombre, String notaCalificacionNumero,
                           String notaCalificacionLetra, String notaCondicion, String notaEstado, String notaLibro,
                           String notaFolio, LocalDate notaFecha, String notaObservaciones, String notaUsuario,
-                          String notaStatus, List<String> correlativas, String materiaId) { // 📌 Se actualizó el constructor
+                          String notaStatus, List<String> correlativas, String materiaId, String materiaNivel) { // 📌 Se actualizó el constructor
         this.notaId = notaId;
         this.materiaOrden = materiaOrden;
         this.materiaNombre = materiaNombre;
@@ -39,6 +40,15 @@ public class NotaMateriaDTO {
         this.notaStatus = notaStatus;
         this.correlativas = correlativas; // 📌 Asignación correcta de la lista
         this.materiaId = materiaId;
+        this.materiaNivel = materiaNivel;
+    }
+
+    public String getNotaFinal() {
+        return notaFinal;
+    }
+
+    public void setNotaFinal(String notaFinal) {
+        this.notaFinal = notaFinal;
     }
 
     // 📌 Getters y Setters actualizados
@@ -74,4 +84,12 @@ public class NotaMateriaDTO {
     public void setNotaUsuario(String notaUsuario) { this.notaUsuario = notaUsuario; }
     public String getMateriaId() { return materiaId; }
     public void setMateriaId(String materiaId) { this.materiaId = materiaId; }
+
+    public String getMateriaNivel() {
+        return materiaNivel;
+    }
+
+    public void setMateriaNivel(String materiaNivel) {
+        this.materiaNivel = materiaNivel;
+    }
 }
