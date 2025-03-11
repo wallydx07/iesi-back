@@ -22,12 +22,10 @@ public class Legajo {
    // private Alumno legajoAlumnoDni;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+   @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "legajo_alumno_dni", nullable = false)
     @JsonProperty(value = "alumno", access = JsonProperty.Access.WRITE_ONLY)
     private Alumno legajoAlumnoDni;
-
-
 
     @Size(max = 50)
     @Column(name = "legajo_sede", length = 50)

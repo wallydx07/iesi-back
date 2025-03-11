@@ -26,6 +26,9 @@ public interface CarreraRepository extends JpaRepository<Carrera, String> {
             "WHERE l.legajo_alumno_dni = :alumnoDni", nativeQuery = true)
     List<Carrera> findCarreraIdByAlumnoDni(@Param("alumnoDni") String alumnoDni);
 
+
+    List<Carrera> findAllByOrderByCarreraYearDesc();
+
     @Query(value = "SELECT c.carrera_year FROM carrera c " +
             "INNER JOIN inscripcion i ON c.carrera_id = i.carrera_id " +
             "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +

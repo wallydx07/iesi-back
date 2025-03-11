@@ -12,5 +12,8 @@ public interface LegajoService {
     List<Legajo> obtenerLegajos();
     Optional<Legajo> findById(String id);
     Legajo guardarLegajo(Legajo legajo, Carrera carrera);
+
+    Legajo updateLegajo(Legajo legajo);
+
     String generaLegajo(String prefijo);
 }

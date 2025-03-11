@@ -31,4 +31,7 @@ public interface CursadaService {
     List<Cursada> findByLegajoAndMateria(String legajo, String materia);
     Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear);
     List<String> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia);
+
+    @Transactional
+    void eliminarCursada(Integer id);
 }

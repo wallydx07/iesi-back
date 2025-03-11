@@ -27,7 +27,7 @@ public class AporteController {
 
     private final HtmlService htmlService;
     private final AporteService aporteService;
-    private UserService userService;
+    private final UserService userService;
 
     public AporteController(HtmlService htmlService, AporteService aporteService,UserService userService) {
         this.htmlService = htmlService;
@@ -82,11 +82,9 @@ public class AporteController {
         if (aporte.getAporteFecha() == null) {
             aporte.setAporteFecha(LocalDate.now());
         }
-
-        // Guardar en la base de datos
+        aporte.setUsuario(userService.getAuthenticatedUser().get().getUserApellido());
+        System.out.println(aporte.getUsuario()+"Usario agregado");
         Aporte nuevoAporte = aporteService.save(aporte);
-
-        // Retornar el objeto completo en lugar de solo el ID
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoAporte);
     }
 

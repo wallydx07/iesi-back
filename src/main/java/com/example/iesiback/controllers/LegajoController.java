@@ -4,6 +4,7 @@ import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.services.AlumnoService;
 import com.example.iesiback.services.LegajoService;
+import com.example.iesiback.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,12 +21,14 @@ import java.util.Optional;
 @RequestMapping("/api/legajos")
 public class LegajoController {
 
+    private final UserService userService;
     @Autowired
     private LegajoService LegajoService;
 
     private final AlumnoService alumnoService;
     @Autowired
-    public LegajoController(AlumnoService alumnoService) {
+    public LegajoController(AlumnoService alumnoService, UserService userService) {
+        this.userService = userService;
         this.alumnoService = alumnoService;
     }
 
@@ -34,12 +37,32 @@ public class LegajoController {
         return LegajoService.obtenerLegajos();
     }
 
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Legajo> updateLegajo(@RequestBody Legajo legajo, @RequestParam String dni) {
+       System.out.println("Legajo "+legajo);
+        System.out.println("dni "+dni);
+
+        if (legajo == null || dni == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        Optional<Alumno> alumnoOpt = alumnoService.findById(dni);
+        if (!alumnoOpt.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        legajo.setLegajoAlumnoDni(alumnoOpt.get());
+        Legajo updatedLegajo = LegajoService.updateLegajo(legajo);
+        return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<Legajo> getLegajoById(@PathVariable String id) {
         return LegajoService.findById(id)
                 .map(legajo -> ResponseEntity.ok().body(legajo))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
 
 
@@ -62,6 +85,7 @@ public class LegajoController {
             Optional<Alumno> alumnoOpt = alumnoService.findById(alumnoDni);
             if (alumnoOpt.isPresent()) {
                 legajo.setLegajoAlumnoDni(alumnoOpt.get());
+                legajo.setUsuario(userService.getAuthenticatedUser().get().getUserApellido());
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("message", "Alumno con DNI " + alumnoDni + " no encontrado", "status", 404));

@@ -3,6 +3,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.repositories.LegajoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +40,20 @@ public class LegajoServiceImpl implements LegajoService {
 
     @Override
     public Legajo guardarLegajo(Legajo legajo, Carrera carrera) {
-        	String prefijo = carrera.getCarreraId().split("-")[0];
+        String prefijo = carrera.getCarreraId().split("-")[0];
         legajo.setLegajoId(this.generaLegajo(prefijo));
         return legajoRepository.save(legajo);
     }
+
+    @Override
+    public Legajo updateLegajo(Legajo legajo) {
+        if (legajoRepository.existsById(legajo.getLegajoId())) {
+            return legajoRepository.save(legajo);  // Actualiza el legajo
+        } else {
+            throw new EntityNotFoundException("Legajo no encontrado");
+        }
+    }
+
 
     @Override
     public String generaLegajo(String prefijo) {

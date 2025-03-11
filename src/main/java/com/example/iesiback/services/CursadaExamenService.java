@@ -5,6 +5,7 @@ import com.example.iesiback.entities.CursadaExamen;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface CursadaExamenService {
@@ -12,4 +13,5 @@ public interface CursadaExamenService {
     boolean existePorTurnoYMateria(String turnoId, String materiaId);
      List<CursadaExamen> obtenerTodasLasCursadas();
     List<ExamenCursadaDTO> obtenerCursadasPorTurno(String turnoId);
+    Optional<CursadaExamen> obtenerPorId(Integer id);
 }

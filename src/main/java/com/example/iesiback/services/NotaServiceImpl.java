@@ -9,6 +9,7 @@ import com.example.iesiback.exception.ResourceNotFoundException;
 import com.example.iesiback.repositories.NotaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -44,12 +45,9 @@ public class NotaServiceImpl implements NotaService {
 
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
         List<Object[]> resultados = notaRepository.findTodasNotasByLegajo(legajoId);
-        // 📌 Ajustar el formato de fecha según la entrada
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return resultados.stream().map(obj -> {
             LocalDate fechaNota = null;
-
-            // 📌 Intentar parsear la fecha en el formato correcto
             if (obj[9] != null) {
                 try {
                     fechaNota = LocalDate.parse(obj[9].toString(), formatter);
@@ -57,11 +55,8 @@ public class NotaServiceImpl implements NotaService {
                     System.err.println("Error al parsear la fecha: " + obj[9]);
                 }
             }
-
-            // 📌 Obtener cursadaId correctamente
             Integer cursadaId = (obj[12] instanceof Integer) ? (Integer) obj[12] : null;
             List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of();
-
             return new NotaMateriaDTO(
                     (Integer) obj[0],  // nota_id
                     (Integer) obj[1],  // materia_orden
@@ -73,12 +68,11 @@ public class NotaServiceImpl implements NotaService {
                     (String) obj[7],   // nota_libro_nota
                     (String) obj[8],   // nota_folio_nota
                     fechaNota,         // ✅ Fecha corregida
-                    (obj[10] != null) ? obj[10].toString() : null,  // nota_observaciones (evita ClassCastException)
-                    (obj[11] != null) ? obj[11].toString() : null,  // nota_usuario
-
-                    "---",             // nota_status (asumí que es un placeholder)
-                    correlativas,      // 📌 Lista de correlativas corregida
-                    (obj[13] != null) ? obj[13].toString() : null  , // materia_id (evita ClassCastException)//aca decia 13
+                    (obj[10] != null) ? obj[10].toString() : null,
+                    (obj[11] != null) ? obj[11].toString() : null,
+                    "---",
+                    correlativas,
+                    (obj[13] != null) ? obj[13].toString() : null,
                     (String) obj[14]   // materia_nivel
             );
         }).collect(Collectors.toList());
@@ -122,11 +116,12 @@ public class NotaServiceImpl implements NotaService {
                             (String) obj[11],  // nota_usuario
                             "---",             // nota_status (asumí que no se usa en la consulta)
                             correlativas,      // 📌 Lista de correlativas corregida
-                            (String) obj[12] ,  // materia_id
+                            (String) obj[12],  // materia_id
                             (String) obj[13]   // materia_nivel
                     );
                 }).collect(Collectors.toList());
     }
+
     @Override
     public boolean isMateriaAprobada(String legajoId, String materiaId) {
         List<Object[]> resultados = notaRepository.findTodasNotasByLegajo(legajoId);
@@ -141,16 +136,15 @@ public class NotaServiceImpl implements NotaService {
     }
 
 
-
     @Override
-    public List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materaId,boolean cursadaInscripto) {
-        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId,cursadaInscripto,"Cursada");
+    public List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materaId, boolean cursadaInscripto) {
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId, cursadaInscripto, "Cursada");
         return todasLasNotas;
     }
 
     @Override
     public List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
-            Long  cursadaExamenId, Boolean examenInscripto) {
+            Long cursadaExamenId, Boolean examenInscripto) {
         List<NotaExamenDTO> todosLosExamenes = notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto);
         return todosLosExamenes;
     }
@@ -171,7 +165,6 @@ public class NotaServiceImpl implements NotaService {
         // Verifica si existe la nota en la base de datos
         Nota notaExistente = notaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Nota no encontrada para el id :: " + id));
-
         // Actualiza los campos de la nota existente (opcional: puedes actualizar campo por campo)
         notaExistente.setNotaCalificacionNotaNumero(nota.getNotaCalificacionNotaNumero());
         notaExistente.setNotaCalificacionNotaLetra(nota.getNotaCalificacionNotaLetra());
@@ -185,59 +178,91 @@ public class NotaServiceImpl implements NotaService {
         return notaRepository.save(notaExistente);
     }
 
+
+//
+//    @Override
+//    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
+//        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
+//        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>();
+//        Set<Integer> materiasProcesadas = new HashSet<>(); // Almacena los órdenes de materias ya procesadas
+//        boolean checkCorrelativas = true;
+//        for (NotaMateriaDTO nota : notasOrigen) {
+//            nota.setNotaFinal(definirNotaFinal(nota));
+//            int ordenMateria = nota.getMateriaOrden(); // Suponiendo que hay un campo que indica el orden de la materia
+//            if (materiasProcesadas.contains(ordenMateria)) {
+//                notasRefinadas = validadorAnalitico(notasRefinadas, nota);
+//            } else {
+//                materiasProcesadas.add(ordenMateria);
+//                notasRefinadas.add(nota);
+//            }
+//        }
+//        if (checkCorrelativas) {
+//            validarCorrelativas(notasRefinadas);
+//        }
+//        return notasRefinadas;
+//    }
+
+
     @Override
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
-        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>();
-        List<NotaMateriaDTO> notasOrigen    = new ArrayList<>();
-        notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
-
-        boolean checkCorrelativas = true;//si es verdadero va a analizar las correlativas, caso contrario no analiza correlativas
-
+        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
+        Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>(); // Evita duplicados y almacena la mejor nota
+        boolean checkCorrelativas = true;
 
         for (NotaMateriaDTO nota : notasOrigen) {
+            nota.setNotaFinal(definirNotaFinal(nota));
+            int ordenMateria = nota.getMateriaOrden();
 
-            if (nota.getNotaEstado().equals("Desaprobado")) {
-                nota.setNotaEstado("Desaprobado");
-            } else if (nota.getNotaEstado().endsWith("Cursando")) {
-                LocalDate fechaNota = nota.getNotaFecha(); // Asegúrate de que es LocalDate
-                int anioNota = fechaNota.getYear();
-                int anioActual = LocalDate.now().getYear();
-                if (anioNota == anioActual) {
-                    nota.setNotaFinal("Cursando");
-                } else {
-                    nota.setNotaFinal("(-)");
-                }
-            } else if (nota.getNotaEstado().endsWith("Regular")) {
-                nota.setNotaFinal("Regular");
-            } else if (nota.getNotaEstado().endsWith("Libre")) {
-                nota.setNotaFinal("Desaprobado");
-            } else if (nota.getNotaEstado().endsWith("Ausente")) {
-                nota.setNotaFinal("Desaprobado");
+            if (materiasMap.containsKey(ordenMateria)) {
+                // Si ya existe una materia, validar cuál es mejor
+                NotaMateriaDTO mejorNota = validadorAnalitico(materiasMap.get(ordenMateria), nota);
+                materiasMap.put(ordenMateria, mejorNota);
             } else {
-                nota.setNotaFinal(nota.getNotaCalificacionNumero() + "(" + nota.getNotaCalificacionLetra() + ")");
-            }
-
-            if (buscarClaveAnalitico(notasRefinadas, nota)) {
-                notasRefinadas = validadorAnalitico(notasRefinadas, nota);
-            } else {
-                notasRefinadas.add(nota);
+                materiasMap.put(ordenMateria, nota);
             }
         }
+
+        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>(materiasMap.values());
 
         if (checkCorrelativas) {
+            validarCorrelativas(notasRefinadas);
+        }
 
-            for (NotaMateriaDTO notas : notasRefinadas) {
-                List<String> correlativas=notas.getCorrelativas();
-                for (String numero : correlativas) {
-                    if (!correlativas(Integer.parseInt(numero), notasRefinadas, "aprobado")) {
-                        notas.setNotaFinal("(-)");  //dESACTIVAR PARA VER CSIN CORRELATIVAS===========================
-                        break;
-                    }
+        return notasRefinadas;
+    }
+
+
+    /**
+     * Define el estado final de la nota según su estado actual.
+     */
+    private String definirNotaFinal(NotaMateriaDTO nota) {
+        switch (nota.getNotaEstado()) {
+            case "Desaprobado":
+            case "Libre":
+            case "Ausente":
+                return "Desaprobado";
+            case "Cursando":
+                return (nota.getNotaFecha().getYear() == LocalDate.now().getYear()) ? "Cursando" : "(-)";
+            case "Regular":
+                return "Regular";
+            default:
+                return nota.getNotaCalificacionNumero() + " (" + nota.getNotaCalificacionLetra() + ")";
+        }
+    }
+
+    /**
+     * Valida las correlativas de las materias en las notas refinadas.
+     */
+    private void validarCorrelativas(List<NotaMateriaDTO> notasRefinadas) {
+        for (NotaMateriaDTO nota : notasRefinadas) {
+            List<String> correlativas = nota.getCorrelativas();
+            for (String correlativa : correlativas) {
+                if (!correlativas(Integer.parseInt(correlativa), notasRefinadas, "aprobado")) {
+                    nota.setNotaFinal("(-)"); // Se bloquea si no cumple correlativas
+                    break;
                 }
             }
-
         }
-        return notasRefinadas;
     }
 
 
@@ -249,7 +274,7 @@ public class NotaServiceImpl implements NotaService {
             NotaMateriaDTO xd = analitico.get(materia_orden - 1);
             if (xd != null) {
                 String cond = xd.getNotaEstado() != null ? xd.getNotaEstado() : "";
-                String valorString = xd.getNotaCalificacionNumero()!= null ? xd.getNotaCalificacionNumero() : "";
+                String valorString = xd.getNotaCalificacionNumero() != null ? xd.getNotaCalificacionNumero() : "";
                 System.out.println("Nota numero" + valorString + " materia: " + xd.getMateriaNombre() + " notaletra " + xd.getNotaCalificacionLetra());
                 double nota;
                 try {
@@ -286,92 +311,156 @@ public class NotaServiceImpl implements NotaService {
         return aux;
     }
 
-public boolean buscarClaveAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
-    return analitico.stream()
-            .anyMatch(xd -> Objects.equals(xd.getMateriaNombre(), materia.getMateriaNombre()));
-}
+    public boolean buscarClaveAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
+        return analitico.stream()
+                .anyMatch(xd -> Objects.equals(xd.getMateriaNombre(), materia.getMateriaNombre()));
+    }
 
 
-    public List<NotaMateriaDTO> validadorAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
-        List<NotaMateriaDTO> nuevalista = new ArrayList<>();
-        System.out.println(".-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.");
-        for (NotaMateriaDTO xd : analitico) {
-            System.out.println("_________________________________________________________________________");
-           // System.out.println("materias son " + xd.getMateriaNombre() + "|" + materia.getNombre());
+//    public List<NotaMateriaDTO> validadorAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
+//        List<NotaMateriaDTO> nuevalista = new ArrayList<>();
+//        System.out.println(".-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.");
+//        for (NotaMateriaDTO xd : analitico) {
+//            System.out.println("_________________________________________________________________________");
+//           // System.out.println("materias son " + xd.getMateriaNombre() + "|" + materia.getNombre());
+//
+//            if (xd.getMateriaNombre().equals(materia.getMateriaNombre())) {
+//                // Si las materias se repiten
+//                String cond1 = xd.getNotaEstado();
+//                String cond2 = materia.getNotaEstado();
+//                System.out.println("condicion 1: " + cond1 + " | condicion 2: " + cond2);
+//
+//                if (cond1.equals("Aprobado")) {
+//                    // Si la primera materia está aprobada, no hacer nada y conservar su estado
+//                    System.out.println("La primera materia está aprobada, se conserva");
+//                    nuevalista.add(xd);
+//                } else if (cond2.equals("Aprobado")) {
+//                    // Si la segunda materia está aprobada, actualizar y conservar su estado
+//                    System.out.println("La segunda materia está aprobada, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Cursando") && (cond2.equals("Regular") || cond2.equals("Libre") || cond2.equals("Desaprobado") || cond2.equals("Ausente"))) {
+//                    // La primera materia está cursando y la segunda está en estado regular o libre, actualizar a cursando
+//                    System.out.println("La primera materia está cursando y la segunda está en estado regular o libre, se conserva");
+//                    nuevalista.add(xd);
+//                } else if (cond1.equals("Regular") && cond2.equals("Regular")) {
+//                    // Ambas materias están regulares, actualizar a la última
+//                    System.out.println("Ambas materias están regulares, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Desaprobado") && cond2.equals("Desaprobado")) {
+//                    // Ambas materias están desaprobadas, actualizar a la última
+//                    System.out.println("Ambas materias están desaprobadas, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Regular") && cond2.equals("Desaprobado")) {
+//                    // La primera materia está en estado regular y la segunda está desaprobada, conservar el estado de la primera
+//                    System.out.println("La primera materia está regular y la segunda está desaprobada, se conserva");
+//                    nuevalista.add(xd);
+//                } else if (cond1.equals("Regular") && cond2.equals("Cursando")) {
+//                    // La primera materia está en estado regular y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está regular y la segunda está cursando, se conserva");
+//                    nuevalista.add(xd);
+//                } else if (cond1.equals("Regular") && cond2.equals("Ausente")) {
+//                    // La primera materia está en estado regular y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está regular y la segunda está Ausente, se conserva");
+//                    nuevalista.add(xd);
+//                } else if (cond1.equals("Desaprobado") && cond2.equals("Regular")) {
+//                    // La primera materia está desaprobada y la segunda está en estado regular, actualizar a regular
+//                    System.out.println("La primera materia está desaprobada y la segunda está regular, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Desaprobado") && cond2.equals("Cursando")) {
+//                    // La primera materia está desaprobada y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está desaprobada y la segunda está cursando, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Libre") && cond2.equals("Cursando")) {
+//                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está libre y la segunda está cursando, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Libre") && cond2.equals("Ausente")) {
+//                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está libre y la segunda está Ausente, se conserva");
+//                    nuevalista.add(xd);
+//                } else if (cond1.equals("Ausente") && cond2.equals("Libre")) {
+//                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está Ausente y la segunda está Libre, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else if (cond1.equals("Ausente") && cond2.equals("Regular")) {
+//                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
+//                    System.out.println("La primera materia está Ausente y la segunda está Libre, se reemplaza");
+//                    nuevalista.add(materia);
+//                } else {
+//                    // Agregar cualquier otra combinación de estados
+//                    System.out.println("Combinación de estados no contemplada, se conserva");
+//                    nuevalista.add(xd);
+//                }
+//            } else {
+//                nuevalista.add(xd);
+//            }
+//        }
+//
+//        return nuevalista;
+//    }
 
-            if (xd.getMateriaNombre().equals(materia.getMateriaNombre())) {
-                // Si las materias se repiten
-                String cond1 = xd.getNotaEstado();
-                String cond2 = materia.getNotaEstado();
-                System.out.println("condicion 1: " + cond1 + " | condicion 2: " + cond2);
 
-                if (cond1.equals("Aprobado")) {
-                    // Si la primera materia está aprobada, no hacer nada y conservar su estado
-                    System.out.println("La primera materia está aprobada, se conserva");
-                    nuevalista.add(xd);
-                } else if (cond2.equals("Aprobado")) {
-                    // Si la segunda materia está aprobada, actualizar y conservar su estado
-                    System.out.println("La segunda materia está aprobada, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Cursando") && (cond2.equals("Regular") || cond2.equals("Libre") || cond2.equals("Desaprobado") || cond2.equals("Ausente"))) {
-                    // La primera materia está cursando y la segunda está en estado regular o libre, actualizar a cursando
-                    System.out.println("La primera materia está cursando y la segunda está en estado regular o libre, se conserva");
-                    nuevalista.add(xd);
-                } else if (cond1.equals("Regular") && cond2.equals("Regular")) {
-                    // Ambas materias están regulares, actualizar a la última
-                    System.out.println("Ambas materias están regulares, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Desaprobado") && cond2.equals("Desaprobado")) {
-                    // Ambas materias están desaprobadas, actualizar a la última
-                    System.out.println("Ambas materias están desaprobadas, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Regular") && cond2.equals("Desaprobado")) {
-                    // La primera materia está en estado regular y la segunda está desaprobada, conservar el estado de la primera
-                    System.out.println("La primera materia está regular y la segunda está desaprobada, se conserva");
-                    nuevalista.add(xd);
-                } else if (cond1.equals("Regular") && cond2.equals("Cursando")) {
-                    // La primera materia está en estado regular y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está regular y la segunda está cursando, se conserva");
-                    nuevalista.add(xd);
-                } else if (cond1.equals("Regular") && cond2.equals("Ausente")) {
-                    // La primera materia está en estado regular y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está regular y la segunda está Ausente, se conserva");
-                    nuevalista.add(xd);
-                } else if (cond1.equals("Desaprobado") && cond2.equals("Regular")) {
-                    // La primera materia está desaprobada y la segunda está en estado regular, actualizar a regular
-                    System.out.println("La primera materia está desaprobada y la segunda está regular, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Desaprobado") && cond2.equals("Cursando")) {
-                    // La primera materia está desaprobada y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está desaprobada y la segunda está cursando, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Libre") && cond2.equals("Cursando")) {
-                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está libre y la segunda está cursando, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Libre") && cond2.equals("Ausente")) {
-                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está libre y la segunda está Ausente, se conserva");
-                    nuevalista.add(xd);
-                } else if (cond1.equals("Ausente") && cond2.equals("Libre")) {
-                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está Ausente y la segunda está Libre, se reemplaza");
-                    nuevalista.add(materia);
-                } else if (cond1.equals("Ausente") && cond2.equals("Regular")) {
-                    // La primera materia está libre y la segunda está cursando, conservar el estado de la primera
-                    System.out.println("La primera materia está Ausente y la segunda está Libre, se reemplaza");
-                    nuevalista.add(materia);
-                } else {
-                    // Agregar cualquier otra combinación de estados
-                    System.out.println("Combinación de estados no contemplada, se conserva");
-                    nuevalista.add(xd);
-                }
-            } else {
-                nuevalista.add(xd);
-            }
+    public NotaMateriaDTO validadorAnalitico(NotaMateriaDTO nota1, NotaMateriaDTO nota2) {
+        String cond1 = nota1.getNotaEstado();
+        String cond2 = nota2.getNotaEstado();
+
+        // Dar prioridad a la materia aprobada
+        if (cond1.equals("Aprobado")) return nota1;
+        if (cond2.equals("Aprobado")) return nota2;
+
+        // Si ambas están en estado regular, quedarse con la última
+        if (cond1.equals("Regular") && cond2.equals("Regular")) return nota2;
+
+        // Si una es Regular y la otra Desaprobado, quedarse con la Regular
+        if (cond1.equals("Regular") && cond2.equals("Desaprobado")) return nota1;
+        if (cond1.equals("Desaprobado") && cond2.equals("Regular")) return nota2;
+
+        // Si una es Regular y la otra Cursando, quedarse con la Regular
+        if (cond1.equals("Regular") && cond2.equals("Cursando")) return nota1;
+        if (cond1.equals("Cursando") && cond2.equals("Regular")) return nota2;
+
+        // Si una es Libre y la otra Cursando, quedarse con la Cursando
+        if (cond1.equals("Libre") && cond2.equals("Cursando")) return nota2;
+        if (cond1.equals("Cursando") && cond2.equals("Libre")) return nota1;
+
+        // Si una es Ausente y la otra tiene otro estado, quedarse con el otro estado
+        if (cond1.equals("Ausente")) return nota2;
+        if (cond2.equals("Ausente")) return nota1;
+
+        // En cualquier otro caso, quedarse con la última
+        return nota2;
+    }
+
+
+    @Override
+    public List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion) {
+        return notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto, notaCondicion);
+    }
+
+    @Transactional
+    @Override
+    public void eliminarNota(Long id) {
+
+        Nota nota = notaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Nota no encontrada con ID: " + id));
+
+        // Si hay exámenes asociados, no permitir la eliminación
+        if (!nota.getExamen().isEmpty()) {
+            throw new RuntimeException("No se puede eliminar la Nota porque tiene Exámenes asociados.");
         }
 
-        return nuevalista;
+        Long cursadaId = Long.valueOf(nota.getCursada().getId()); // Guardamos el ID de la cursada antes de eliminar la nota
+
+        // Eliminar la nota
+        notaRepository.delete(nota);
+
+        // Verificar si hay otras notas con la misma cursada_id
+        int countNotas = Math.toIntExact(notaRepository.countByCursadaId(Math.toIntExact(cursadaId)));
+        if (countNotas == 0) {
+            // Si no hay más notas asociadas, eliminar la cursada
+            cursadaService.eliminarCursada(Math.toIntExact(cursadaId));
+        }
     }
 }
+
 

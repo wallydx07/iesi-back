@@ -36,8 +36,13 @@ public class CursadaExamenServiceImpl implements CursadaExamenService {
         return resultados.stream().map(obj -> new ExamenCursadaDTO(
                 obj[0].toString(),  // cursadaExamenId
                 obj[1].toString(),  // materiaId
-                obj[2].toString()   // materiaNombre
+                obj[2].toString(),   // materiaNombre
+                obj[3].toString()   // CarreraNOmbre
         )).collect(Collectors.toList());
+    }
+@Override
+public Optional<CursadaExamen> obtenerPorId(Integer id) {
+        return cursadaExamenRepository.findById(id);
     }
 
 

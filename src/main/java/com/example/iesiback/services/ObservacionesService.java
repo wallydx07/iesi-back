@@ -15,6 +15,8 @@ public class ObservacionesService {
         // return ObservacionesRepository.findByLegajoId(legajoId);
         return ObservacionesRepository.findByLegajo_LegajoId(legajoId);
     }
-
+    public Observacione guardarObservacion(Observacione observacion) {
+        return ObservacionesRepository.save(observacion);
+    }
 
 }

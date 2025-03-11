@@ -1,7 +1,5 @@
 package com.example.iesiback.dto;
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class AporteDTO {
 
@@ -15,7 +13,7 @@ public class AporteDTO {
     private Integer aporteTalonarioRecibo;
     private LocalDate aporteFecha;
     private String aporteObs;
-    private String aporteUsuario;
+    private String usuario;
 
 
     // Constructor que coincida con los tipos y el orden de la consulta JPQL
@@ -40,7 +38,7 @@ public class AporteDTO {
         this.aporteTalonarioRecibo = aporteTalonarioRecibo;
         this.aporteFecha = aporteFecha;
         this.aporteObs = aporteObs;
-        this.aporteUsuario = usuario;
+        this.usuario = usuario;
     }
 
     public String getAlumnoApellido() {
@@ -117,12 +115,12 @@ public class AporteDTO {
         this.aporteTalonarioRecibo = aporteTalonarioRecibo;
     }
 
-    public String getAporteUsuario() {
-        return aporteUsuario;
+    public String getUsuario() {
+        return usuario;
     }
 
-    public void setAporteUsuario(String aporteUsuario) {
-        this.aporteUsuario = aporteUsuario;
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 
     public String getLegajoId() {

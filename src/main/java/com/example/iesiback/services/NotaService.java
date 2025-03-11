@@ -6,6 +6,8 @@ import com.example.iesiback.dto.NotaMateriaDTO;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -22,4 +24,8 @@ public interface NotaService {
     Nota actualizarNota(Long id, Nota nota) throws ResourceNotFoundException;
 
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId);
+    List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion);
+
+    @Transactional
+    void eliminarNota(Long id);
 }

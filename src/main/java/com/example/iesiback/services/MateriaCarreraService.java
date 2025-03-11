@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.MateriaCarreraDTO;
 import com.example.iesiback.entities.MateriaCarrera;
 import org.springframework.stereotype.Service;
 
@@ -17,4 +18,6 @@ public interface MateriaCarreraService {
 
     // 🔹 Nuevo método para buscar por ID
     Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id);
+
+//    int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO);
 }

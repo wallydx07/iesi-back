@@ -32,9 +32,13 @@ public class CarreraServiceImpl implements CarreraService {
         return carreraRepository.findCarreraIdByAlumnoDni(alumnoDni);
     }
 
+//    @Override
+//    public List<Carrera> obtenerCarreras() {
+//        return carreraRepository.findAll();
+//    }
     @Override
     public List<Carrera> obtenerCarreras() {
-        return carreraRepository.findAll();
+        return carreraRepository.findAllByOrderByCarreraYearDesc();
     }
 
 

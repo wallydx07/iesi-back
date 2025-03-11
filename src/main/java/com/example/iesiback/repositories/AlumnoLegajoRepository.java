@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 @Repository
 public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
+
     @Query("SELECT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
             "l.legajoId, " +
             "a.alumnoDni, " +

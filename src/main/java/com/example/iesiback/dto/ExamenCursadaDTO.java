@@ -4,11 +4,21 @@ public class ExamenCursadaDTO {
     private String cursadaExamenId;
     private String materiaId;
     private String materiaNombre;
+    private String carreraNombre;
 
-    public ExamenCursadaDTO(String cursadaExamenId, String materiaId, String materiaNombre) {
+    public ExamenCursadaDTO(String cursadaExamenId, String materiaId, String materiaNombre, String carreraNombre) {
         this.cursadaExamenId = cursadaExamenId;
         this.materiaId = materiaId;
         this.materiaNombre = materiaNombre;
+        this.carreraNombre = carreraNombre;
+    }
+
+    public String getCarreraNombre() {
+        return carreraNombre;
+    }
+
+    public void setCarreraNombre(String carreraNombre) {
+        this.carreraNombre = carreraNombre;
     }
 
     public String getCursadaExamenId() {

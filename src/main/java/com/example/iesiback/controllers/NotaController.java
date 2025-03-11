@@ -5,12 +5,16 @@ import com.example.iesiback.dto.NotaCursadaDTO;
 import com.example.iesiback.dto.NotaMateriaDTO;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.exception.ResourceNotFoundException;
+import com.example.iesiback.services.CursadaService;
 import com.example.iesiback.services.NotaService;
+import com.example.iesiback.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @CrossOrigin(origins = {"http://localhost:4200"})
@@ -18,8 +22,16 @@ import java.util.List;
 @RequestMapping("/api/notas")
 public class NotaController {
 
+    private final UserService userService;
+    private final CursadaService cursadaService;
     @Autowired
     private NotaService notaService;
+
+    public NotaController( UserService userService,
+    CursadaService cursadaService) {
+        this.userService=userService;
+        this.cursadaService=cursadaService;
+    }
 
     @GetMapping
     public List<Nota> obtenerNotas() {
@@ -58,14 +70,36 @@ public class NotaController {
         List<NotaExamenDTO> examenes = notaService.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto);
         return ResponseEntity.ok(examenes);
     }
-    // Endpoint para crear una nueva nota
+
     @PostMapping("/crear")
     public ResponseEntity<Nota> crearNota(@RequestBody Nota nota) {
+        Nota nuevaNotaAux = this.notaService.obtenerNotaPorId(nota.getNotaId());
+
+        // Reformatear la fecha de "yyyy-MM-dd" a "dd-MM-yyyy"
+        String notaFecha = nota.getNotaFechaNota();
+        if (notaFecha != null && !notaFecha.isEmpty()) {
+            LocalDate fecha = LocalDate.parse(notaFecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            nota.setNotaFechaNota(fechaFormateada);
+        }
+
+        // Asignar usuario y cursada
+        nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
+        nota.setCursada(nuevaNotaAux.getCursada());
+
         Nota nuevaNota = notaService.guardarNota(nota);
         return ResponseEntity.ok(nuevaNota);
     }
 
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> eliminarNota(@PathVariable Long id) {
+        try {
+            notaService.eliminarNota(id);
+            return ResponseEntity.ok("Nota y Cursada eliminadas correctamente.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 
 }

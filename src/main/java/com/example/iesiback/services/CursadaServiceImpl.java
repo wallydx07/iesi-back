@@ -33,6 +33,7 @@ public class CursadaServiceImpl implements CursadaService {
                 Cursada nuevaCursada = new Cursada();
                 nuevaCursada.setMateriaCarrera(materia);
                 nuevaCursada.setLegajo(legajo);
+                nuevaCursada.setCursadaInscripto(true);
                 cursadaRepository.save(nuevaCursada);
             }
 
@@ -163,5 +164,12 @@ public class CursadaServiceImpl implements CursadaService {
                         || "Regular".equalsIgnoreCase(nota.getNotaEstado()));
     }
 
+@Transactional
+@Override
+public void eliminarCursada(Integer id) {
+        Cursada cursada = cursadaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cursada no encontrada con ID: " + id));
 
+        cursadaRepository.delete(cursada);
+    }
 }

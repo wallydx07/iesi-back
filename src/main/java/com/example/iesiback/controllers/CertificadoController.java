@@ -1,6 +1,9 @@
 package com.example.iesiback.controllers;
 
-import com.example.iesiback.services.CertificadoService;
+import com.example.iesiback.entities.Carrera;
+import com.example.iesiback.entities.CursadaExamen;
+import com.example.iesiback.entities.Materia;
+import com.example.iesiback.services.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -20,6 +23,19 @@ public class CertificadoController {
 
     @Autowired
     private CertificadoService certificadoService;
+    private final MateriaService materiaService;
+    private final CarreraService carreraService;
+    private final CursadaExamenService cursadaExamenService;
+
+
+
+    public CertificadoController(MateriaService materiaService,
+                                 CarreraService carreraService,
+                                 CursadaExamenService cursadaExamenService) {
+        this.materiaService = materiaService;
+        this.carreraService = carreraService;
+        this.cursadaExamenService = cursadaExamenService;
+    }
 
     @GetMapping("/estudianteregular")
     public ResponseEntity<ByteArrayResource> generarFicha(
@@ -76,6 +92,34 @@ public class CertificadoController {
                     .body(resource);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
+    @GetMapping("/generarActa")
+    public ResponseEntity<byte[]> generarActaExamen(
+            @RequestParam String materiaId,
+            @RequestParam String carrera,
+            @RequestParam Integer cursadaExamenId,
+            @RequestParam String modalidad) {
+
+        try {
+            Materia materia=this.materiaService.findMateriaById(materiaId);
+           // Carrera carrera=this.carreraService.findCarreraById(carreraId);
+            CursadaExamen cursadaExamen=this.cursadaExamenService.obtenerPorId(cursadaExamenId).get();
+            PDDocument pdf = certificadoService.generaExamen(materia, carrera, cursadaExamen, modalidad);
+            // Convertir el PDF a bytes
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            pdf.save(out);
+            pdf.close();
+            // Configurar la respuesta HTTP con el PDF
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=Acta_Examen.pdf");
+            return new ResponseEntity<>(out.toByteArray(), headers, HttpStatus.OK);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

@@ -41,13 +41,12 @@ public class Aporte {
     @Column(name = "usuario", length = 20)
     private String usuario;
 
-    // Getters y Setters
-    public Integer getId() {
-        return id;
+    public LocalDate getAporteFecha() {
+        return aporteFecha;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setAporteFecha(LocalDate aporteFecha) {
+        this.aporteFecha = aporteFecha;
     }
 
     public Legajo getAporteLegajo() {
@@ -58,22 +57,6 @@ public class Aporte {
         this.aporteLegajo = aporteLegajo;
     }
 
-    public Integer getAporteNroRecibo() {
-        return aporteNroRecibo;
-    }
-
-    public void setAporteNroRecibo(Integer aporteNroRecibo) {
-        this.aporteNroRecibo = aporteNroRecibo;
-    }
-
-    public Integer getAporteTalonarioRecibo() {
-        return aporteTalonarioRecibo;
-    }
-
-    public void setAporteTalonarioRecibo(Integer aporteTalonarioRecibo) {
-        this.aporteTalonarioRecibo = aporteTalonarioRecibo;
-    }
-
     public Integer getAporteMonto() {
         return aporteMonto;
     }
@@ -82,12 +65,12 @@ public class Aporte {
         this.aporteMonto = aporteMonto;
     }
 
-    public LocalDate getAporteFecha() {
-        return aporteFecha;
+    public Integer getAporteNroRecibo() {
+        return aporteNroRecibo;
     }
 
-    public void setAporteFecha(LocalDate aporteFecha) {
-        this.aporteFecha = aporteFecha;
+    public void setAporteNroRecibo(Integer aporteNroRecibo) {
+        this.aporteNroRecibo = aporteNroRecibo;
     }
 
     public String getAporteObs() {
@@ -98,12 +81,20 @@ public class Aporte {
         this.aporteObs = aporteObs;
     }
 
-    public Boolean getValidado() {
-        return validado;
+    public Integer getAporteTalonarioRecibo() {
+        return aporteTalonarioRecibo;
     }
 
-    public void setValidado(Boolean validado) {
-        this.validado = validado;
+    public void setAporteTalonarioRecibo(Integer aporteTalonarioRecibo) {
+        this.aporteTalonarioRecibo = aporteTalonarioRecibo;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getUsuario() {
@@ -111,6 +102,14 @@ public class Aporte {
     }
 
     public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
 
+    public Boolean getValidado() {
+        return validado;
+    }
+
+    public void setValidado(Boolean validado) {
+        this.validado = validado;
     }
 }

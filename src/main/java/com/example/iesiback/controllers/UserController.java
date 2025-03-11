@@ -105,7 +105,6 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<Object> getCurrentUser() {
         Optional<User> user = service.getAuthenticatedUser();
-
         if (user.isPresent()) {
             return ResponseEntity.ok(user.get());
         } else {

@@ -1,12 +1,6 @@
 package com.example.iesiback.dto;
 
-import com.example.iesiback.entities.Alumno;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
 import java.time.LocalDate;
-import java.util.Date;
 
 public class AlumnoLegajoInscripcionCarreraDTO {
 

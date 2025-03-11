@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.MateriaCarreraDTO;
 import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,4 +39,22 @@ public int obtenerCantidadMateriasPorNivel(String carreraId, String nivel) {
     public Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id) {
         return materiaCarreraRepository.findById(id);
     }
+/*
+
+@Override
+public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO) {
+        return materiaCarreraRepository.actualizarMateriaCarrera(
+                id,
+                materiaCarreraDTO.getLibro(),
+                materiaCarreraDTO.getFolio(),
+                materiaCarreraDTO.getFecha(),
+                materiaCarreraDTO.isFirma(),
+                materiaCarreraDTO.getFmcDocente(),
+                materiaCarreraDTO.getDivision(),
+                materiaCarreraDTO.getTurno(),
+                materiaCarreraDTO.getDia(),
+                materiaCarreraDTO.getInicio(),
+                materiaCarreraDTO.getFin()
+        );
+    }*/
 }

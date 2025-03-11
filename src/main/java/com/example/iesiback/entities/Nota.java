@@ -14,7 +14,7 @@ public class Nota {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Hibernate maneja la secuencia automáticamente
     @Column(name = "nota_id", nullable = false)
-    private Integer notaId;
+    private Long notaId;
 
     @Size(max = 50)
     @Column(name = "nota_calificacion_nota_numero", length = 50)
@@ -81,11 +81,11 @@ public class Nota {
 
 
     // Getters y Setters
-    public Integer getNotaId() {
+    public Long getNotaId() {
         return notaId;
     }
 
-    public void setNotaId(Integer id) {
+    public void setNotaId(Long id) {
         this.notaId = id;
     }
 
