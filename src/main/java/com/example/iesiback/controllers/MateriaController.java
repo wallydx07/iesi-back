@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/materias")
-@CrossOrigin(origins = "http://localhost:4200") // Permitir conexión desde Angular
+@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 public class MateriaController {
 
     @Autowired

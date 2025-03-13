@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@CrossOrigin(origins = {"http://localhost:4200"})
+@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
 @RequestMapping("/api/notas")
 public class NotaController {

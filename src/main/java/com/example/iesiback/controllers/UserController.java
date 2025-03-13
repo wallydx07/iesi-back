@@ -30,12 +30,13 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PutMapping;
 
-@CrossOrigin(origins={"http://localhost:4200"})
+
+@CrossOrigin(origins={"*"})
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
+@Autowired
     private UserService service;
 
     @GetMapping

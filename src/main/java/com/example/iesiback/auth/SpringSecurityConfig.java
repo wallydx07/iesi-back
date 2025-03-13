@@ -18,10 +18,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
 import com.example.iesiback.auth.filter.JwtAuthenticationFilter;
 import com.example.iesiback.auth.filter.JwtValidationFilter;
-
 @Configuration
 public class SpringSecurityConfig {
 @Autowired
@@ -46,6 +44,7 @@ private AuthenticationConfiguration authenticationConfiguration;
                     .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers("/debug/**").permitAll()
                 .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))
@@ -59,7 +58,7 @@ private AuthenticationConfiguration authenticationConfiguration;
     CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList("*"));
-        config.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+        // config.setAllowedOrigins(Arrays.asList("https://gestionacademica.iesijujuy.edu.ar:8443"));
         config.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         config.setAllowCredentials(true);

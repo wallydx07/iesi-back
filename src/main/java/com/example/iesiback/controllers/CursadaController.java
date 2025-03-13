@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins={"http://localhost:4200"})
+@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
 @RequestMapping("/api/cursadas")
 public class CursadaController {

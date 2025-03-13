@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins={"http://localhost:4200"})
+@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
 @RequestMapping("/api/legajos")
 public class LegajoController {
@@ -40,8 +40,6 @@ public class LegajoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Legajo> updateLegajo(@RequestBody Legajo legajo, @RequestParam String dni) {
-       System.out.println("Legajo "+legajo);
-        System.out.println("dni "+dni);
 
         if (legajo == null || dni == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

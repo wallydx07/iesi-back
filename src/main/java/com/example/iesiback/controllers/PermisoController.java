@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.file.Files;
-@CrossOrigin(origins={"http://localhost:4200"})
+@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
 @RequestMapping("/api/permisos")
 public class PermisoController {

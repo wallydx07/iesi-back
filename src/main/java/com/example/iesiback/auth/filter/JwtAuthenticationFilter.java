@@ -29,7 +29,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private String attemptedUsername;
     private String attemptedPassword;
 
-
     private AuthenticationManager authenticationManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -52,10 +51,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             User user = new ObjectMapper().readValue(requestBody, User.class);
             username = user.getUsername();
             password = user.getPassword();
-
-            // Mostrar en consola los datos extraídos
-            System.out.println("Extracted Username: " + username);
-            System.out.println("Extracted Password: " + password);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -111,15 +106,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Map<String, String> body = new HashMap<>();
        body.put("message", "Se ha producido un error F :(");
         body.put("error", failed.getMessage());
-
-
         // Incluir las credenciales enviadas para depuración
         body.put("attemptedUsername", this.attemptedUsername);
         body.put("attemptedPassword", this.attemptedPassword);
-
-
-
-
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setContentType(CONTENT_TYPE);
         response.setStatus(401);
