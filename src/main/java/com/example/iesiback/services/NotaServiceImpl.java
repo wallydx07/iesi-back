@@ -32,7 +32,6 @@ public class NotaServiceImpl implements NotaService {
 
     @Autowired
     private NotaRepository notaRepository;
-
     @Override
     public List<Nota> obtenerNotas() {
         return List.of();
@@ -43,92 +42,109 @@ public class NotaServiceImpl implements NotaService {
         return cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria());
     }
 
-    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
-        List<Object[]> resultados = notaRepository.findTodasNotasByLegajo(legajoId);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        return resultados.stream().map(obj -> {
-            LocalDate fechaNota = null;
-            if (obj[9] != null) {
-                try {
-                    fechaNota = LocalDate.parse(obj[9].toString(), formatter);
-                } catch (DateTimeParseException e) {
-                    System.err.println("Error al parsear la fecha: " + obj[9]);
-                }
+    public List<NotaMateriaDTO> mapResultsToDTO(List<Object[]> results) {
+        List<NotaMateriaDTO> dtoList = new ArrayList<>();
+        for (Object[] row : results) {
+            NotaMateriaDTO dto = new NotaMateriaDTO();
+            dto.setNotaId((Integer) row[0]);
+            dto.setMateriaOrden((Integer) row[1]);
+            dto.setMateriaNombre((String) row[2]);
+            dto.setNotaCalificacionNumero((String) row[3]);
+            dto.setNotaCalificacionLetra((String) row[4]);
+            dto.setNotaCondicion((String) row[5]);
+            dto.setNotaEstado((String) row[6]);
+            dto.setNotaLibro((String) row[7]);
+            dto.setNotaFolio((String) row[8]);
+            LocalDate fecha =formatearFecha((String) row[9]);
+            dto.setNotaFecha(fecha);
+            dto.setNotaObservaciones((String) row[10]);
+            dto.setNotaUsuario((String) row[11]);
+            dto.setCursadaId((Integer) row[12]);
+            dto.setMateriaId((String) row[13]);
+            dto.setMateriaNivel((String) row[14]);
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+
+    public static LocalDate formatearFecha(String fecha) {
+        if (fecha == null || fecha.trim().isEmpty()) {
+            return null;
+        }
+        List<DateTimeFormatter> formatos = List.of(
+                DateTimeFormatter.ISO_LOCAL_DATE,  // yyyy-MM-dd
+                DateTimeFormatter.ofPattern("dd/MM/yyyy"), // dd/MM/yyyy
+                DateTimeFormatter.ofPattern("dd-MM-yyyy")  // dd-MM-yyyy
+        );
+        for (DateTimeFormatter formato : formatos) {
+            try {
+                return LocalDate.parse(fecha, formato);
+            } catch (DateTimeParseException ignored) {
             }
-            Integer cursadaId = (obj[12] instanceof Integer) ? (Integer) obj[12] : null;
-            List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of();
-            return new NotaMateriaDTO(
-                    (Integer) obj[0],  // nota_id
-                    (Integer) obj[1],  // materia_orden
-                    (String) obj[2],   // materia_nombre
-                    (String) obj[3],   // nota_calificacion_nota_numero
-                    (String) obj[4],   // nota_calificacion_nota_letra
-                    (String) obj[5],   // nota_condicion
-                    (String) obj[6],   // nota_estado
-                    (String) obj[7],   // nota_libro_nota
-                    (String) obj[8],   // nota_folio_nota
-                    fechaNota,         // ✅ Fecha corregida
-                    (obj[10] != null) ? obj[10].toString() : null,
-                    (obj[11] != null) ? obj[11].toString() : null,
-                    "---",
-                    correlativas,
-                    (obj[13] != null) ? obj[13].toString() : null,
-                    (String) obj[14]   // materia_nivel
-            );
-        }).collect(Collectors.toList());
+        }
+        System.err.println("Error al formatear la fecha: " + fecha);
+        return null;
+    }
+
+
+
+    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
+        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+        System.out.println(results.size());
+        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
+        return resultados.stream()
+                .filter(Objects::nonNull) // Asegurarse de que no sea null
+                .map(obj -> {
+                    Integer cursadaId = obj.getCursadaId();
+                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of();
+                    obj.setCorrelativas(correlativas);
+                    return obj;
+                })
+                .collect(Collectors.toList());
     }
 
 
     public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
-        List<Object[]> resultados = notaRepository.findTodasNotasByLegajo(legajoId);
-
+        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
         return resultados.stream()
                 .filter(obj -> {
-                    String estadoNota = (String) obj[6]; // Columna que representa el estado de la nota
+                    String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
                     return !estadoNota.equalsIgnoreCase("Aprobado")
                             && !estadoNota.equalsIgnoreCase("Cursando");
                 })
                 .map(obj -> {
+                    // 📌 Manejamos la fecha de forma más segura
                     LocalDate fechaNota = null;
                     try {
-                        if (obj[9] != null) {
-                            fechaNota = LocalDate.parse(obj[9].toString(), formatter);
+                        if (obj.getNotaFecha() != null) {
+                            fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
                         }
                     } catch (DateTimeParseException e) {
-                        System.err.println("Error al parsear la fecha: " + obj[9]);
+                        System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
                     }
-                    // 📌 Obtener cursadaId correctamente
-                    Integer cursadaId = (obj[12] != null) ? (Integer) obj[12] : null; // Asegúrate de que el índice 12 es correcto
-                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of(); // Evitar `null`
 
-                    return new NotaMateriaDTO(
-                            (Integer) obj[0],  // nota_id
-                            (Integer) obj[1],  // materia_orden
-                            (String) obj[2],   // materia_nombre
-                            (String) obj[3],   // nota_calificacion_nota_numero
-                            (String) obj[4],   // nota_calificacion_nota_letra
-                            (String) obj[5],   // nota_condicion
-                            (String) obj[6],   // nota_estado
-                            (String) obj[7],   // nota_libro_nota
-                            (String) obj[8],   // nota_folio_nota
-                            fechaNota,         // Fecha formateada
-                            (String) obj[10],  // nota_observaciones
-                            (String) obj[11],  // nota_usuario
-                            "---",             // nota_status (asumí que no se usa en la consulta)
-                            correlativas,      // 📌 Lista de correlativas corregida
-                            (String) obj[12],  // materia_id
-                            (String) obj[13]   // materia_nivel
-                    );
+                    // 📌 Obtener cursadaId correctamente
+                    Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
+                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of(); // Evitar null
+
+                    // Retornar el objeto NotaMateriaDTO con las correlativas
+                    obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
+
+                    return obj;
                 }).collect(Collectors.toList());
     }
 
+
     @Override
     public boolean isMateriaAprobada(String legajoId, String materiaId) {
-        List<Object[]> resultados = notaRepository.findTodasNotasByLegajo(legajoId);
+        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
+
         return resultados.stream()
                 .anyMatch(obj -> {
-                    String thisMateriaId = (String) obj[13];
-                    String estadoNota = (String) obj[6];
+                    String thisMateriaId = obj.getMateriaId(); // Accedemos directamente al materiaId
+                    String estadoNota = obj.getNotaEstado(); // Accedemos al estado de la nota
                     return thisMateriaId != null
                             && thisMateriaId.equals(materiaId)
                             && "Aprobado".equalsIgnoreCase(estadoNota);
@@ -208,11 +224,9 @@ public class NotaServiceImpl implements NotaService {
         List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
         Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>(); // Evita duplicados y almacena la mejor nota
         boolean checkCorrelativas = true;
-
         for (NotaMateriaDTO nota : notasOrigen) {
             nota.setNotaFinal(definirNotaFinal(nota));
             int ordenMateria = nota.getMateriaOrden();
-
             if (materiasMap.containsKey(ordenMateria)) {
                 // Si ya existe una materia, validar cuál es mejor
                 NotaMateriaDTO mejorNota = validadorAnalitico(materiasMap.get(ordenMateria), nota);
@@ -238,15 +252,20 @@ public class NotaServiceImpl implements NotaService {
     private String definirNotaFinal(NotaMateriaDTO nota) {
         switch (nota.getNotaEstado()) {
             case "Desaprobado":
+                return "Desaprobado";
             case "Libre":
+                return "Desaprobado";
             case "Ausente":
                 return "Desaprobado";
             case "Cursando":
                 return (nota.getNotaFecha().getYear() == LocalDate.now().getYear()) ? "Cursando" : "(-)";
             case "Regular":
                 return "Regular";
-            default:
+            case "Aprobado":
                 return nota.getNotaCalificacionNumero() + " (" + nota.getNotaCalificacionLetra() + ")";
+            default:
+                return (nota.getNotaFecha().getYear() == LocalDate.now().getYear()) ? "Cursando" : "(-)";
+
         }
     }
 

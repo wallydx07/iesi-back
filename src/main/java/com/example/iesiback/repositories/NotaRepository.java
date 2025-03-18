@@ -13,54 +13,31 @@ import java.util.List;
 @Repository
 public interface NotaRepository extends JpaRepository<Nota, Long> {
  //es UNION ALL
-        @Query(value = """
-        SELECT 
-            n.nota_id,
-            m.materia_orden,
-            m.materia_nombre,
-            n.nota_calificacion_nota_numero,
-            n.nota_calificacion_nota_letra,
-            n.nota_condicion,
-            n.nota_estado,
-            n.nota_libro_nota,
-            n.nota_folio_nota,
-            n.nota_fecha_nota,
-            n.nota_observaciones,
-            n.nota_usuario,
-            n.nota_cursada_id,
-            mc.materia_id,
-            m.materia_nivel
-        FROM nota n
-        INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
-        INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
-        INNER JOIN materia m ON mc.materia_id = m.materia_id
-        WHERE c.cursada_legajo_id = :legajoId
-        UNION
-        SELECT 
-            n.nota_id,
-            m.materia_orden,
-            m.materia_nombre,
-            n.nota_calificacion_nota_numero,
-            n.nota_calificacion_nota_letra,
-            n.nota_condicion,
-            n.nota_estado,
-            n.nota_libro_nota,
-            n.nota_folio_nota,
-            n.nota_fecha_nota,
-            n.nota_observaciones,
-            n.nota_usuario,
-            n.nota_cursada_id,
-            m.materia_id,
-            m.materia_nivel
-        FROM nota n
-        INNER JOIN examen e ON e.nota_id = n.nota_id
-        INNER JOIN permiso p ON e.permiso_id = p.permiso_id
-        INNER JOIN cursada_examen ce ON e.cursada_examen_id = ce.cursada_examen_id
-        INNER JOIN materia m ON ce.materia_id = m.materia_id
-        WHERE p.permiso_legajo_id = :legajoId
-        ORDER BY materia_orden ASC, nota_estado
-        """, nativeQuery = true)
-        List<Object[]> findTodasNotasByLegajo(@Param("legajoId") String legajoId);
+ @Query(value = """
+    SELECT
+        n.nota_id,
+        m.materia_orden,
+        m.materia_nombre,
+        n.nota_calificacion_nota_numero,
+        n.nota_calificacion_nota_letra,
+        n.nota_condicion,
+        n.nota_estado,
+        n.nota_libro_nota,
+        n.nota_folio_nota,
+        n.nota_fecha_nota,
+        n.nota_observaciones,
+        n.nota_usuario,
+        n.nota_cursada_id,
+        mc.materia_id,
+        m.materia_nivel,
+        c.cursada_legajo_id
+    FROM nota n
+    INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
+    INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+    INNER JOIN materia m ON mc.materia_id = m.materia_id
+    WHERE c.cursada_legajo_id = :legajoId order by materia_orden asc;
+""", nativeQuery = true)
+ List<Object[]> findNotasPorLegajo(@Param("legajoId") String legajoId);
 
 
 

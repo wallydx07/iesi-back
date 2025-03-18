@@ -40,16 +40,16 @@ public class LegajoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Legajo> updateLegajo(@RequestBody Legajo legajo, @RequestParam String dni) {
-
-        if (legajo == null || dni == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        Optional<Alumno> alumnoOpt = alumnoService.findById(dni);
-        if (!alumnoOpt.isPresent()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        legajo.setLegajoAlumnoDni(alumnoOpt.get());
-        Legajo updatedLegajo = LegajoService.updateLegajo(legajo);
+        Legajo UpdateLegajo=LegajoService.findLegajoById(legajo.getLegajoId());
+        UpdateLegajo.setLegajoFotocopiaDni(legajo.getLegajoFotocopiaDni());
+        UpdateLegajo.setLegajoCertificadoNacimiento(legajo.getLegajoCertificadoNacimiento());
+        UpdateLegajo.setLegajoFotocopiaTitulo(legajo.getLegajoFotocopiaTitulo());
+        UpdateLegajo.setLegajoCarnetSanitario(legajo.getLegajoCarnetSanitario());
+        UpdateLegajo.setLegajoAval(legajo.getLegajoAval());
+        UpdateLegajo.setLegajoEstado(legajo.getLegajoEstado());
+        //UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
+        //UpdateLegajo.setLegajoCarpetaColgante(legajo.getLegajoCarpetaColgante());
+        Legajo updatedLegajo = LegajoService.updateLegajo(UpdateLegajo);
         return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);
     }
 

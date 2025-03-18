@@ -621,7 +621,6 @@ public PDDocument generaRegular(String dniId, String carreraid, String autoridad
             cell = headerRow.createCell(60, "ESPACIO CURRICULAR");
             cell.setAlign(HorizontalAlignment.CENTER);
             cell.setValign(VerticalAlignment.MIDDLE);
-
             float c = cell.getExtraWidth();
             cell = headerRow.createCell(25, "NOTA FINAL");
             cell.setAlign(HorizontalAlignment.CENTER);
@@ -680,17 +679,20 @@ public PDDocument generaRegular(String dniId, String carreraid, String autoridad
                     NotaMateriaDTO mat = listaMateriasyear.get(j);
                     Row<PDPage> rew = Materiasaño.createRow(5);//19
                     // Celda para la columna "Orden"
+                    System.out.println("Materia Orden" + mat.getMateriaOrden().toString());
                     Cell<PDPage> cellOrden = rew.createCell(5.2f, mat.getMateriaOrden().toString());
                     cellOrden.setAlign(HorizontalAlignment.CENTER);
                     cellOrden.setValign(VerticalAlignment.MIDDLE);
                     cellOrden.setFont(PDType1Font.HELVETICA);
                     cellOrden.setFontSize(nk);
                     // Celda para la columna "Nombre Materia"
+                    System.out.println("Materia Nombre" + mat.getMateriaNombre());
                     Cell<PDPage> cellNombreMateria = rew.createCell(60, mat.getMateriaNombre());
                     cellNombreMateria.setFontSize(nk);
                     cellNombreMateria.setValign(VerticalAlignment.MIDDLE);
                     cellNombreMateria.setFont(PDType1Font.HELVETICA);
                     // Celda para la columna "Nota Final"
+                    System.out.println("Materia Nota final" + mat.getNotaFinal());
                     Cell<PDPage> cellNotaFinal = rew.createCell(25, mat.getNotaFinal());
                     cellNotaFinal.setFontSize(nk);
                     cellNotaFinal.setAlign(HorizontalAlignment.CENTER);
@@ -699,6 +701,7 @@ public PDDocument generaRegular(String dniId, String carreraid, String autoridad
                     LocalDate fecha = mat.getNotaFecha();  // Asumiendo que getNotaFecha devuelve LocalDate
                     int year = fecha.getYear();
 // Ahora puedes usar `year` como el año extraído de la fecha
+                    System.out.println("Materia año" + String.valueOf(year));
                     Cell<PDPage> cellyear = rew.createCell(10, String.valueOf(year));
                 //    Cell<PDPage> cellyear = rew.createCell(10, mat.getNotaFecha();
                     cellyear.setFontSize(nk);
@@ -931,7 +934,6 @@ public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cu
              */
 
             BaseTable filafecha = new BaseTable(yStart + 64, yStartNewPage, bottomMargin, tableWidth, 457 + auxmargin, Documento, Pagina, true, drawContent);
-
             Row< PDPage> cabfilafecha = filafecha.createRow(15);
             Cell<PDPage> cabfilaabajofecha = cabfilafecha.createCell(7, "Libro");
             cabfilaabajofecha.setAlign(HorizontalAlignment.CENTER);
@@ -951,10 +953,8 @@ public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cu
             celdaMes.setAlign(HorizontalAlignment.CENTER);
             celdaMes.setValign(VerticalAlignment.MIDDLE);
             celdaMes.setFontSize(8);
-
             filafecha.draw();
             //=======CALIFICACIONES Y BOLILLA*/
-
             // Calcular la posición yStart para la nueva tabla basado en la altura de la tabla anterior y un margen
             BaseTable calificaciones_bolillas = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, 355.6f + auxmargin, Documento, Pagina, true, drawContent);
             Row< PDPage> cabecalfbol = calificaciones_bolillas.createRow(8);
@@ -1000,7 +1000,6 @@ public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cu
                 String permiso_id = "-";
                 String apellido = "-";
                 String nota_c = "-";
-
                 if (i < al) {
                     NotaExamenDTO fResultado = listaResultados.get(i);
                     permiso_id = fResultado.getPermisoId().toString(); // Ajusta al método correcto
@@ -1008,9 +1007,6 @@ public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cu
                     apellido = fResultado.getAlumnoApellido()+", "+fResultado.getAlumnoNombre();
                  //   nota_c = fResultado.;
                 }
-
-
-
                 Row<PDPage> rew = Cursoaño.createRow(10);
                 float altura = 0;
                 cell = rew.createCell(10, String.valueOf(i + 1));//año
