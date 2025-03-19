@@ -8,10 +8,7 @@ import java.util.List;
 @Service
 public interface InscripcionService {
     Inscripcion crearInscripcion(Inscripcion inscripcion);
-
     Inscripcion findByLegajoId(String legajoId);
-
     boolean existsByAlumnoDniAndCarreraNombre(Long alumnoDni, String carreraId);
-
     List<String> rellenarAnyo(String legajoId);
 }

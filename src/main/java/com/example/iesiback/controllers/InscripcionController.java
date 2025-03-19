@@ -46,6 +46,7 @@ public class InscripcionController {
         this.observacionesService.guardarObservacion(observacione);
         return ResponseEntity.ok(nuevaInscripcion);
     }
+
     @GetMapping("/legajo/{legajoId}")
     public Inscripcion getInscripcionesByLegajoId(@PathVariable String legajoId) {
         return inscripcionService.findByLegajoId(legajoId);

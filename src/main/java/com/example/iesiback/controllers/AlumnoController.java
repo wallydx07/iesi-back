@@ -84,4 +84,14 @@ public class AlumnoController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/legajo/{legajoId}")
+    public ResponseEntity<Alumno> obtenerAlumnoPorLegajoId(@PathVariable String legajoId) {
+        Alumno alumno = alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        if (alumno != null) {
+            return ResponseEntity.ok(alumno);  // Devuelve el alumno encontrado
+        } else {
+            return ResponseEntity.notFound().build();  // Devuelve un 404 si no se encuentra el alumno
+        }
+    }
 }
