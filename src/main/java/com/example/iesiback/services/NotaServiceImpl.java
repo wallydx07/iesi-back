@@ -250,24 +250,30 @@ public class NotaServiceImpl implements NotaService {
      * Define el estado final de la nota según su estado actual.
      */
     private String definirNotaFinal(NotaMateriaDTO nota) {
+        Set<String> desaprobados = Set.of("Desaprobado", "Libre", "Ausente");
+
+        if (desaprobados.contains(nota.getNotaEstado())) {
+            return "Desaprobado";
+        }
+
+        // Validar si notaFecha es null antes de llamar a getYear()
+        int anioNota = (nota.getNotaFecha() != null) ? nota.getNotaFecha().getYear() : -1;
+        int anioActual = LocalDate.now().getYear();
+
+        if ("Cursando".equals(nota.getNotaEstado()) || anioNota == anioActual) {
+            return "Cursando";
+        }
+
         switch (nota.getNotaEstado()) {
-            case "Desaprobado":
-                return "Desaprobado";
-            case "Libre":
-                return "Desaprobado";
-            case "Ausente":
-                return "Desaprobado";
-            case "Cursando":
-                return (nota.getNotaFecha().getYear() == LocalDate.now().getYear()) ? "Cursando" : "(-)";
             case "Regular":
                 return "Regular";
             case "Aprobado":
                 return nota.getNotaCalificacionNumero() + " (" + nota.getNotaCalificacionLetra() + ")";
             default:
-                return (nota.getNotaFecha().getYear() == LocalDate.now().getYear()) ? "Cursando" : "(-)";
-
+                return "(-)";
         }
     }
+
 
     /**
      * Valida las correlativas de las materias en las notas refinadas.

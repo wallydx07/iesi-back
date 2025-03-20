@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TurnoRepository extends JpaRepository<Turno, Long> {
+public interface TurnoRepository extends JpaRepository<Turno, String> {
     List<Turno> findAllByOrderByTurnoLimiteDesc();
 
 }

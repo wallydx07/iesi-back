@@ -12,7 +12,6 @@ import java.util.Optional;
 public interface CursadaService {
     @Transactional
     void agregarMateriasACursadaPorCarrera(String carreraId, Legajo legajo);
-
     List<Cursada> getAllCursadas();
     Optional<Cursada> getCursadaById(Integer id);
 

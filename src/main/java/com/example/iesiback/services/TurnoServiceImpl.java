@@ -13,10 +13,15 @@ public class TurnoServiceImpl implements TurnoService {
     @Autowired
     private TurnoRepository turnoRepository;
 
-
-
     @Override
     public List<Turno> obtenerTurnos() {
         return turnoRepository.findAllByOrderByTurnoLimiteDesc();
     }
+
+    @Override
+public Turno obtenerTurnoPorId(String turnoId) {
+        return turnoRepository.findById(turnoId)
+                .orElseThrow(() -> new RuntimeException("Turno no encontrado con ID: " + turnoId));
+    }
+
 }
