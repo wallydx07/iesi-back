@@ -74,19 +74,14 @@ public class NotaController {
     @PostMapping("/crear")
     public ResponseEntity<Nota> crearNota(@RequestBody Nota nota) {
         Nota nuevaNotaAux = this.notaService.obtenerNotaPorId(nota.getNotaId());
-
-        // Reformatear la fecha de "yyyy-MM-dd" a "dd-MM-yyyy"
         String notaFecha = nota.getNotaFechaNota();
         if (notaFecha != null && !notaFecha.isEmpty()) {
             LocalDate fecha = LocalDate.parse(notaFecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
             nota.setNotaFechaNota(fechaFormateada);
         }
-
-        // Asignar usuario y cursada
         nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
         nota.setCursada(nuevaNotaAux.getCursada());
-
         Nota nuevaNota = notaService.guardarNota(nota);
         return ResponseEntity.ok(nuevaNota);
     }
@@ -101,6 +96,10 @@ public class NotaController {
         }
     }
 
-
+    @GetMapping("/obtenerNotasAnalitico/{legajoId}")
+    public ResponseEntity<List<NotaMateriaDTO>> obtenerNotasAnalitico(
+            @PathVariable String legajoId) {
+        return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajoAnalitico(legajoId));
+    }
 }
 

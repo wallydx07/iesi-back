@@ -20,13 +20,11 @@ public class LegajoServiceImpl implements LegajoService {
         this.legajoRepository = legajoRepository;
     }
 
-
     @Override
     public Legajo findLegajoById(String id) {
         return legajoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Legajo no encontrado con ID: " + id));
     }
-
 
     @Override
     public List<Legajo> obtenerLegajos() {
@@ -53,7 +51,6 @@ public class LegajoServiceImpl implements LegajoService {
             throw new EntityNotFoundException("Legajo no encontrado");
         }
     }
-
 
     @Override
     public String generaLegajo(String prefijo) {

@@ -47,9 +47,9 @@ public class CertificadoServiceImpl implements CertificadoService {
     }
 
 @Override
-public PDDocument generaRegular(String dniId, String carreraid, String autoridades, String curso) {
+public PDDocument generaRegular(String dniId, String legajoId, String autoridades, String curso) {
         Alumno alumno=this.alumnoService.findAlumnoById(dniId);//agregar el id
-        Carrera carrera=this.carreraService.findCarreraById(carreraid);//agregar el id
+        Carrera carrera=this.carreraService.obtenerCarreraPorLegajoId(legajoId);//agregar el id
 
         PDImageXObject Iesc2;
         PDDocument Documento = new PDDocument();
@@ -194,8 +194,8 @@ public PDDocument generaRegular(String dniId, String carreraid, String autoridad
             regular.setFont(normal, letra);
             regular.showText(t7);
             regular.newLineAtOffset(-(tamaño(t6, letra, negrita) + t6.length() * charspacing(longitud, tamaño(t6, letra, negrita) + tamaño(t7, letra, normal), t6 + t7)), -20);//linea nueav
-            String carreraCompl = "Tecnicatura Superior en " + carrera.getCarreraNombre()+" ";
-            String t10 = (" y actualmente se");
+            String carreraCompl = "Tecnicatura Superior en " + carrera.getCarreraNombre() + " ";
+            String t10 = ("  y actualmente se");
             regular.setCharacterSpacing(charspacing(longitud, tamaño(carreraCompl, letra, negrita) + tamaño(t10, letra, normal), carrera + t10));//espacio entre caracteres
             regular.setFont(negrita, letra);
             regular.showText(carreraCompl);

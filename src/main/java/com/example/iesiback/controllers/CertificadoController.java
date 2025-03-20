@@ -40,22 +40,18 @@ public class CertificadoController {
     @GetMapping("/estudianteregular")
     public ResponseEntity<ByteArrayResource> generarFicha(
             @RequestParam String alumnoId,
-            @RequestParam String carreraId,
+            @RequestParam String legajoId,
             @RequestParam String autoridades,
             @RequestParam String curso) {
 
         try {
-            // Se obtiene el PDDocument desde el servicio
-            PDDocument document = certificadoService.generaRegular(alumnoId, carreraId, autoridades, curso);
-            // Convertir PDDocument a byte[]
+            System.out.println("Solictando certificado");
+            PDDocument document = certificadoService.generaRegular(alumnoId, legajoId, autoridades, curso);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             document.close();
             byte[] pdfBytes = baos.toByteArray();
-
-            // Crear recurso a partir del byte[]
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);
-
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=certificado_regular.pdf")
                     .contentType(MediaType.APPLICATION_PDF)
@@ -81,8 +77,6 @@ public class CertificadoController {
             document.save(baos);
            // document.close();
             byte[] pdfBytes = baos.toByteArray();
-
-            // Crear recurso a partir del byte[]
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);
 
             return ResponseEntity.ok()
@@ -96,9 +90,8 @@ public class CertificadoController {
     }
 
 
-
     @GetMapping("/generarActa")
-    public ResponseEntity<byte[]> generarActaExamen(
+    public ResponseEntity<ByteArrayResource> generarActaExamen(
             @RequestParam String materiaId,
             @RequestParam String carrera,
             @RequestParam Integer cursadaExamenId,
@@ -108,18 +101,21 @@ public class CertificadoController {
             Materia materia=this.materiaService.findMateriaById(materiaId);
            // Carrera carrera=this.carreraService.findCarreraById(carreraId);
             CursadaExamen cursadaExamen=this.cursadaExamenService.obtenerPorId(cursadaExamenId).get();
-            PDDocument pdf = certificadoService.generaExamen(materia, carrera, cursadaExamen, modalidad);
-            // Convertir el PDF a bytes
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            pdf.save(out);
-            pdf.close();
-            // Configurar la respuesta HTTP con el PDF
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "inline; filename=Acta_Examen.pdf");
-            return new ResponseEntity<>(out.toByteArray(), headers, HttpStatus.OK);
+            PDDocument document = certificadoService.generaExamen(materia, carrera, cursadaExamen, modalidad);
+            // Convertir PDDocument a byte[]
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            // document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
 
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=certificado_regular.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
