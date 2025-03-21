@@ -1,4 +1,5 @@
 package com.example.iesiback.repositories;
+import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,17 @@ public interface AlumnoRepository extends JpaRepository<Alumno, String> {
             "JOIN Legajo l ON l.legajoAlumnoDni.alumnoDni = a.alumnoDni" +
             " WHERE l.legajoId = :legajoId")
     Alumno findAlumnoByLegajoId(@Param("legajoId") String legajoId);
+
+
+    @Query("SELECT new com.tu.paquete.AlumnoDTO(l.legajoId, a.alumnoDni, a.alumnoApellido, a.alumnoNombre) " +
+            "FROM Alumno a " +
+            "JOIN a.legajos l " +
+            "JOIN Inscripcion i ON l.legajoId = i.legajo.legajoId " +
+            "WHERE a.alumnoApellido LIKE CONCAT(:apellido, '%') " +
+            "AND i.carrera.carreraNombre = :carreraNombre")
+    List<AlumnoExamenDTO> buscarAlumnos(@Param("apellido") String apellido,
+                                        @Param("carreraNombre") String carreraNombre);
+
+
+
 }

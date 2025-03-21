@@ -1,4 +1,5 @@
 package com.example.iesiback.controllers;
+import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.services.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,5 +94,11 @@ public class AlumnoController {
         } else {
             return ResponseEntity.notFound().build();  // Devuelve un 404 si no se encuentra el alumno
         }
+    }
+
+
+    @GetMapping("/api/AlumnoExamenDTO")
+    public List<AlumnoExamenDTO> buscarAlumnos(@RequestParam String apellido, @RequestParam String carreraNombre) {
+        return alumnoService.buscarAlumnos(apellido, carreraNombre);
     }
 }

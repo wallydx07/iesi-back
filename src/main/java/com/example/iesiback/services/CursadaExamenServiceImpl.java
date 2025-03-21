@@ -56,14 +56,20 @@ public Optional<CursadaExamen> obtenerPorId(Integer id) {
         return cursadaExamenRepository.findById(id);
     }
 
+    @Override
+    public CursadaExamen crearCursadaExamen(String turnoId, String materiaId) {
+        Turno turno = this.turnoService.obtenerTurnoPorId(turnoId);
+        Optional<CursadaExamen> existente = cursadaExamenRepository.findByTurnoAndMateriaId(turno, materiaId);
+        if (existente.isPresent()) {
+            throw new RuntimeException("Ya existe un CursadaExamen para el turno " + turnoId + " y materia " + materiaId);
+        }
 
-//@Override
-//public CursadaExamen crearCursadaExamen(String turnoId, String materiaId) {
-//        Turno turno = this.turnoService.obtenerTurnoPorId(turnoId);
-//        CursadaExamen cursadaExamen = new CursadaExamen();
-//        cursadaExamen.setTurno(turno);
-//        cursadaExamen.setMateriaId(materiaId);
-//        cursadaExamen.setFecha(LocalDate.now()); // Opcional: Asignar la fecha actual
-//        return cursadaExamenRepository.save(cursadaExamen);
-//    }
+        CursadaExamen cursadaExamen = new CursadaExamen();
+        cursadaExamen.setTurno(turno);
+        cursadaExamen.setMateriaId(materiaId);
+        cursadaExamen.setFecha(LocalDate.now()); // Opcional: Asignar la fecha actual
+
+        return cursadaExamenRepository.save(cursadaExamen);
+    }
+
 }

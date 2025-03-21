@@ -4,6 +4,7 @@ import com.example.iesiback.dto.ExamenCursadaDTO;
 import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.services.CursadaExamenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -30,6 +31,14 @@ public class CursadaExamenController {
         return ResponseEntity.ok(fecha);
     }
 
+    @PostMapping("/crear")
+    public ResponseEntity<CursadaExamen> crearCursadaExamen(
+            @RequestParam String turnoId,
+            @RequestParam String materiaId) {
+
+        CursadaExamen nuevaCursada = cursadaExamenService.crearCursadaExamen(turnoId, materiaId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCursada);
+    }
 
     @GetMapping("/todas")
     public ResponseEntity<List<CursadaExamen>> obtenerTodasLasCursadas() {

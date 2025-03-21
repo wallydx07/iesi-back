@@ -14,5 +14,5 @@ public interface CursadaExamenService {
      List<CursadaExamen> obtenerTodasLasCursadas();
     List<ExamenCursadaDTO> obtenerCursadasPorTurno(String turnoId);
     Optional<CursadaExamen> obtenerPorId(Integer id);
-//    CursadaExamen crearCursadaExamen(String turnoId, String materiaId);
+    CursadaExamen crearCursadaExamen(String turnoId, String materiaId);
 }
