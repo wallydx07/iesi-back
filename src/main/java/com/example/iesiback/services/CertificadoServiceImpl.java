@@ -405,7 +405,6 @@ public PDDocument generaRegular(String dniId, String legajoId, String autoridade
             double nuevoProm = 0;
         int contProm = 0;
         List<NotaMateriaDTO> listaMaterias = new ArrayList<NotaMateriaDTO>();
-        //listaMaterias = objcrud.generarAnailitico(libretaEstudiantil);
         listaMaterias = this.notaService.obtenerTodasNotasPorLegajoAnalitico(legajoId);
         System.out.println(listaMaterias.size()+"Tamaño 1");
         PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
@@ -1095,6 +1094,468 @@ public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cu
 
 
 
+    @Override
+    public PDDocument generaTramite(String carreraId, String alumnoDNI, String Autoridades){
+        PDImageXObject Iesc1,Iesc2;
+        Carrera carreraObj=this.carreraService.findCarreraById(carreraId);
+        Alumno alumno=this.alumnoService.findAlumnoById(alumnoDNI);
+        PDDocument Documento=new PDDocument();
+        try {
+            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+            if (iesc1I == null) {
+                System.out.println("readFilesInBytes: File " + "file" + " does not exist");
+            }
+            byte[] ba = IOUtils.toByteArray(iesc1I);
+            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");//divujar desde el path
+            // byte[] be = IOUtils.toByteArray(iesc2I);
+            //     Iesc2 = PDImageXObject.createFromByteArray(Documento, be, "esc2.png");//divujar desde el path
 
+            PDPage Pagina = new PDPage(PDRectangle.A4);
+            Documento.addPage(Pagina);
+            PDPageContentStream contenido = new PDPageContentStream(Documento, Pagina);
+
+            PDType1Font font = PDType1Font.HELVETICA; // Definimos la fuente
+            int fontSize = 8; // Tamaño de la fuente
+            contenido.setFont(font, fontSize);
+
+// Altura de la página
+            float pageHeight = PDRectangle.A4.getHeight();
+
+// Ancho de la página
+            float pageWidth = PDRectangle.A4.getWidth();
+
+// Texto para cada línea
+            String[] lines = {
+                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
+                    "“CAMPINTA GUAZU GLORIA PEREZ”",
+                    "Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15",
+                    "Bahia Blanca Nº 235 Bº Kennedy – Tel.N°(0388)-3428370)",
+                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina",
+                    "________________________________________________________________________________________________________________________"
+            };
+
+// Distancia entre líneas
+            int n = -10;
+
+// Comienza a escribir el texto
+            contenido.beginText();
+
+            float iStart = 820;
+            contenido.newLineAtOffset(0, iStart);
+
+            for (String line : lines) {
+                // Calcula el ancho de cada línea
+                float textWidth = font.getStringWidth(line) / 1000 * fontSize;
+
+                // Calcula la posición x para centrar el texto
+                float xStart = (pageWidth - textWidth) / 2;
+
+                // Mueve la posición x
+                contenido.newLineAtOffset(xStart, 0);
+
+                // Escribe la línea
+                contenido.showText(line);
+
+                // Mueve a la siguiente línea
+                contenido.newLineAtOffset(-xStart, n);
+            }
+
+            contenido.endText();
+            contenido.close();
+
+
+            //imagen del encavezado izquierda
+            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+            PDesc1.drawImage(Iesc1, 30, 770, 65, 60);//Draw an image at the x,y coordinates, with the given size.
+            PDesc1.close();
+            //imagen derecha del envavezado
+            //  PDPageContentStream PDesc2 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            //   PDesc2.moveTo(200, 100);//image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+            //  PDesc2.drawImage(Iesc2, 510, 770, 60, 60);//Draw an image at the x,y coordinates, with the given size.
+            //    PDesc2.close();
+
+
+            //================================================
+
+
+
+            PDPageContentStream regular=new PDPageContentStream(Documento,Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            //texto de constancia
+            n=-10;//distancia entre lineas
+            regular.beginText();
+            regular.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            regular.newLineAtOffset(200,720);//titulo
+            regular.showText("CONSTANCIA DE TITULO EN TRAMITE");
+            regular.newLineAtOffset(0,0 );
+            regular.showText("__________________________________");
+            regular.endText();
+            ///=============================================================
+            PDRectangle mediabox = Pagina.getMediaBox();
+            float margin = 20;
+            float width = mediabox.getWidth() - 4*margin;
+            float X = mediabox.getLowerLeftX() + margin;
+            float Y = mediabox.getUpperRightY() - margin;
+            List<String> lineas= new ArrayList<String>();
+            int letra=12;
+            String hola=" __________________";
+            String texto=Dividir(hola,width,letra);
+            lineas=procesar(texto,letra);
+            //===================================================================
+            // Justificar texto
+            PDType1Font normal=PDType1Font.HELVETICA;
+            PDType1Font negrita=PDType1Font.HELVETICA_BOLD;
+            //consulta
+
+            String genero=alumno.getAlumnoGenero();
+            String resolucion=carreraObj.getCarreraResolucion();
+            String genero2="";
+            String genero1="";
+            if (genero.equals("Masculino")){
+                genero1="el SR";
+                genero2="el interesado";
+                System.out.println("Es Hombre");
+            }else{
+                genero1="la Sra" ;
+                genero2="la interesada";
+                System.out.println("Es Mujer");
+            }
+            regular.beginText();
+            regular.setFont(normal, letra);
+            regular.newLineAtOffset(50,680);
+            String t1=("-----Por la presente, la Rectora del ");
+            String t2=("Instituto de Educación Superior Intercultural CAMPINTA ");
+            //regular.setCharacterSpacing(charspacing(longitud,t1+t2,letra));//espacio entre caracteres
+            regular.showText(t1);
+            regular.newLineAtOffset(tamaño(t1,letra, normal), 0);
+            regular.setFont(negrita, letra);
+            //String t2=("Instituto de Educación Superior Intercultural CAMPINTA");
+            regular.showText(t2);
+            float longitud=tamaño(t1+t2,letra, PDType1Font.HELVETICA)+20;//longitud permitida para justificar
+            regular.newLineAtOffset(-tamaño(t1,letra, normal), -20);//nueva linea abajo justo al inicio
+            String t3= ("GUAZU GLORIA PEREZ ");
+            String t4=("Prof. Cristina Noemi Martínez, deja ");//CONSTANCIA que ");
+            String t41=("CONSTANCIA ");
+            String t5=("que "+genero1);
+            regular.setCharacterSpacing(charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41));//espacio entre caracteres
+            regular.showText(t3);
+            regular.setFont(PDType1Font.HELVETICA, letra);
+            regular.newLineAtOffset(tamaño(t3,letra,negrita)+t3.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),0 );
+            //String t4=(" Prof. Cristina Noemi Martínez, deja CONSTANCIA que el Sr");
+            regular.showText(t4);
+            regular.newLineAtOffset(tamaño(t4,letra, normal)+t4.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),0 );
+            regular.showText(t41);
+            regular.newLineAtOffset(tamaño(t41,letra, normal)+t41.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),0 );
+            regular.showText(t5);
+            regular.newLineAtOffset(-tamaño(t3,letra, negrita)-tamaño(t41,letra, negrita)-tamaño(t4,letra, normal)-t3.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41)-t4.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41)-t41.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),-20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
+            String nombre=alumno.getAlumnoNombre();
+            String apellido=alumno.getAlumnoApellido();
+            String t6=(apellido+" "+nombre+" D.N.I: "+alumno.getAlumnoDni()+" ");
+            String t7=(", ha acreditado la totalidad de los espacios ");
+            regular.setFont(negrita, letra);
+            regular.setCharacterSpacing(charspacing(longitud, +tamaño(t6, letra, negrita)+tamaño(t7, letra, normal),t6+t7));//espacio entre caracteres
+            regular.showText(t6);
+            regular.newLineAtOffset(tamaño(t6,letra,negrita)+t6.length()*charspacing(longitud, tamaño(t6, letra, negrita)+tamaño(t7, letra, normal),t6+t7),0);//linea alejada de la primera palabra
+            regular.setFont(normal, letra);
+            regular.showText(t7);
+            regular.newLineAtOffset(-(tamaño(t6,letra,negrita)+t6.length()*charspacing(longitud, tamaño(t6, letra, negrita)+tamaño(t7, letra, normal),t6+t7)),-20 );//linea nueav
+            String t10=("curriculares corrrespondientes al Plan de Estudios de la Carrera: ");
+            String tec="Tecnicatura Superior";
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t10, letra, normal)+tamaño(tec, letra, negrita),t10+tec));//espacio entre caracteres
+            regular.showText(t10);
+            regular.setFont(negrita, letra);
+            regular.showText(tec);
+            regular.newLineAtOffset(0,-20 );//linea nueav
+            String carrera="en "+carreraObj.getCarreraNombre();
+            String t11=(" Estando el respectivo titulo en tramite");
+            String relleno=rellenar(carrera+t11,"",letra,longitud);
+            regular.setFont(negrita, letra);
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(carrera, letra, negrita)+tamaño(t11, letra, normal)+tamaño(relleno, letra, normal),carrera+t11+relleno));//espacio entre caracteres
+            regular.showText(carrera);
+            regular.setFont(normal, letra);
+            regular.showText(t11);
+            regular.showText(relleno);
+            regular.newLineAtOffset(0,-20 );
+
+            String t14=("-----Se expide la presente CONSTANCIA a solicitud de "+genero2+"  y al solo efecto de ser");
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t14, letra, normal),t14));//espacio entre caracteres
+            regular.setFont(normal, letra);
+            regular.showText(t14);
+            String t15=("presentada ante las Autoridades del ");
+            String t16=Autoridades;
+            System.out.println("autoridades "+t16);
+            if(t16.equals("que lo requieran")){
+                t15="presentada ante las Autoridades";
+            }
+            regular.setFont(normal, letra);
+            t16=rellenar(t15+t16,t16,letra,longitud);
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t15, letra, normal)+tamaño(t16, letra, negrita),t15+t16));//espacio entre caracteres
+            regular.newLineAtOffset(0,-20 );
+            regular.setFont(normal, letra);
+            regular.showText(t15);
+            // String t16=("B.E.G.U.P");
+            regular.newLineAtOffset(tamaño(t15,letra, normal)+t15.length()*charspacing(longitud, tamaño(t15, letra, normal)+tamaño(t16, letra, normal),t15+t16),0 );
+            regular.setFont(normal, letra);
+            regular.showText(t16);
+            // String t17=("------------------SAN SALVADOR DE JUJUY, "+fecha());
+            String t17=("-----SAN SALVADOR DE JUJUY, "+fecha()+"-------------");
+            regular.newLineAtOffset(-(tamaño(t15,letra,normal)+(t15.length())*charspacing(longitud, tamaño(t16, letra, normal)+tamaño(t15, letra, normal),t15+t16)),-20 );//linea nueav
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t17, letra, normal),t17));//espacio entre caracteres
+            regular.showText(t17);
+            regular.newLineAtOffset(0,-20 );
+            margin = 30;
+            // starting y position is whole page height subtracted by top and bottom margin
+            float yStartNewPage = Pagina.getMediaBox().getHeight() - (4 * margin);
+            // we want table across whole page width (subtracted by left and right margin ofcourse)
+            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+            boolean drawContent = true;
+            float yStart = yStartNewPage+30;
+            float bottomMargin = 70;
+            float yPosition = 550;
+            BaseTable table =  new  BaseTable (yStart, yStartNewPage, bottomMargin, tableWidth, margin, Documento, Pagina, true , drawContent);
+            Row< PDPage > headerRow = table.createRow(300);
+            Cell<PDPage>cell=headerRow.createCell(100, " " );
+            //cell.setText("hoal a atodsssss");
+            table.draw();
+            regular.endText();
+            regular.close();
+            //System.out.println("se divujo la imagen");
+           // Documento.save(dir+".pdf");
+            //Documento.close();
+        } catch (IOException e) {
+        }
+        return Documento;
+    }
+
+
+
+@Override
+public PDDocument generaCertificadoAsistencia(String alumnoDNI, String legajoId, String autoridades, String curso, String entrada, String salida, String fecT, String accion) {
+        PDImageXObject Iesc1,Iesc2;
+        Carrera carreraObj=this.carreraService.obtenerCarreraPorLegajoId(legajoId);
+        Alumno alumno=this.alumnoService.findAlumnoById(alumnoDNI);
+        PDDocument Documento=new PDDocument();
+        try {
+            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+            if (iesc1I == null) {
+                System.out.println("readFilesInBytes: File " + "file" + " does not exist");
+            }
+            byte[] ba = IOUtils.toByteArray(iesc1I);
+            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");
+            PDPage Pagina = new PDPage(PDRectangle.A4);
+            Documento.addPage(Pagina);
+            PDPageContentStream contenido = new PDPageContentStream(Documento, Pagina);
+            PDType1Font font = PDType1Font.HELVETICA; // Definimos la fuente
+            int fontSize = 8; // Tamaño de la fuente
+            contenido.setFont(font, fontSize);
+            float pageHeight = PDRectangle.A4.getHeight();
+            float pageWidth = PDRectangle.A4.getWidth();
+            String[] lines = {
+                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
+                    "“CAMPINTA GUAZU GLORIA PEREZ”",
+                    "Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15",
+                    "Bahia Blanca Nº 235 Bº Kennedy – Tel.N°(0388)-3428370)",
+                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina",
+                    "________________________________________________________________________________________________________________________"
+            };
+            int n = -10;
+            contenido.beginText();
+            float iStart = 820;
+            contenido.newLineAtOffset(0, iStart);
+
+            for (String line : lines) {
+                // Calcula el ancho de cada línea
+                float textWidth = font.getStringWidth(line) / 1000 * fontSize;
+
+                // Calcula la posición x para centrar el texto
+                float xStart = (pageWidth - textWidth) / 2;
+
+                // Mueve la posición x
+                contenido.newLineAtOffset(xStart, 0);
+
+                // Escribe la línea
+                contenido.showText(line);
+
+                // Mueve a la siguiente línea
+                contenido.newLineAtOffset(-xStart, n);
+            }
+            contenido.endText();
+            contenido.close();
+            //imagen del encavezado izquierda
+            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+            PDesc1.drawImage(Iesc1, 30, 770, 65, 60);//Draw an image at the x,y coordinates, with the given size.
+            PDesc1.close();
+            //imagen derecha del envavezado
+            //  PDPageContentStream PDesc2 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            //   PDesc2.moveTo(200, 100);//image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+            //  PDesc2.drawImage(Iesc2, 510, 770, 60, 60);//Draw an image at the x,y coordinates, with the given size.
+            //    PDesc2.close();
+
+
+            //================================================
+            PDPageContentStream regular=new PDPageContentStream(Documento,Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            //texto de constancia
+            n=-10;//distancia entre lineas
+            regular.beginText();
+            regular.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            regular.newLineAtOffset(210,720);//titulo
+            regular.showText("CONSTANCIA DE ASISTENCIA A CLASES");
+            regular.newLineAtOffset(0,0 );
+            regular.showText("____________________________________");
+            regular.endText();
+            ///=============================================================
+            PDRectangle mediabox = Pagina.getMediaBox();
+            float margin = 20;
+            float width = mediabox.getWidth() - 4*margin;
+            float X = mediabox.getLowerLeftX() + margin;
+            float Y = mediabox.getUpperRightY() - margin;
+            List<String> lineas= new ArrayList<String>();
+            int letra=12;
+            String hola=" ____________________";
+            String texto=Dividir(hola,width,letra);
+            lineas=procesar(texto,letra);
+            //===================================================================
+//Justificar texto
+            PDType1Font normal=PDType1Font.HELVETICA;
+            PDType1Font negrita=PDType1Font.HELVETICA_BOLD;
+
+            //consulta
+            String genero=alumno.getAlumnoGenero();
+            String genero2="";
+            String genero1="";
+            if (genero.equals("Masculino")){
+                genero1="el SR";
+                genero2="el interesado";
+                System.out.println("Es Hombre");
+            }else{
+                genero1="la Sra" ;
+                genero2="la interesada";
+                System.out.println("Es Mujer");
+            }
+            regular.beginText();
+            regular.setFont(normal, letra);
+            regular.newLineAtOffset(50,680);
+            String t1=("-----Por la presente, la Rectora del ");
+            String t2=("Instituto de Educación Superior Intercultural CAMPINTA ");
+            //regular.setCharacterSpacing(charspacing(longitud,t1+t2,letra));//espacio entre caracteres
+            regular.showText(t1);
+            regular.newLineAtOffset(tamaño(t1,letra, normal), 0);
+            regular.setFont(negrita, letra);
+            //String t2=("Instituto de Educación Superior Intercultural CAMPINTA");
+            regular.showText(t2);
+            float longitud=tamaño(t1+t2,letra, PDType1Font.HELVETICA)+20;//longitud permitida para justificar
+            regular.newLineAtOffset(-tamaño(t1,letra, normal), -20);//nueva linea abajo justo al inicio
+            String t3= ("GUAZU GLORIA PEREZ ");
+            String t4=("Prof. Cristina Noemi Martínez, deja ");//CONSTANCIA que ");
+            String t41=("CONSTANCIA ");
+            String t5=("que "+genero1);
+            regular.setCharacterSpacing(charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41));//espacio entre caracteres
+            regular.showText(t3);
+            regular.setFont(PDType1Font.HELVETICA, letra);
+            regular.newLineAtOffset(tamaño(t3,letra,negrita)+t3.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),0 );
+            //String t4=(" Prof. Cristina Noemi Martínez, deja CONSTANCIA que el Sr");
+            regular.showText(t4);
+
+            regular.newLineAtOffset(tamaño(t4,letra, normal)+t4.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),0 );
+            regular.showText(t41);
+            regular.newLineAtOffset(tamaño(t41,letra, normal)+t41.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),0 );
+            regular.showText(t5);
+            regular.newLineAtOffset(-tamaño(t3,letra, negrita)-tamaño(t41,letra, negrita)-tamaño(t4,letra, normal)-t3.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41)-t4.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41)-t41.length()*charspacing(longitud,tamaño(t4,letra,normal)+tamaño(t3,letra,negrita)+tamaño(t41,letra,negrita)+tamaño(t5,letra,normal),t3+t4+t5+t41),-20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
+
+            String nombre=alumno.getAlumnoNombre();
+            String apellido=alumno.getAlumnoApellido();
+
+            String t6=(apellido+" "+nombre+" D.N.I: "+alumno.getAlumnoDni()+" ");
+
+            String t7=(", estudiante del "+curso+" de la carrera:");
+            regular.setFont(negrita, letra);
+            regular.setCharacterSpacing(charspacing(longitud, +tamaño(t6, letra, negrita)+tamaño(t7, letra, normal),t6+t7));//espacio entre caracteres
+            regular.showText(t6);
+            regular.newLineAtOffset(tamaño(t6,letra,negrita)+t6.length()*charspacing(longitud, tamaño(t6, letra, negrita)+tamaño(t7, letra, normal),t6+t7),0);//linea alejada de la primera palabra
+            regular.setFont(normal, letra);
+            regular.showText(t7);
+            regular.newLineAtOffset(-(tamaño(t6,letra,negrita)+t6.length()*charspacing(longitud, tamaño(t6, letra, negrita)+tamaño(t7, letra, normal),t6+t7)),-20 );//linea nueav
+
+            String carrera="Tecnicatura Superior en "+carreraObj.getCarreraNombre();
+            String t10=("");
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(carrera, letra, negrita)+tamaño(t10, letra, normal),carrera+t10));//espacio entre caracteres
+            regular.setFont(negrita, letra);
+            regular.showText(carrera);
+            regular.newLineAtOffset(tamaño(carrera,letra,negrita)+carrera.length()*charspacing(longitud, tamaño(carrera, letra, negrita)+tamaño(t10, letra, normal),carrera+t10),0);//linea alejada de la primera palabra
+            regular.setFont(normal, letra);
+            regular.showText(t10);
+            regular.newLineAtOffset(-(tamaño(carrera,letra,negrita)+(carrera.length())*charspacing(longitud,tamaño(carrera, letra, negrita)+tamaño(t10, letra, normal),carrera+t10)),-20);//linea nueav
+            String t12="";
+            String tcond = fecT;
+            int contadorComas = tcond.length() - tcond.replace(",", "").length();
+            String losdias="";
+            if(contadorComas>0){
+                losdias=" a clases los dias: ";
+            }else{
+
+                losdias=" a clases el dia: ";
+            }
+
+
+            String t11=accion+losdias+fecT;
+            String t13=(", en el horario de :"+entrada+"-"+salida);
+            t13= rellenar(t11+t12+t13,t13,letra,longitud);
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t11, letra, normal)+tamaño(t12, letra, normal)+tamaño(t13, letra, normal),t11+t12+t13));//espacio entre caracteres
+            regular.showText(t11);
+            regular.newLineAtOffset(tamaño(t11,letra, normal)+t11.length()*charspacing(longitud,tamaño(t11, letra, normal)+tamaño(t12, letra, normal)+ tamaño(t13, letra, normal),t11+t12+t13),0);
+            regular.showText(t12);
+            System.out.println(t13+"//////////////////");
+//String t13=("Año de este Instituto");
+            regular.newLineAtOffset(tamaño(t12,letra, normal)+t12.length()*charspacing(longitud, tamaño(t11, letra, normal)+tamaño(t12, letra, normal)+tamaño(t13, letra, normal),t11+t12+t13),0);
+            regular.showText(t13);
+            String t14=("-----Se expide la presente CONSTANCIA a solicitud de "+genero2+"  y al solo efecto de ser");
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t14, letra, normal),t14));//espacio entre caracteres
+            regular.newLineAtOffset(-(tamaño(t11,letra, normal)+(t11.length())*charspacing(longitud, tamaño(t11, letra, normal)+tamaño(t12, letra, normal)+tamaño(t13, letra, normal),t11+t12+t13))-(tamaño(t12,letra, PDType1Font.HELVETICA)+(t12.length())*charspacing(longitud, tamaño(t11, letra, normal)+tamaño(t12, letra, normal)+tamaño(t13, letra, normal),t11+t12+t13)),-20 );//linea nueav
+
+            regular.showText(t14);
+            String t15=("presentada ante las Autoridades del ");
+            String t16=autoridades;
+            System.out.println("autoridades "+t16);
+            if(t16.equals("que lo requieran")){
+                t15="presentada ante las Autoridades";
+            }
+
+            t16=rellenar(t15+t16,t16,letra,longitud);
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t15, letra, normal)+tamaño(t16, letra, negrita),t15+t16));//espacio entre caracteres
+            regular.newLineAtOffset(0,-20 );
+            regular.setFont(normal, letra);
+            regular.showText(t15);
+            // String t16=("B.E.G.U.P");
+            regular.newLineAtOffset(tamaño(t15,letra, normal)+t15.length()*charspacing(longitud, tamaño(t15, letra, normal)+tamaño(t16, letra, normal),t15+t16),0 );
+            regular.setFont(normal, letra);
+            regular.showText(t16);
+            //String t17=("------------------SAN SALVADOR DE JUJUY, "+fecha());
+            String t17=("-----SAN SALVADOR DE JUJUY, "+fecha()+"-------------");
+            regular.newLineAtOffset(-(tamaño(t15,letra,normal)+(t15.length())*charspacing(longitud, tamaño(t16, letra, normal)+tamaño(t15, letra, normal),t15+t16)),-20 );//linea nueav
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t17, letra, normal),t17));//espacio entre caracteres
+            regular.showText(t17);
+            regular.newLineAtOffset(0,-20 );
+            margin = 30;
+            // starting y position is whole page height subtracted by top and bottom margin
+            float yStartNewPage = Pagina.getMediaBox().getHeight() - (4 * margin);
+            // we want table across whole page width (subtracted by left and right margin ofcourse)
+            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+            boolean drawContent = true;
+            float yStart = yStartNewPage+30;
+            float bottomMargin = 70;
+            float yPosition = 550;
+            BaseTable table =  new  BaseTable (yStart, yStartNewPage, bottomMargin, tableWidth, margin, Documento, Pagina, true , drawContent);
+            Row< PDPage > headerRow = table.createRow(300);
+            Cell<PDPage>cell=headerRow.createCell(100, " " );
+            //cell.setText("hoal a atodsssss");
+            table.draw();
+            regular.endText();
+            regular.close();
+            //Documento.close();
+        } catch (IOException e) {
+        }
+        return Documento;
+    }
 
 }

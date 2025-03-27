@@ -2,6 +2,7 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.AporteDTO;
 import com.example.iesiback.entities.Aporte;
+import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.repositories.AporteRepository;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -14,13 +15,21 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AporteServiceImpl implements AporteService {
     private final AporteRepository aporteRepository;
-    public AporteServiceImpl(AporteRepository aporteRepository) {
+    private final LegajoService legajoService;
+
+    public AporteServiceImpl(
+            AporteRepository aporteRepository, LegajoService legajoService) {
         this.aporteRepository = aporteRepository;
+        this.legajoService = legajoService;
     }
+    
+    
+    
     private static final Color PRIMARY_COLOR = new Color(109, 40, 217); // Morado fuerte
     private static final Color TEXT_PRIMARY = new Color(17, 24, 39);  // Negro intenso
     private static final Color TEXT_SECONDARY = new Color(75, 85, 99);  // Gris oscuro
@@ -186,5 +195,11 @@ public class AporteServiceImpl implements AporteService {
     @Override
     public List<AporteDTO> getAportesConDatos() {
         return aporteRepository.findAportesConDatos();
+    }
+
+    @Override
+    public List<Aporte> obtenerAportesPorLegajoId(String legajoId) {
+        Optional<Legajo> legajo = this.legajoService.findById(legajoId);
+        return legajo.map(aporteRepository::findByAporteLegajo).orElseThrow(() -> new RuntimeException("Legajo no encontrado"));
     }
 }

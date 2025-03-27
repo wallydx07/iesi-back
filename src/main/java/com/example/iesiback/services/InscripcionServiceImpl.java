@@ -33,10 +33,8 @@ public class InscripcionServiceImpl implements InscripcionService {
 @Override
 public List<String> rellenarAnyo(String legajoId) {
         List<String> opciones = new ArrayList<>();
-
         // Obtener la inscripción del estudiante
         Inscripcion inscripcionOpt = inscripcionRepository.findInscripcionByLegajoId(legajoId);
-
         int fin = Calendar.getInstance().get(Calendar.YEAR);
         int ini = Integer.parseInt(inscripcionOpt.getCarrera().getCarreraYear());
         System.out.println("ini: " + ini + " fin: " + fin);

@@ -7,7 +7,6 @@ import com.example.iesiback.repositories.CursadaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,8 +38,6 @@ public class CursadaServiceImpl implements CursadaService {
 
         }
     }
-
-
 
     @Override
     public List<Cursada> getAllCursadas() {
@@ -114,31 +111,75 @@ public class CursadaServiceImpl implements CursadaService {
 
 
     @Override
-    public List<String> obtenerCorrelativasPendientes(Cursada cursada) {
-        String correlativas = cursada.getMateriaCarrera().getMateria().getMateriaCursada();
-        if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
-            return Collections.emptyList();
+    public String obtenerCorrelativasPendientes(String materiaId, String legajoId) {
+        // Verificar que la cursada exista
+        System.out.println("Buscando cursada con legajo: " + legajoId + " y materia: " + materiaId);
+        List<Cursada> cursadas = this.cursadaRepository.findByLegajoAndMateria(legajoId, materiaId);
+        if (cursadas.isEmpty()) {
+            System.out.println("No se encontró cursada para este legajo y materia.");
+            return "Sin cursada";  // Si no se encuentra la cursada, retornar "Sin cursada"
         }
-        List<String> correlativasFaltantes = new ArrayList<>();
+
+        Cursada cursada = cursadas.get(0);
+        System.out.println("Cursada encontrada: " + cursada);
+
+        String correlativas = cursada.getMateriaCarrera().getMateria().getMateriaCursada();
+        System.out.println("Correlativas obtenidas: " + correlativas);
+
+        // Si no hay correlativas, retornar "Aprobadas"
+        if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
+            System.out.println("No hay correlativas pendientes, todas las materias están aprobadas.");
+            return "Aprobadas";
+        }
+
+        StringBuilder correlativasPendientes = new StringBuilder();
         String[] correlativasArray = correlativas.split("-");
+        System.out.println("Correlativas divididas: " + Arrays.toString(correlativasArray));
+
+        // Recorremos las correlativas
         for (String materiaOrden : correlativasArray) {
+            System.out.println("Verificando correlativa: " + materiaOrden);
+
+            // Obtener cursadas de la correlativa actual
             List<Cursada> correlativaCursadas = cursadaRepository.findByMateriaOrdenAndLegajoId(
                     String.valueOf(Integer.parseInt(materiaOrden)), cursada.getLegajo().getLegajoId());
+
+            System.out.println("Cursadas encontradas para la correlativa " + materiaOrden + ": " + correlativaCursadas);
+
             // Se considera aprobada si está en estado "Aprobada" o "Regular"
-            boolean aprobadaORegular = correlativaCursadas.stream().anyMatch(this::tieneNotaAprobadaORegular);
+            boolean aprobadaORegular = correlativaCursadas.stream()
+                    .anyMatch(this::tieneNotaAprobadaORegular);
+
+            System.out.println("Estado de la correlativa " + materiaOrden + " (Aprobada o Regular): " + aprobadaORegular);
+
+            // Si no está aprobada o regular, la agregamos a la lista de correlativas pendientes
             if (correlativaCursadas.isEmpty() || !aprobadaORegular) {
-                correlativasFaltantes.add(materiaOrden);
+                if (correlativasPendientes.length() > 0) {
+                    correlativasPendientes.append(", ");
+                }
+                correlativasPendientes.append(materiaOrden);
+                System.out.println("Correlativa pendiente agregada: " + materiaOrden);
             }
         }
-        // Si no hay correlativas pendientes, se retorna la lista original de correlativas
-        return correlativasFaltantes.isEmpty() ? Arrays.asList(correlativasArray) : correlativasFaltantes;
+
+        // Si no hay correlativas pendientes, devolver "Aprobadas"
+        if (correlativasPendientes.length() == 0) {
+            System.out.println("Todas las correlativas están aprobadas.");
+            return "Aprobadas";
+        }
+
+        // Devolver las correlativas pendientes concatenadas
+        System.out.println("Correlativas pendientes: " + correlativasPendientes.toString());
+        return correlativasPendientes.toString();
     }
+
+
+
 
 
     @Override
     public List<String> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia) {
-
-            String correlativas = materia.getMateriaCursada();
+       String correlativas = materia.getMateriaCursada();
         if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
             return Collections.emptyList();
         }
@@ -157,12 +198,13 @@ public class CursadaServiceImpl implements CursadaService {
     }
 
 
-
     private boolean tieneNotaAprobadaORegular(Cursada cursada) {
+        System.out.println("Revisando notas para cursada: " + cursada);
         return cursada.getNotas().stream()
-                .anyMatch(nota -> "Aprobada".equalsIgnoreCase(nota.getNotaEstado())
-                        || "Regular".equalsIgnoreCase(nota.getNotaEstado()));
+                .peek(nota -> System.out.println("Estado de la nota: " + nota.getNotaEstado()))  // Imprime el estado de cada nota
+                .anyMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()));
     }
+
 
 @Transactional
 @Override

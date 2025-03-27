@@ -118,10 +118,10 @@ public class MateriaServiceImpl implements MateriaService {
         return procesados;
     }
 
-/*
-    public List<String> correlativasCursadaId(int cursadaId) {
-        Cursada cursada = cursadaService.getCursadaById(cursadaId).orElse(null);
-        return cursadaService.obtenerCorrelativasPendientes(cursada);
-    }
-    */
+//
+//    public List<String> correlativasCursadaId(int cursadaId) {
+//        Cursada cursada = cursadaService.getCursadaById(cursadaId).orElse(null);
+//        return cursadaService.obtenerCorrelativasPendientes(cursada);
+//    }
+
 }

@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class NotaServiceImpl implements NotaService {
 
     private final CursadaService cursadaService;
-
     @Autowired
     public NotaServiceImpl(
             CursadaService cursadaService) {
@@ -37,10 +36,21 @@ public class NotaServiceImpl implements NotaService {
         return List.of();
     }
 
-    public List<String> correlativasCursadaId(int cursadaId) {
+//    public List<String> correlativasCursadaId(int cursadaId) {
+//        Cursada cursada = cursadaService.getCursadaById(cursadaId).orElse(null);
+//        return cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria());
+//    }
+
+
+
+
+        public String correlativasCursadaId(int cursadaId) {
         Cursada cursada = cursadaService.getCursadaById(cursadaId).orElse(null);
-        return cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria());
+        return cursadaService.obtenerCorrelativasPendientes(cursada.getMateriaCarrera().getMateria().getMateriaId(), cursada.getLegajo().getLegajoId());
     }
+
+
+
 
     public List<NotaMateriaDTO> mapResultsToDTO(List<Object[]> results) {
         List<NotaMateriaDTO> dtoList = new ArrayList<>();
@@ -88,15 +98,34 @@ public class NotaServiceImpl implements NotaService {
 
 
 
+//    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
+//        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+//        System.out.println(results.size());
+//        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
+//        return resultados.stream()
+//                .filter(Objects::nonNull) // Asegurarse de que no sea null
+//                .map(obj -> {
+//                    Integer cursadaId = obj.getCursadaId();
+//                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of();
+//                    obj.setCorrelativas(correlativas);
+//                    return obj;
+//                })
+//                .collect(Collectors.toList());
+//    }
+
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
         List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
         System.out.println(results.size());
-        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
+        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+
         return resultados.stream()
                 .filter(Objects::nonNull) // Asegurarse de que no sea null
                 .map(obj -> {
                     Integer cursadaId = obj.getCursadaId();
-                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of();
+                    List<String> correlativas = (cursadaId != null) ?
+                            // Convertir el string separado por comas en una lista de String
+                            Arrays.asList(correlativasCursadaId(cursadaId).split(",")) :
+                            List.of();
                     obj.setCorrelativas(correlativas);
                     return obj;
                 })
@@ -104,36 +133,71 @@ public class NotaServiceImpl implements NotaService {
     }
 
 
-    public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
-        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
-        return resultados.stream()
-                .filter(obj -> {
-                    String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
-                    return !estadoNota.equalsIgnoreCase("Aprobado")
-                            && !estadoNota.equalsIgnoreCase("Cursando");
-                })
-                .map(obj -> {
-                    // 📌 Manejamos la fecha de forma más segura
-                    LocalDate fechaNota = null;
-                    try {
-                        if (obj.getNotaFecha() != null) {
-                            fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
-                        }
-                    } catch (DateTimeParseException e) {
-                        System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
+
+//    public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
+//        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+//        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
+//        return resultados.stream()
+//                .filter(obj -> {
+//                    String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
+//                    return !estadoNota.equalsIgnoreCase("Aprobado")
+//                            && !estadoNota.equalsIgnoreCase("Cursando");
+//                })
+//                .map(obj -> {
+//                    // 📌 Manejamos la fecha de forma más segura
+//                    LocalDate fechaNota = null;
+//                    try {
+//                        if (obj.getNotaFecha() != null) {
+//                            fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
+//                        }
+//                    } catch (DateTimeParseException e) {
+//                        System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
+//                    }
+//
+//                    // 📌 Obtener cursadaId correctamente
+//                    Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
+//                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of(); // Evitar null
+//
+//                    // Retornar el objeto NotaMateriaDTO con las correlativas
+//                    obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
+//
+//                    return obj;
+//                }).collect(Collectors.toList());
+//    }
+public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
+    List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+    List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+
+    return resultados.stream()
+            .filter(obj -> {
+                String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
+                return !estadoNota.equalsIgnoreCase("Aprobado")
+                        && !estadoNota.equalsIgnoreCase("Cursando");
+            })
+            .map(obj -> {
+                // 📌 Manejamos la fecha de forma más segura
+                LocalDate fechaNota = null;
+                try {
+                    if (obj.getNotaFecha() != null) {
+                        fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
                     }
+                } catch (DateTimeParseException e) {
+                    System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
+                }
 
-                    // 📌 Obtener cursadaId correctamente
-                    Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
-                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of(); // Evitar null
+                // 📌 Obtener cursadaId correctamente
+                Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
+                List<String> correlativas = (cursadaId != null) ?
+                        // Convertir el string separado por comas en una lista de String
+                        Arrays.asList(correlativasCursadaId(cursadaId).split(",")) :
+                        List.of(); // Evitar null
 
-                    // Retornar el objeto NotaMateriaDTO con las correlativas
-                    obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
+                // Retornar el objeto NotaMateriaDTO con las correlativas
+                obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
 
-                    return obj;
-                }).collect(Collectors.toList());
-    }
+                return obj;
+            }).collect(Collectors.toList());
+}
 
 
     @Override
@@ -228,21 +292,45 @@ public class NotaServiceImpl implements NotaService {
             nota.setNotaFinal(definirNotaFinal(nota));
             int ordenMateria = nota.getMateriaOrden();
             if (materiasMap.containsKey(ordenMateria)) {
-                // Si ya existe una materia, validar cuál es mejor
                 NotaMateriaDTO mejorNota = validadorAnalitico(materiasMap.get(ordenMateria), nota);
                 materiasMap.put(ordenMateria, mejorNota);
             } else {
                 materiasMap.put(ordenMateria, nota);
             }
         }
-
         List<NotaMateriaDTO> notasRefinadas = new ArrayList<>(materiasMap.values());
-
         if (checkCorrelativas) {
             validarCorrelativas(notasRefinadas);
         }
-
         return notasRefinadas;
+    }
+
+    private void validarCorrelativas(List<NotaMateriaDTO> notasRefinadas) {
+        for (NotaMateriaDTO nota : notasRefinadas) {
+            List<String> correlativas = nota.getCorrelativas();
+            for (String correlativa : correlativas) {
+                boolean esValido = false;
+
+                // Verificar si la correlativa es "Aprobadas"
+                if ("Aprobadas".equalsIgnoreCase(correlativa)) {
+                    esValido = true; // No se bloquea si la correlativa es "Aprobadas"
+                } else {
+                    // Si no es "Aprobadas", tratar de convertirlo a número y verificar
+                    try {
+                        int correlativaInt = Integer.parseInt(correlativa);
+                        esValido = correlativas(correlativaInt, notasRefinadas, "aprobado");
+                    } catch (NumberFormatException e) {
+                        // Si no es un número, bloquear
+                        esValido = false;
+                    }
+                }
+
+                if (!esValido) {
+                    nota.setNotaFinal("(-)"); // Se bloquea si no cumple correlativas
+                    break;
+                }
+            }
+        }
     }
 
 
@@ -278,52 +366,79 @@ public class NotaServiceImpl implements NotaService {
     /**
      * Valida las correlativas de las materias en las notas refinadas.
      */
-    private void validarCorrelativas(List<NotaMateriaDTO> notasRefinadas) {
-        for (NotaMateriaDTO nota : notasRefinadas) {
-            List<String> correlativas = nota.getCorrelativas();
-            for (String correlativa : correlativas) {
-                if (!correlativas(Integer.parseInt(correlativa), notasRefinadas, "aprobado")) {
-                    nota.setNotaFinal("(-)"); // Se bloquea si no cumple correlativas
-                    break;
-                }
-            }
-        }
-    }
+//    private void validarCorrelativas(List<NotaMateriaDTO> notasRefinadas) {
+//        for (NotaMateriaDTO nota : notasRefinadas) {
+//            List<String> correlativas = nota.getCorrelativas();
+//            for (String correlativa : correlativas) {
+//                if (!correlativas(Integer.parseInt(correlativa), notasRefinadas, "aprobado")) {
+//                    nota.setNotaFinal("(-)"); // Se bloquea si no cumple correlativas
+//                    break;
+//                }
+//            }
+//        }
+//    }
 
 
     public boolean correlativas(int materia_orden, List<NotaMateriaDTO> analitico, String tipo) {
         boolean aux = false;
-        System.out.println("+materiaOrden" + materia_orden);
-        System.out.println("Tamaño del linkedlist" + analitico.size());
+        // Imprimir la materia_orden y tamaño del linkedlist
+        System.out.println("+materiaOrden: " + materia_orden);
+        System.out.println("Tamaño del linkedlist: " + analitico.size());
+
         if (analitico != null && !analitico.isEmpty() && materia_orden >= 0 && materia_orden < analitico.size()) {
+            // Asegurarse de que materia_orden no sea 0 para evitar index out of bounds
+            if (materia_orden <= 0) {
+                System.out.println("Error: materia_orden no puede ser 0 o negativo.");
+                return aux;
+            }
+
+            // Intentar obtener el objeto NotaMateriaDTO
             NotaMateriaDTO xd = analitico.get(materia_orden - 1);
+
+            // Comprobar si el objeto es nulo
             if (xd != null) {
+                System.out.println("Objeto NotaMateriaDTO encontrado: " + xd.toString());
+
                 String cond = xd.getNotaEstado() != null ? xd.getNotaEstado() : "";
                 String valorString = xd.getNotaCalificacionNumero() != null ? xd.getNotaCalificacionNumero() : "";
-                System.out.println("Nota numero" + valorString + " materia: " + xd.getMateriaNombre() + " notaletra " + xd.getNotaCalificacionLetra());
+
+                // Verificar el estado y calificación
+                System.out.println("Nota Estado: " + cond);
+                System.out.println("Valor de calificación: " + valorString);
+                System.out.println("Materia: " + xd.getMateriaNombre() + ", Nota Letra: " + xd.getNotaCalificacionLetra());
+
                 double nota;
                 try {
                     nota = Double.parseDouble(valorString);
+                    System.out.println("Nota convertida correctamente: " + nota);
                 } catch (NumberFormatException e) {
-                    // En caso de error, establecer el valor en 1
-                    nota = 1.0;
+                    // Si no se puede convertir a número, mostrar el error y establecer valor por defecto
+                    System.out.println("Error al convertir la calificación a número: " + valorString);
+                    nota = 1.0; // Valor por defecto en caso de error
                 }
+
+                // Evaluar en función del tipo
                 switch (tipo) {
                     case "regular":
+                        System.out.println("Evaluando tipo: regular");
                         if (nota >= 4) {
-                            System.out.println("Correlativa aceptada " + materia_orden + "nota: " + nota);
+                            System.out.println("Correlativa aceptada, materia_orden: " + materia_orden + ", Nota: " + nota);
                             aux = true;
                         } else {
-                            System.out.println("Correlativa rechazada " + materia_orden + "nota: " + nota);
+                            System.out.println("Correlativa rechazada, materia_orden: " + materia_orden + ", Nota: " + nota);
                         }
                         break;
                     case "aprobado":
+                        System.out.println("Evaluando tipo: aprobado");
                         if (nota >= 4 && cond.equals("Aprobado")) {
                             aux = true;
-                            System.out.println("Correlativa aprobada " + materia_orden + "nota: " + nota);
+                            System.out.println("Correlativa aprobada, materia_orden: " + materia_orden + ", Nota: " + nota);
                         } else {
-                            System.out.println("Correlativa desaprobada " + materia_orden + "nota: " + nota + " Cond: " + cond);
+                            System.out.println("Correlativa desaprobada, materia_orden: " + materia_orden + ", Nota: " + nota + ", Estado: " + cond);
                         }
+                        break;
+                    default:
+                        System.out.println("Tipo no reconocido: " + tipo);
                         break;
                 }
             } else {
@@ -331,10 +446,12 @@ public class NotaServiceImpl implements NotaService {
             }
         } else {
             System.out.println("Los datos de entrada no son válidos.");
+            System.out.println("Condiciones: analitico = " + analitico + ", materia_orden = " + materia_orden);
         }
 
         return aux;
     }
+
 
     public boolean buscarClaveAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
         return analitico.stream()

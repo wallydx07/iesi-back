@@ -13,12 +13,15 @@ public class ExamenRequestDTO {
     private String materiaId;
     private String examenCondicion;
     private Nota nota;
-    private Cursada cursada;
+    private Integer cursadaId;
 
+    public Integer getCursadaId() {
+        return cursadaId;
+    }
 
-
-    // ✅ Getters y Setters
-
+    public void setCursadaId(Integer cursadaId) {
+        this.cursadaId = cursadaId;
+    }
 
     public Nota getNota() {
         return nota;
@@ -28,13 +31,6 @@ public class ExamenRequestDTO {
         this.nota = nota;
     }
 
-  //  public Examen getExamen() {
-  //      return examen;
-  //  }
-
-   // public void setExamen(Examen examen) {
-   //     this.examen = examen;
-   // }
 
     public String getLegajoId() {
         return legajoId;
@@ -68,12 +64,5 @@ public class ExamenRequestDTO {
         this.examenCondicion = examenCondicion;
     }
 
-    public Cursada getCursada() {
-        return cursada;
-    }
-
-    public void setCursada(Cursada cursada) {
-        this.cursada = cursada;
-    }
 }
 

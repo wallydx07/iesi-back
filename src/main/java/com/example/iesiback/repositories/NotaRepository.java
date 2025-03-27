@@ -35,7 +35,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
     INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
     INNER JOIN materia m ON mc.materia_id = m.materia_id
-    WHERE c.cursada_legajo_id = :legajoId order by materia_orden asc;
+    WHERE c.cursada_legajo_id = :legajoId order by materia_orden asc,nota_fecha_nota asc;
 """, nativeQuery = true)
  List<Object[]> findNotasPorLegajo(@Param("legajoId") String legajoId);
 

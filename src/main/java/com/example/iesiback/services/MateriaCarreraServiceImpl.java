@@ -31,6 +31,7 @@ public int obtenerCantidadMateriasPorNivel(String carreraId, String nivel) {
                 .orElseThrow(() -> new RuntimeException("MateriaCarrera no encontrada para carreraId: "
                         + carreraId + " y materiaId: " + materiaId));
     }
+
     @Override
     public List<MateriaCarrera> obtenerMateriasPorCarrera(String carreraId) {
         return materiaCarreraRepository.findByCarrera_CarreraId(carreraId);

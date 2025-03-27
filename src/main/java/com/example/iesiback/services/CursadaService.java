@@ -26,9 +26,11 @@ public interface CursadaService {
 
     List<Cursada> findByLegajoId(String legajoId);
     List<Cursada> getCursadasNoAprobadas(String legajoId);
-    List<String> obtenerCorrelativasPendientes(Cursada cursada);
     List<Cursada> findByLegajoAndMateria(String legajo, String materia);
     Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear);
+
+    String obtenerCorrelativasPendientes(String materiaId, String legajoId);
+
     List<String> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia);
 
     @Transactional

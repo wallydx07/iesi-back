@@ -2,13 +2,13 @@ package com.example.iesiback.dto;
 
 public class AlumnoExamenDTO {
 
-    private Long legajoId;
+    private String legajoId;
     private String alumnoDni;
     private String alumnoApellido;
     private String alumnoNombre;
 
     // Constructor
-    public AlumnoExamenDTO(Long legajoId, String alumnoDni, String alumnoApellido, String alumnoNombre) {
+    public AlumnoExamenDTO(String legajoId, String alumnoDni, String alumnoApellido, String alumnoNombre) {
         this.legajoId = legajoId;
         this.alumnoDni = alumnoDni;
         this.alumnoApellido = alumnoApellido;
@@ -16,11 +16,11 @@ public class AlumnoExamenDTO {
     }
 
     // Getters y setters
-    public Long getLegajoId() {
+    public String getLegajoId() {
         return legajoId;
     }
 
-    public void setLegajoId(Long legajoId) {
+    public void setLegajoId(String legajoId) {
         this.legajoId = legajoId;
     }
 

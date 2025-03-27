@@ -68,11 +68,13 @@ public class ExamenController {
     @GetMapping("/cursadas")
     public ResponseEntity<List<InscripcionExamenDTO>> completarCursadas(
             @RequestParam String legajoId,
-            @RequestParam String turno) {  // Ahora el turno es un mes numérico
-
+            @RequestParam String turno) {
         List<InscripcionExamenDTO> examenes = examenService.completarCursadas(legajoId, turno);
+        System.out.println("Datos devueltos por completarCursadas: " + examenes);
+
         return ResponseEntity.ok(examenes);
     }
+
 
     @PostMapping("/cursadas/registrar")
     public ResponseEntity<Examen> registrarExamen(@RequestBody ExamenRequestDTO request) {
@@ -84,7 +86,9 @@ public class ExamenController {
         logger.info("   🔹 Turno ID: {}", request.getTurnoId());
         logger.info("   🔹 Materia ID: {}", request.getMateriaId());
         logger.info("   🔹 Nota ID: {}", request.getNota());
-        logger.info("   🔹 Nota ID: {}", request.getExamenCondicion());
+        logger.info("   🔹 condicion ID: {}", request.getExamenCondicion());
+        logger.info("   🔹 cursada ID: {}", request.getCursadaId());
+
 
         Examen nuevoExamen = examenService.registrarExamen(
            //     request.getExamen(),
@@ -92,7 +96,7 @@ public class ExamenController {
                 request.getTurnoId(),
                 request.getMateriaId(),
                 request.getExamenCondicion(),
-                request.getCursada()
+                request.getCursadaId()
         );
         return ResponseEntity.ok(nuevoExamen);
     }

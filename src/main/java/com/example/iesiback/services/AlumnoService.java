@@ -19,5 +19,8 @@ public interface AlumnoService {
     List<Alumno> buscarPorDni(String dni);
     Alumno createAlumno(Alumno alumno);
 
-    List<AlumnoExamenDTO> buscarAlumnos(String apellido, String carreraNombre);
+    List<String> buscarPorApellidoYCarrera(String apellido, String carreraNombre);
+
+//    List<AlumnoExamenDTO> AlumnoExamenDTO(String apellido, String carreraNombre);
+
 }

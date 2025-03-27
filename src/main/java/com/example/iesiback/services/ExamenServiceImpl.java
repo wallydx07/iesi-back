@@ -45,7 +45,6 @@ public class ExamenServiceImpl implements ExamenService {
         this.notaService = notaService;
     }
 
-
     @Override
     public boolean verificarPermisoParaTurno(String permisoLegajoId, String turnoId) {
         return examenRepository.existsByPermisoLegajoIdAndTurnoId(permisoLegajoId, turnoId);
@@ -122,16 +121,17 @@ public class ExamenServiceImpl implements ExamenService {
     }
 
     @Override
-    public Examen registrarExamen(String legajoId, String turnoId, String materiaId, String condicionExamen, Cursada cursada) {
+    public Examen registrarExamen(String legajoId, String turnoId, String materiaId, String condicionExamen, Integer cursadaId) {
         // ✅ 1. Obtener o crear el permiso
         Permiso permiso = permisoService.obtenerOCrearPermiso(legajoId, turnoId);
         // ✅ 2. Verificar si la cursada_examen existe
         Optional<CursadaExamen> cursadaExistente = cursadaExamenRepository.findByMateriaIdAndTurno_TurnoId(materiaId, turnoId);
+
         // 📌 Depuración: imprimir los parámetros de búsqueda
         System.out.println("🔍 Buscando CursadaExamen con:");
         System.out.println("   🔹 Materia ID: " + materiaId);
         System.out.println("   🔹 Turno ID: " + turnoId);
-        // 📌 Depuración: imprimir si se encontró o no la cursada
+
         if (cursadaExistente.isPresent()) {
             System.out.println("✅ Se encontró CursadaExamen:");
             System.out.println("   🔹 ID: " + cursadaExistente.get().getId());
@@ -144,15 +144,17 @@ public class ExamenServiceImpl implements ExamenService {
             throw new RuntimeException("❌ No existe una cursada para la materia y turno especificados.");
         }
         CursadaExamen cursadaExamen = cursadaExistente.get();
-        // ✅ 3. Verificar si ya existe un examen para este permiso y cursada
         Optional<Examen> examenExistente = examenRepository.findByPermisoAndCursadaExamen(permiso, cursadaExamen);
+
+
+
         if (examenExistente.isPresent()) {
-            // ✅ Si existe, alternar el estado de examen_inscripto
             Examen examenActualizado = examenExistente.get();
             examenActualizado.setExamenInscripto(!examenActualizado.getExamenInscripto()); // Alternar estado
             return examenRepository.save(examenActualizado);
         }else {
-            // ✅ 4. Si no existe, crear un nuevo examen con examen_inscripto = true
+            Cursada cursada= this.cursadaService.getCursadaById(cursadaId).get();
+
             Nota nota = new Nota();
             Nota aux = new Nota();
             nota.setNotaCondicion(condicionExamen);
@@ -165,10 +167,12 @@ public class ExamenServiceImpl implements ExamenService {
             examen.setPermiso(permiso);
             examen.setCursadaExamen(cursadaExamen);
             examen.setExamenInscripto(true); // Se inscribe por primera vez
-
             notaService.guardarNota(nota);
             return examenRepository.save(examen);
         }
+
+
+
     }
 
     @Override

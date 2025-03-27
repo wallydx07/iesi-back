@@ -59,6 +59,14 @@ public class AlumnoController {
         return alumnoService.buscarAlumnosPorApellido(apellido);
     }
 
+
+    @GetMapping("/buscarPorApellidoYCarrera")
+    public List<String> buscarPorApellidoYCarrera(
+            @RequestParam String apellido,
+            @RequestParam String carreraNombre) {
+        return alumnoService.buscarPorApellidoYCarrera(apellido, carreraNombre);
+    }
+
     @GetMapping("/buscar/dni")
     public List<Alumno> buscarAlumnosDni(@RequestParam String dni) {
         return alumnoService.buscarPorDni(dni);
@@ -97,8 +105,10 @@ public class AlumnoController {
     }
 
 
-    @GetMapping("/api/AlumnoExamenDTO")
-    public List<AlumnoExamenDTO> buscarAlumnos(@RequestParam String apellido, @RequestParam String carreraNombre) {
-        return alumnoService.buscarAlumnos(apellido, carreraNombre);
-    }
+
+
+//    @GetMapping("/api/AlumnoExamenDTO")
+//    public List<AlumnoExamenDTO> AlumnoExamenDTO(@RequestParam String apellido, @RequestParam String carreraNombre) {
+//        return alumnoService.AlumnoExamenDTO(apellido, carreraNombre);
+//    }
 }

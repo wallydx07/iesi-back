@@ -14,4 +14,6 @@ public interface AporteService {
      List<AporteDTO> getAportesConDatos();
      Aporte save(Aporte aporte);
      Aporte findAporteById(String id);
+
+     List<Aporte> obtenerAportesPorLegajoId(String legajoId);
 }

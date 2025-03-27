@@ -1,11 +1,9 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.repositories.AlumnoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -64,8 +62,12 @@ public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
         return alumnoRepository.buscarPorDni(dni);
     }
 
-@Override
-public List<AlumnoExamenDTO> buscarAlumnos(String apellido, String carreraNombre) {
-        return alumnoRepository.buscarAlumnos(apellido, carreraNombre);
+    @Override
+    public List<String> buscarPorApellidoYCarrera(String apellido, String carreraNombre) {
+        return alumnoRepository.buscarPorApellidoYCarrera(apellido, carreraNombre);
     }
+//@Override
+//public List<AlumnoExamenDTO> AlumnoExamenDTO(String apellido, String carreraNombre) {
+//        return alumnoRepository.buscarAlumnos(apellido, carreraNombre);
+//    }
 }

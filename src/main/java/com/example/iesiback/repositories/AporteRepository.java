@@ -2,6 +2,7 @@ package com.example.iesiback.repositories;
 
 import com.example.iesiback.dto.AporteDTO;
 import com.example.iesiback.entities.Aporte;
+import com.example.iesiback.entities.Legajo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -29,4 +30,6 @@ public interface AporteRepository extends JpaRepository<Aporte, Integer> {
             "where a.aporteMonto <> 0 " +
             "order by a.aporteFecha desc")
     List<AporteDTO> findAportesConDatos();
+
+    List<Aporte> findByAporteLegajo(Legajo aporteLegajo);
 }

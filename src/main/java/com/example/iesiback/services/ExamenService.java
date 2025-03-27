@@ -16,7 +16,7 @@ public interface ExamenService {
     List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno);
     boolean verificarPermisoParaTurno(String permisoLegajoId, String turnoId);
     //Examen registrarExamen(String legajoId, String turnoId, String materiaId, String examenCondicion);
-    Examen registrarExamen(String legajoId, String turnoId, String materiaId, String condicionExamen, Cursada cursada);
+    Examen registrarExamen(String legajoId, String turnoId, String materiaId, String condicionExamen, Integer cursada);
 
     void darDeBajaExamen(Long examenId);
     void activarExamen(Long examenId);

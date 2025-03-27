@@ -284,7 +284,11 @@ public class FichaInscripcionService {
         cuerpo.newLineAtOffset(-300, n);
         cuerpo.showText("ID pago: "+talonario+" Monto: "+monto);
 
-        //==================guardar matriz
+
+
+
+
+
         int matriz[][]=new int[4][2];
         if(legajo.getLegajoFotocopiaDni().equals("Si")){
             matriz[0][0]=1;
@@ -316,16 +320,16 @@ public class FichaInscripcionService {
         }
 
 
-        if(legajo.getLibreta().equals("Si")){
-            matriz[2][1]=1;
-        }else{
-            matriz[2][1]=0;
-        }
-        if(legajo.getLegajoFoto().equals("Si")){
-            matriz[3][1]=1;
-        }else{
-            matriz[3][1]=0;
-        }
+        matriz[2][1] = "Si".equals(legajo.getLibreta()) ? 1 : 0;
+        matriz[3][1] = "Si".equals(legajo.getLegajoFoto()) ? 1 : 0;
+
+
+
+
+
+
+
+
         //===============PONER CASILLAS
 
         PDImageXObject casilla0,casilla1;

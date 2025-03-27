@@ -88,5 +88,11 @@ public class AporteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoAporte);
     }
 
+    @GetMapping("/legajo/{legajoId}")
+    public List<Aporte> obtenerAportesPorLegajo(@PathVariable String legajoId) {
+        return aporteService.obtenerAportesPorLegajoId(legajoId);
+    }
+
+
 
 }

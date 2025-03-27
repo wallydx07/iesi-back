@@ -1,21 +1,33 @@
 package com.example.iesiback.repositories;
-import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+@Repository
 public interface AlumnoRepository extends JpaRepository<Alumno, String> {
 
 
-    @Query("SELECT CONCAT(a.alumnoApellido, ', ', a.alumnoNombre, '-', l.legajoId) " +
+    @Query("SELECT CONCAT(a.alumnoApellido,',',a.alumnoNombre,'-',l.legajoId) " +
             "FROM Alumno a " +
             "JOIN Legajo l ON a.alumnoDni = l.legajoAlumnoDni.alumnoDni " +
             "WHERE LOWER(a.alumnoApellido) LIKE LOWER(CONCAT(:apellido, '%')) " +
             "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
     List<String> buscarPorApellido(@Param("apellido") String apellido);
+
+
+
+    @Query("SELECT CONCAT(a.alumnoApellido,',', a.alumnoNombre,'-',l.legajoId) " +
+            "FROM Alumno a " +
+            "JOIN Legajo l ON a.alumnoDni = l.legajoAlumnoDni.alumnoDni " +
+            "JOIN Inscripcion i ON l.legajoId = i.legajo.legajoId " +
+            "WHERE LOWER(a.alumnoApellido) LIKE LOWER(CONCAT(:apellido, '%')) " +
+            "AND i.carrera.carreraNombre = :carreraNombre")
+    List<String> buscarPorApellidoYCarrera(@Param("apellido") String apellido, @Param("carreraNombre") String carreraNombre);
+
+
 
     @Query(value = "SELECT * FROM alumno WHERE CAST(alumno_dni AS text) LIKE CONCAT('%', :dni, '%')", nativeQuery = true)
     List<Alumno> buscarPorDni(@Param("dni") String dni);
@@ -26,15 +38,15 @@ public interface AlumnoRepository extends JpaRepository<Alumno, String> {
     Alumno findAlumnoByLegajoId(@Param("legajoId") String legajoId);
 
 
-    @Query("SELECT new com.tu.paquete.AlumnoDTO(l.legajoId, a.alumnoDni, a.alumnoApellido, a.alumnoNombre) " +
-            "FROM Alumno a " +
-            "JOIN a.legajos l " +
-            "JOIN Inscripcion i ON l.legajoId = i.legajo.legajoId " +
-            "WHERE a.alumnoApellido LIKE CONCAT(:apellido, '%') " +
-            "AND i.carrera.carreraNombre = :carreraNombre")
-    List<AlumnoExamenDTO> buscarAlumnos(@Param("apellido") String apellido,
-                                        @Param("carreraNombre") String carreraNombre);
-
+//    @Query("SELECT new com.example.iesiback.dto.AlumnoExamenDTO(l.legajoId, a.alumnoDni, a.alumnoApellido, a.alumnoNombre) " +
+//            "FROM Alumno a " +
+//            "JOIN a.legajos l " +
+//            "JOIN Inscripcion i ON l.legajoId = i.legajo.legajoId " +
+//            "WHERE a.alumnoApellido LIKE CONCAT(:apellido, '%') " +
+//            "AND i.carrera.carreraNombre = :carreraNombre")
+//    List<AlumnoExamenDTO> buscarAlumnos(@Param("apellido") String apellido,
+//                                        @Param("carreraNombre") String carreraNombre);
+//
 
 
 }

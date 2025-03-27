@@ -118,4 +118,62 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+
+    @GetMapping("/titulotramite")
+    public ResponseEntity<ByteArrayResource> generatituloTramite(
+            @RequestParam String carreraId,
+            @RequestParam String alumnoDni,
+            @RequestParam String autoridades) {
+
+        try {
+            PDDocument document = certificadoService.generaTramite(carreraId, alumnoDni, autoridades);
+            // Convertir PDDocument a byte[]
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            // document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filenametituloTramite.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/asistenciaclases")
+    public ResponseEntity<ByteArrayResource> generAsistenciaClases(
+            @RequestParam String alumnoDNI,
+            @RequestParam String legajoId,
+            @RequestParam String autoridades,
+            @RequestParam String curso,
+            @RequestParam String entrada,
+            @RequestParam String salida,
+            @RequestParam String fecT,
+            @RequestParam String accion
+
+    ) {
+        try {
+            PDDocument document = certificadoService.generaCertificadoAsistencia(alumnoDNI,legajoId,autoridades,curso,entrada,salida,fecT,accion);
+            // Convertir PDDocument a byte[]
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            // document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }
