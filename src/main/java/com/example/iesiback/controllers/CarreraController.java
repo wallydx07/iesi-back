@@ -28,7 +28,7 @@ public class CarreraController {
 
 
     @GetMapping("/inscripcion")
-    public ResponseEntity<List<Carrera>> obtenerCarrerasInscripcion(@RequestParam Long alumnoDni) {
+    public ResponseEntity<List<Carrera>> obtenerCarrerasInscripcion(@RequestParam String alumnoDni) {
         List<Carrera> carreras = carreraService.obtenerCarreraInstcripcion(alumnoDni);
         return ResponseEntity.ok(carreras);
     }

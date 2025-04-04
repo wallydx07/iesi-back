@@ -1,6 +1,5 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 
 import java.util.List;
@@ -8,7 +7,6 @@ import java.util.Optional;
 
 public interface AlumnoService {
     Alumno findAlumnoById(String id);
-
     Alumno obtenerAlumnoPorLegajoId(String legajoId);
 
     List<Alumno> obtenerAlumnos();

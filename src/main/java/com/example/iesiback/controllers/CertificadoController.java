@@ -176,4 +176,28 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    @GetMapping("/generaFichaActualizacion")
+    public ResponseEntity<ByteArrayResource> generaFichaActualizacion(
+            @RequestParam String legajoId) {
+
+        try {
+            PDDocument document = certificadoService.generaFichaActualizacion(legajoId);
+            // Convertir PDDocument a byte[]
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            // document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaFichaActualizacion.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

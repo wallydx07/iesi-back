@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.services.AlumnoService;
+import com.example.iesiback.services.PersonalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,6 +22,15 @@ public class AlumnoController {
     @Autowired
     private AlumnoService alumnoService;
 
+
+
+    private final PersonalService personalService;
+
+    @Autowired
+    public AlumnoController(PersonalService personalService) {
+        this.personalService = personalService;
+    }
+
     @GetMapping
     public List<Alumno> obtenerAlumno() {
         return alumnoService.obtenerAlumnos();
@@ -32,27 +42,6 @@ public class AlumnoController {
         return ResponseEntity.ok(nuevoAlumno);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getAlumnoById(@PathVariable String id) {
-        var alumnoOpt = alumnoService.findById(id);
-
-        if (alumnoOpt.isPresent()) {
-            return ResponseEntity.ok().body(alumnoOpt.get());
-        } else {
-            // ✅ Crear JSON de respuesta
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", 404);
-            response.put("message", "Alumno no encontrado");
-
-            // ✅ Configurar las cabeceras correctamente
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .headers(headers) // ✅ Agregar las cabeceras manualmente
-                    .body(response);
-        }
-    }
 
     @GetMapping("/buscar")
     public List<String> buscarAlumnos(@RequestParam String apellido) {
@@ -103,6 +92,38 @@ public class AlumnoController {
             return ResponseEntity.notFound().build();  // Devuelve un 404 si no se encuentra el alumno
         }
     }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getAlumnoById(@PathVariable String id) {
+
+        if (this.personalService.existsByDni(id)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 403);
+            response.put("message", "No se permite al personal inscribirse a las carreras");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .headers(headers)
+                    .body(response);
+        }
+        var alumnoOpt = alumnoService.findById(id);
+            if (alumnoOpt.isPresent()) {
+                return ResponseEntity.ok().body(alumnoOpt.get());
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", 404);
+                response.put("message", "Alumno no encontrado");
+                // ✅ Configurar las cabeceras correctamente
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .headers(headers) // ✅ Agregar las cabeceras manualmente
+                        .body(response);
+            }
+        }
 
 
 

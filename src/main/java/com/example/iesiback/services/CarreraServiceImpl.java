@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,10 +13,13 @@ import java.util.Optional;
 public class CarreraServiceImpl implements CarreraService {
 
     private final InscripcionService inscripcionService;
+    private final PersonalService personalService;
 
     @Autowired
-    public CarreraServiceImpl(InscripcionService inscripcionService) {
+    public CarreraServiceImpl(InscripcionService inscripcionService,
+                              PersonalService personalService) {
         this.inscripcionService = inscripcionService;
+        this.personalService=personalService;
     }
 
     @Autowired
@@ -78,12 +82,19 @@ public class CarreraServiceImpl implements CarreraService {
         return carreraRepository.findAllOrderedByYearAndName();
     }
 
+
     @Override
-    public List<Carrera> obtenerCarreraInstcripcion(Long alumnoDni) {
-        List<Carrera> carreras = this.obtenerCarreras();
-        carreras.removeIf(carrera -> inscripcionService.existsByAlumnoDniAndCarreraNombre(alumnoDni, carrera.getCarreraNombre()));
-        return carreras;
+    public List<Carrera> obtenerCarreraInstcripcion(String alumnoDni) {
+        if (!this.personalService.existsByDni(alumnoDni)) {
+            List<Carrera> carreras = this.obtenerCarreras();
+            carreras.removeIf(carrera ->
+                    inscripcionService.existsByAlumnoDniAndCarreraNombre(alumnoDni, carrera.getCarreraNombre())
+            );
+            return carreras;
+        }
+        return Collections.emptyList(); // devuelve lista vacía si existe el DNI
     }
+
 
     @Override
     public String obtenerAnioCursada(String libretaEstudiantil) throws Exception {

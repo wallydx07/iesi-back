@@ -18,7 +18,7 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Intege
                   "JOIN i.carrera c " +
                   "WHERE a.alumnoDni = :alumnoDni " +
                   "AND c.carreraNombre = :carreraNombre")
-    boolean existsByAlumnoDniAndCarreraNombre(@Param("alumnoDni") Long alumnoDni,
+    boolean existsByAlumnoDniAndCarreraNombre(@Param("alumnoDni") String alumnoDni,
                                               @Param("carreraNombre") String carreraNombre);
 
     @Query("SELECT i FROM Inscripcion i WHERE i.legajo.legajoId = :legajoId")

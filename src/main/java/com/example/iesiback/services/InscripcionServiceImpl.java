@@ -26,7 +26,7 @@ public class InscripcionServiceImpl implements InscripcionService {
 
 
     @Override
-    public boolean existsByAlumnoDniAndCarreraNombre(Long alumnoDni, String carreraId) {
+    public boolean existsByAlumnoDniAndCarreraNombre(String alumnoDni, String carreraId) {
         return inscripcionRepository.existsByAlumnoDniAndCarreraNombre(alumnoDni,carreraId);
     }
 

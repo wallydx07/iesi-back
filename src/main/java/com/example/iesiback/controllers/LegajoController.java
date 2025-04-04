@@ -11,7 +11,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,14 +57,22 @@ public class LegajoController {
     }
 
 
+
     @GetMapping("/{id}")
     public ResponseEntity<Legajo> getLegajoById(@PathVariable String id) {
-        return LegajoService.findById(id)
-                .map(legajo -> ResponseEntity.ok().body(legajo))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            return LegajoService.findById(id)
+                    .map(legajo -> ResponseEntity.ok().body(legajo))
+                    .orElseGet(() -> {
+                        System.out.println("Legajo con ID " + id + " no encontrado.");
+                        return ResponseEntity.notFound().build();
+                    });
+        } catch (Exception e) {
+            System.out.println("Error al obtener el legajo con ID " + id + ": " + e.getMessage());
+            e.printStackTrace(); // Imprime el stack trace completo del error
+            return ResponseEntity.internalServerError().build();
+        }
     }
-
-
 
 
     @PostMapping
@@ -76,6 +87,12 @@ public class LegajoController {
             Carrera carrera = objectMapper.convertValue(request.get("carrera"), Carrera.class);
             String alumnoDni = (String) request.get("alumnoDni");
 
+            LocalDate hoy = LocalDate.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+            String fechaFormateada = hoy.format(formatter);
+
+// Establecer la fecha en legajo
+            legajo.setLegajoFecha(fechaFormateada);
             System.out.println("📌 Alumno DNI: " + alumnoDni);
             System.out.println("📌 Carrera: " + carrera);
             System.out.println("📌 Legajo: " + legajo);

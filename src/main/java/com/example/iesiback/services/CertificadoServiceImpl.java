@@ -3,10 +3,7 @@ package com.example.iesiback.services;
 import be.quodlibet.boxable.*;
 import com.example.iesiback.dto.NotaExamenDTO;
 import com.example.iesiback.dto.NotaMateriaDTO;
-import com.example.iesiback.entities.Alumno;
-import com.example.iesiback.entities.Carrera;
-import com.example.iesiback.entities.CursadaExamen;
-import com.example.iesiback.entities.Materia;
+import com.example.iesiback.entities.*;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -37,13 +34,19 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final CarreraService carreraService;
     private final NotaService notaService;
     private final MateriaCarreraRepository materiaCarreraRepository;
+    private final LegajoService legajoSerevice;
+
     @Autowired
     public CertificadoServiceImpl(@Lazy AlumnoService alumnoService,
-                              CarreraService carreraService, NotaService notaService,MateriaCarreraRepository materiaCarreraRepository) {
+                              CarreraService carreraService,
+                                  NotaService notaService,
+                                  MateriaCarreraRepository materiaCarreraRepository,
+                                  LegajoService legajoService) {
         this.alumnoService= alumnoService;
         this.carreraService= carreraService;
         this.notaService= notaService;
         this.materiaCarreraRepository = materiaCarreraRepository;
+        this.legajoSerevice=legajoService;
     }
 
 @Override
@@ -406,11 +409,35 @@ public PDDocument generaRegular(String dniId, String legajoId, String autoridade
         int contProm = 0;
         List<NotaMateriaDTO> listaMaterias = new ArrayList<NotaMateriaDTO>();
         listaMaterias = this.notaService.obtenerTodasNotasPorLegajoAnalitico(legajoId);
+
+//            System.out.println("Lista de Materias:");
+//            for (NotaMateriaDTO notaMateria : listaMaterias) {
+//                System.out.println("Nota ID: " + notaMateria.getNotaId());
+//                System.out.println("Materia Orden: " + notaMateria.getMateriaOrden());
+//                System.out.println("Materia Nombre: " + notaMateria.getMateriaNombre());
+//                System.out.println("Nota Calificación Número: " + notaMateria.getNotaCalificacionNumero());
+//                System.out.println("Nota Calificación Letra: " + notaMateria.getNotaCalificacionLetra());
+//                System.out.println("Nota Condición: " + notaMateria.getNotaCondicion());
+//                System.out.println("Nota Estado: " + notaMateria.getNotaEstado());
+//                System.out.println("Nota Libro: " + notaMateria.getNotaLibro());
+//                System.out.println("Nota Folio: " + notaMateria.getNotaFolio());
+//                System.out.println("Nota Fecha: " + notaMateria.getNotaFecha());
+//                System.out.println("Nota Observaciones: " + notaMateria.getNotaObservaciones());
+//                System.out.println("Nota Usuario: " + notaMateria.getNotaUsuario());
+//                System.out.println("Nota Status: " + notaMateria.getNotaStatus());
+//                System.out.println("Nota Final: " + notaMateria.getNotaFinal());
+//                System.out.println("Correlativas: " + notaMateria.getCorrelativas());
+//                System.out.println("Materia ID: " + notaMateria.getMateriaId());
+//                System.out.println("Materia Nivel: " + notaMateria.getMateriaNivel());
+//                System.out.println("Cursada ID: " + notaMateria.getCursadaId());
+//                System.out.println("-----------------------------");
+//            }
+
         System.out.println(listaMaterias.size()+"Tamaño 1");
         PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
         PDDocument Documento = new PDDocument();
         try {
-              String carrera_id =carrera.getCarreraId();
+            String carrera_id =carrera.getCarreraId();
             String carreraNombre =carrera.getCarreraNombre();
             int nMaterias = 0;//cantidad de matirias
             int materiasPrimero = this.materiaCarreraRepository.countMateriasPorNivel(carrera_id,"1ro");
@@ -648,12 +675,34 @@ public PDDocument generaRegular(String dniId, String legajoId, String autoridade
             //LinkedList<materiaAnalitico> listaMaterias = new LinkedList<materiaAnalitico>();
             //listaMaterias=objcrud.generarAnailitico(libretaEstudiantil);
             float H = 0;
-
             for (int i = 0; i < año; i++) {// primer for, este genera los años, es decir las materias que llevan cada año
-                System.out.println("*-*-*-*-*-*-**--*-" + i);
+//                System.out.println("*-*-*-*-*-*-**--*-" + i);
                 List<NotaMateriaDTO> listaMateriasyear = materiasyear(listaMaterias, i);
-                System.out.println(listaMateriasyear.size());
-                System.out.println(listaMateriasyear);
+//                System.out.println("Lista de Materias=======================================:"+i);
+//                for (NotaMateriaDTO notaMateria : listaMateriasyear) {
+//                    System.out.println("Nota ID: " + notaMateria.getNotaId());
+//                    System.out.println("Materia Orden: " + notaMateria.getMateriaOrden());
+//                    System.out.println("Materia Nombre: " + notaMateria.getMateriaNombre());
+//                    System.out.println("Nota Calificación Número: " + notaMateria.getNotaCalificacionNumero());
+//                    System.out.println("Nota Calificación Letra: " + notaMateria.getNotaCalificacionLetra());
+//                    System.out.println("Nota Condición: " + notaMateria.getNotaCondicion());
+//                    System.out.println("Nota Estado: " + notaMateria.getNotaEstado());
+//                    System.out.println("Nota Libro: " + notaMateria.getNotaLibro());
+//                    System.out.println("Nota Folio: " + notaMateria.getNotaFolio());
+//                    System.out.println("Nota Fecha: " + notaMateria.getNotaFecha());
+//                    System.out.println("Nota Observaciones: " + notaMateria.getNotaObservaciones());
+//                    System.out.println("Nota Usuario: " + notaMateria.getNotaUsuario());
+//                    System.out.println("Nota Status: " + notaMateria.getNotaStatus());
+//                    System.out.println("Nota Final: " + notaMateria.getNotaFinal());
+//                    System.out.println("Correlativas: " + notaMateria.getCorrelativas());
+//                    System.out.println("Materia ID: " + notaMateria.getMateriaId());
+//                    System.out.println("Materia Nivel: " + notaMateria.getMateriaNivel());
+//                    System.out.println("Cursada ID: " + notaMateria.getCursadaId());
+//                    System.out.println("-----------------------------");
+//                }
+//
+//                System.out.println(listaMateriasyear.size());
+//                System.out.println(listaMateriasyear);
                 int materias = listaMateriasyear.size();
                 System.out.println("*-*-*-*-*se va a cargar el año-*-**--*-");
                 // Recorre la lista y muestra los elementos por pantalla
@@ -691,12 +740,14 @@ public PDDocument generaRegular(String dniId, String legajoId, String autoridade
                     cellNombreMateria.setValign(VerticalAlignment.MIDDLE);
                     cellNombreMateria.setFont(PDType1Font.HELVETICA);
                     // Celda para la columna "Nota Final"
-                    System.out.println("Materia Nota final" + mat.getNotaFinal());
+                    System.out.println("Materia Nota final" + mat.getNotaFinal()+", "+mat.getNotaId());
                     Cell<PDPage> cellNotaFinal = rew.createCell(25, mat.getNotaFinal());
+
                     cellNotaFinal.setFontSize(nk);
                     cellNotaFinal.setAlign(HorizontalAlignment.CENTER);
                     cellNotaFinal.setValign(VerticalAlignment.MIDDLE);
                     cellNotaFinal.setFont(PDType1Font.HELVETICA);
+                    System.out.println("Aca esta el error de siempre"+mat.getNotaFecha());
                     LocalDate fecha = mat.getNotaFecha();  // Asumiendo que getNotaFecha devuelve LocalDate
                     int year = fecha.getYear();
 // Ahora puedes usar `year` como el año extraído de la fecha
@@ -1556,6 +1607,238 @@ public PDDocument generaCertificadoAsistencia(String alumnoDNI, String legajoId,
         } catch (IOException e) {
         }
         return Documento;
+    }
+
+
+@Override
+public PDDocument generaFichaActualizacion(String legajoId) throws IOException{
+        Alumno alumno=this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Legajo legajo=this.legajoSerevice.findLegajoById(legajoId);
+        Carrera carrera=this.carreraService.obtenerCarreraPorLegajoId(legajoId);
+
+
+        PDDocument Documento=new PDDocument();
+        PDPage Pagina= new PDPage(PDRectangle.A4);
+        Documento.addPage(Pagina);
+        PDImageXObject Iesc1,Iesc2;
+        PDPageContentStream encabezado=new PDPageContentStream(Documento,Pagina);
+        PDType1Font font=PDType1Font.HELVETICA;
+        PDType1Font fontN=PDType1Font.HELVETICA_BOLD;
+        float margin = 30;//
+        PDRectangle mediabox = Pagina.getMediaBox();
+        float width = mediabox.getWidth() - 4*margin;
+        float X = mediabox.getLowerLeftX() + margin;
+        float Y = mediabox.getUpperRightY() - margin;
+        List<String> lineas= new ArrayList<String>();
+        float yStartNewPage = Pagina.getMediaBox().getHeight() - (2 * margin);
+        // we want table across whole page width (subtracted by left and right margin ofcourse)
+        float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+        boolean drawContent = true;
+        float yStart = 820;//yStartNewPage;
+        float bottomMargin = 40;
+// y position is your coordinate of top left corner of the table
+        float yPosition = 100;
+        encabezado.beginText();
+        int n=-9;
+        encabezado.newLineAtOffset(180,820);
+        encabezado.setFont(font, 10);
+        encabezado.showText("INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL");
+        encabezado.newLineAtOffset(45,n);
+        encabezado.showText("“CAMPINTA GUAZU GLORIA PEREZ”");
+        encabezado.newLineAtOffset(0,n);
+        encabezado.setFont(font,7);
+        encabezado.showText("Del Consejo de Organizaciones Aborígenes de Jujuy");
+        encabezado.newLineAtOffset(-6,n);
+        encabezado.showText("Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15");
+        encabezado.newLineAtOffset(-15,n);
+        encabezado.showText("Bahia Blanca Nº 235 Bº .Kennedy – Tel. Fax. N° (0388)-4237323");
+        encabezado.newLineAtOffset(-45,n);
+        encabezado.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy – Kollasuyu- República Argentina");
+        encabezado.newLineAtOffset(-55,0);
+        encabezado.showText("________________________________________________________________________________________________");
+        encabezado.newLineAtOffset(140, n-5);//100
+        encabezado.setFont(fontN, 10);
+        encabezado.showText("Actualizacion de legajo");
+        encabezado.newLineAtOffset(0, -1);
+        encabezado.showText("____________________");
+        encabezado.setFont(font,8);
+        encabezado.newLineAtOffset(-200, n-5);//(xx,yy)//180
+        // Obtener la fecha actual
+        LocalDate fechaActual = LocalDate.now();
+// Formatear la fecha según tus necesidades
+        DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String fechaFormateada = fechaActual.format(formatoFecha);
+
+// Mostrar la fecha en el encabezado
+        encabezado.showText("Hasta la Fecha: " + fechaFormateada+", se registra la siguiente situcion en el legajo de el/la estudiante:");
+        encabezado.endText();
+        encabezado.close();
+    InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+        if (iesc1I==null){
+            System.out.println("readFilesInBytes: File " + "file" + " does not exist");
+        }
+        byte[]ba =IOUtils.toByteArray(iesc1I);
+        Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");//divujar desde el path
+
+        //imagen del encavezado izquierda
+        PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+        PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+        PDesc1.drawImage( Iesc1, 50, 770, 60, 60);//Draw an image at the x,y coordinates, with the given size.
+        PDesc1.close();
+        PDPageContentStream cuerpo=new PDPageContentStream(Documento,Pagina, PDPageContentStream.AppendMode.APPEND, true);
+        cuerpo.beginText();
+        cuerpo.setFont(font, 10);
+        n=-15;
+        //================DATOS PERSONALES
+        cuerpo.newLineAtOffset(40, 730);//XX,YY
+        cuerpo.showText("Apellido y Nombre: "+alumno.getAlumnoApellido()+", "+alumno.getAlumnoNombre());
+        cuerpo.newLineAtOffset(300,0);
+        cuerpo.showText("Libreta Estudiantil: "+legajoId);
+        cuerpo.newLineAtOffset(-300,n );
+        //cuerpo.newLineAtOffset(0,n);
+        cuerpo.showText("DNI: "+alumno.getAlumnoDni());
+        cuerpo.newLineAtOffset(20, -24);
+        cuerpo.showText("1.-Fotocopia dni");
+        cuerpo.newLineAtOffset(300, 0);
+        cuerpo.showText("5.-planilla prontuarial actualizada.");
+        cuerpo.newLineAtOffset(-300, n);
+        cuerpo.showText("2.- Certificado de Nacimiento actualizado.");
+        cuerpo.newLineAtOffset(300, 0);
+        cuerpo.showText("6.– carnet sanitario actualizado.");
+        cuerpo.newLineAtOffset(-300, n);
+        cuerpo.showText("3.– Fotocopia del título autenticada y actualizado.");
+        cuerpo.newLineAtOffset(300, 0);
+        cuerpo.showText("7.- Libreta.");
+        cuerpo.newLineAtOffset(-300, n);
+        cuerpo.showText("4.- Constancia de título en trámite actualizada.");
+        cuerpo.newLineAtOffset(300, 0);
+        cuerpo.showText("8. – foto 4 x 4.");
+
+        int matriz[][]=new int[4][2];
+        if(legajo.getLegajoFotocopiaDni().equals("Si")){
+            matriz[0][0]=1;
+        }else{
+            matriz[0][0]=0;
+        }
+        if(legajo.getLegajoPlanillaProntuarial().equals("Si")){
+            matriz[0][1]=1;
+        }else{
+            matriz[0][1]=0;
+        }
+        if(legajo.getLegajoCertificadoNacimiento().equals("Si")){
+            matriz[1][0]=1;
+        }else{
+            matriz[1][0]=0;
+        }
+        if(legajo.getLegajoCarnetSanitario().equals("Si")){
+            matriz[1][1]=1;
+        }else{
+            matriz[1][1]=0;
+        }
+        String indice=legajo.getLegajoFotocopiaTitulo();
+        matriz[2][0]=0;
+        matriz[3][0]=0;
+        if(indice.equals("Secundario")){
+            matriz[2][0]=1;
+        }else if(indice.equals("Constacia Titulo Tramite")){
+            matriz[3][0]=1;
+        }
+
+        if(legajo.getLegajoAval().equals("Si")){
+            matriz[2][1]=1;
+        }else{
+            matriz[2][1]=0;
+        }
+        if(legajo.getLegajoFoto().equals("Si")){
+            matriz[3][1]=1;
+        }else{
+            matriz[3][1]=0;
+        }
+        PDImageXObject casilla0,casilla1;
+        System.out.println("SE va a dibujar los cuadritos xd");
+        InputStream cas0=CertificadoServiceImpl.class.getClassLoader().getResourceAsStream("imagenes/casilla0.png");
+        if (cas0==null){
+            System.out.println("readFilesInBytes: File " + "file"+" does not exist");
+        }
+        InputStream cas1=CertificadoServiceImpl.class.getClassLoader().getResourceAsStream("imagenes/casilla1.png");
+        if (cas1==null){
+            System.out.println("readFilesInBytes: File " + "file"+ " does not exist");
+        }
+        byte[]bo =IOUtils.toByteArray(cas0);
+        casilla0 = PDImageXObject.createFromByteArray(Documento, bo, "casilla0.png");//divujar desde el path
+        byte[]bu =IOUtils.toByteArray(cas1);
+        casilla1 = PDImageXObject.createFromByteArray(Documento, bu, "casilla1.png");//divujar desde el path
+        System.out.println("SE va a dibujar los cuadritos xd y ahora s eva a recorrer el vector");
+
+        int yy=690;
+        for(int i=0;i<4;i++){
+            System.out.println("funciana el primer for i:"+i);
+            for(int j=0;j<2;j++){
+                System.out.println("funciana el segundo for"+j);
+                System.out.println(matriz[i][j]);
+                if(j==0){//izquierda
+
+                    if(matriz[i][j]==0){//si es nulo
+                        PDPageContentStream PDesc11 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+                        PDesc11.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+                        PDesc11.drawImage( casilla0, 45, yy, 10, 10);//Draw an image at the x,y coordinates, with the given size.
+                        PDesc11.close();
+                        System.out.println("Se divuja 1");
+
+                    }else{//si es afirmativo
+
+                        PDPageContentStream PDesc11 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+                        PDesc11.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+                        PDesc11.drawImage( casilla1, 45, yy, 10, 10);//Draw an image at the x,y coordinates, with the given size.
+                        PDesc11.close();
+                        System.out.println("Se divuja 2");
+                    }
+
+                }else{//derecha
+                    if(matriz[i][j]==0){//si es nulo
+                        PDPageContentStream PDesc11 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+                        PDesc11.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+                        PDesc11.drawImage( casilla0, 345, yy, 10, 10);//Draw an image at the x,y coordinates, with the given size.
+                        PDesc11.close();
+                        System.out.println("Se divuja 3");
+
+                    }else{//si es afirmativo
+
+                        PDPageContentStream PDesc11 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+                        PDesc11.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+                        PDesc11.drawImage( casilla1, 345, yy, 10, 10);//Draw an image at the x,y coordinates, with the given size.
+                        PDesc11.close();
+                        System.out.println("Se divuja 4");
+                    }
+                }
+            }
+            yy=yy-15;
+        }
+        cuerpo.newLineAtOffset(-300, -40);
+        cuerpo.showText("__________________________________"); ////================LUGAR Y FECHA DE NACIEMIENTO
+        cuerpo.newLineAtOffset(300, 0);
+        cuerpo.showText("________________________________");
+        cuerpo.newLineAtOffset(-280, -10);
+        cuerpo.showText("Firma y Aclaración del secretario.");
+        cuerpo.newLineAtOffset(300, 0);
+        cuerpo.showText("Firma y Aclaración del Alumno.");
+        /*
+        cuerpo.newLineAtOffset(-320, -20);
+        if(observaciones.isEmpty()){
+            cuerpo.showText("Observaciones: No registra------------------------------------------------"); ////================LUGAR Y FECHA DE NACIEMIENTO
+        }else{
+            cuerpo.showText("Observaciones: "+observaciones); ////================LUGAR Y FECHA DE NACIEMIENTO
+        }
+
+
+*/
+        cuerpo.endText();
+        cuerpo.close();
+        System.out.println("se divujo la tabla");
+        // Documento.save(dir+".pdf");//VEr el tema del directorio
+        //Documento.close();
+        return Documento;
+
     }
 
 }

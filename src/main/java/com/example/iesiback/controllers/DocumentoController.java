@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -28,22 +27,75 @@ import java.util.UUID;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.opencv.core.*;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/documento")
 public class DocumentoController {
-
     private final ArchivoService archivoService;
     @Autowired
     private DocumentoRepository documentoRepository;
-
-
     // Ruta donde se almacenarán los archivos (en el disco D)
     private static final String UPLOAD_DIR = "D:/files/";  // Directorio donde se almacenan los archivos
     //private static final String UPLOAD_DIR = "/var/www/app/files/";  // Linux
     public DocumentoController(ArchivoService archivoService) {
         this.archivoService = archivoService;
     }
+
+//
+//    @PostMapping("/upload")
+//    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
+//                                             @RequestParam("tipo") String tipo,
+//                                             @RequestParam("tipoEntidad") String tipoEntidad,
+//                                             @RequestParam("entidadId") String entidadId,
+//                                             @RequestParam("tipoDocumento") String tipoDocumento) {
+//        try {
+//            File dir = new File(UPLOAD_DIR);
+//            if (!dir.exists()) {
+//                dir.mkdirs();
+//            }
+//            String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+//            String ruta = UPLOAD_DIR + uniqueFileName;
+//            File dest = new File(ruta);
+//            if (dest.exists()) {
+//                dest.delete();
+//            }
+//            file.transferTo(dest);//Guardar imagen en carpeta del servidor
+//            Documento documento = documentoRepository.findByNombre(file.getOriginalFilename());
+//            if (documento == null) {
+//                documento = new Documento();
+//            }
+//            //Documento contiene los datos de la iamgen para buscarla en la carpte del servidor
+//            documento.setNombre(file.getOriginalFilename());
+//            documento.setTipo(file.getContentType());
+//            documento.setRuta(ruta);
+//            documento.setTamanio(file.getSize());
+//            documento.setTipoEntidad(tipoEntidad);
+//            documento.setEntidadId(entidadId);
+//            documento.setTipoDocumento(tipoDocumento);
+//            documentoRepository.save(documento);
+//            return ResponseEntity.ok("Archivo cargado y guardado correctamente");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Error al cargar el archivo: " + e.getMessage());
+//        }
+//    }
+
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
@@ -52,53 +104,92 @@ public class DocumentoController {
                                              @RequestParam("entidadId") String entidadId,
                                              @RequestParam("tipoDocumento") String tipoDocumento) {
         try {
-            // Verifica si el directorio existe, si no lo crea
-            File dir = new File(UPLOAD_DIR);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            // Generar un nombre único para evitar sobrescribir el archivo
-            String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            // Generar un nombre único para el archivo, asegurando que mantenga la extensión original
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".") ? originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
+            String uniqueFileName = UUID.randomUUID().toString() + extension;
             String ruta = UPLOAD_DIR + uniqueFileName;
             File dest = new File(ruta);
 
-            // Si el archivo ya existe, eliminarlo para sobrescribirlo
-            if (dest.exists()) {
-                dest.delete();  // Elimina el archivo existente
+            // Si es una fotoID, se recorta la imagen, de lo contrario se guarda directamente
+            if ("fotoId".equals(tipoDocumento)) {
+                // Convertir el archivo recibido a una imagen de OpenCV usando el InputStream
+                byte[] bytes = file.getBytes();
+                Mat image = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_COLOR);
+                if (image.empty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La imagen no es válida.");
+                }
+                // Recortar la imagen usando OpenCV
+                Mat croppedImage = recortarImagen(image);
+                // Guardar la imagen recortada
+                Imgcodecs.imwrite(ruta, croppedImage);
+            } else {
+                // Guardar la imagen original sin recortar
+                file.transferTo(dest);
             }
 
-            // Guardar el nuevo archivo
-            file.transferTo(dest);
-
-            // Crear o actualizar el objeto Documento en la base de datos
-            Documento documento = documentoRepository.findByNombre(file.getOriginalFilename());
-            if (documento == null) {
-                // Si no existe un documento con ese nombre, se crea uno nuevo
-                documento = new Documento();
-            }
-
-            // Establecer los valores del archivo
-            documento.setNombre(file.getOriginalFilename());
-            documento.setTipo(file.getContentType());
-            documento.setRuta(ruta);
-            documento.setTamanio(file.getSize());
-            documento.setTipoEntidad(tipoEntidad);
-            documento.setEntidadId(entidadId);
-            documento.setTipoDocumento(tipoDocumento);
-
-            // Guardar o actualizar en la base de datos
-            documentoRepository.save(documento);
+            // Llamar al método para guardar la información en la base de datos
+            guardarDocumentoEnBaseDeDatos(file, ruta, tipoEntidad, entidadId, tipoDocumento);
 
             return ResponseEntity.ok("Archivo cargado y guardado correctamente");
         } catch (IOException e) {
-            // Imprime el error en la consola para depuración
             e.printStackTrace();
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al cargar el archivo: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cargar el archivo: " + e.getMessage());
         }
     }
+
+    // Método para recortar la imagen usando OpenCV
+    private Mat recortarImagen(Mat image) {
+        // Convertir la imagen a escala de grises
+        Mat gray = new Mat();
+        Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
+
+        // Aplicar un umbral para mejorar la detección de bordes
+        Mat thresholdImage = new Mat();
+        Imgproc.threshold(gray, thresholdImage, 128, 255, Imgproc.THRESH_BINARY);
+
+        // Buscar los contornos en la imagen umbralizada
+        java.util.List<MatOfPoint> contours = new java.util.ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(thresholdImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        // Buscar el contorno más grande (probablemente la foto de 4x4)
+        double maxArea = 0;
+        Rect boundingRect = null;
+        for (MatOfPoint contour : contours) {
+            double area = Imgproc.contourArea(contour);
+            if (area > maxArea) {
+                maxArea = area;
+                boundingRect = Imgproc.boundingRect(contour);
+            }
+        }
+
+        if (boundingRect != null) {
+            // Recortar la imagen usando la caja delimitadora del contorno encontrado
+            return new Mat(image, boundingRect);
+        } else {
+            // Si no se encuentra un contorno válido, se devuelve la imagen original
+            return image;
+        }
+    }
+
+    // Método para guardar la información del documento en la base de datos
+    private void guardarDocumentoEnBaseDeDatos(MultipartFile file, String ruta, String tipoEntidad, String entidadId, String tipoDocumento) {
+        Documento documento = documentoRepository.findByNombre(file.getOriginalFilename());
+        if (documento == null) {
+            documento = new Documento();
+        }
+        documento.setNombre(file.getOriginalFilename());
+        documento.setTipo(file.getContentType());
+        documento.setRuta(ruta);
+        documento.setTamanio(file.getSize());
+        documento.setTipoEntidad(tipoEntidad);
+        documento.setEntidadId(entidadId);
+        documento.setTipoDocumento(tipoDocumento);
+        documentoRepository.save(documento);
+    }
+
+
 
     @GetMapping("/archivos/{legajoId}")
     public ResponseEntity<List<Documento>> getArchivosByLegajo(@PathVariable("legajoId") String legajoId) {
@@ -109,33 +200,21 @@ public class DocumentoController {
     @GetMapping("/descargar")
     public ResponseEntity<Resource> downloadFile(@RequestParam String filePath) {
         try {
-            // Decodificar la ruta en caso de que tenga caracteres especiales
             filePath = URLDecoder.decode(filePath, StandardCharsets.UTF_8);
-
-            // Normalizar la ruta para evitar problemas de seguridad
             Path path = Paths.get(filePath).normalize();
-
-            // Crear el recurso a partir del archivo
             Resource resource = new UrlResource(path.toUri());
-
-            // Verificar si el archivo existe y es legible
             if (!resource.exists() || !resource.isReadable()) {
                 System.err.println("Error: El archivo no existe o no es accesible: " + path.toString());
                 return ResponseEntity.notFound().build();
             }
-
-            // Obtener el tipo de contenido
             String contentType = Files.probeContentType(path);
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
-
-            // Devolver el archivo como respuesta
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + path.getFileName() + "\"")
                     .body(resource);
-
         } catch (IOException e) {
             System.err.println("Error al procesar la descarga del archivo: " + filePath);
             e.printStackTrace();
@@ -160,6 +239,7 @@ public class DocumentoController {
 
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
+
 
 
 }

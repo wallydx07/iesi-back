@@ -343,14 +343,15 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         if (desaprobados.contains(nota.getNotaEstado())) {
             return "Desaprobado";
         }
-
         // Validar si notaFecha es null antes de llamar a getYear()
         int anioNota = (nota.getNotaFecha() != null) ? nota.getNotaFecha().getYear() : -1;
         int anioActual = LocalDate.now().getYear();
 
-        if ("Cursando".equals(nota.getNotaEstado()) || anioNota == anioActual) {
-            return "Cursando";
+        if ("Cursando".equals(nota.getNotaEstado())) {
+            return (anioNota == anioActual) ? "Cursando" : "(-)";
         }
+
+
 
         switch (nota.getNotaEstado()) {
             case "Regular":
@@ -542,35 +543,98 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 //    }
 
 
+//    public NotaMateriaDTO validadorAnalitico(NotaMateriaDTO nota1, NotaMateriaDTO nota2) {
+//        String cond1 = nota1.getNotaEstado();
+//        String cond2 = nota2.getNotaEstado();
+//
+//        // Dar prioridad a la materia aprobada
+//        if (cond1.equals("Aprobado")) return nota1;
+//        if (cond2.equals("Aprobado")) return nota2;
+//
+//        // Si ambas están en estado regular, quedarse con la última
+//        if (cond1.equals("Regular") && cond2.equals("Regular")) return nota2;
+//
+//        // Si una es Regular y la otra Desaprobado, quedarse con la Regular
+//        if (cond1.equals("Regular") && cond2.equals("Desaprobado")) return nota1;
+//        if (cond1.equals("Desaprobado") && cond2.equals("Regular")) return nota2;
+//
+//        // Si una es Regular y la otra Cursando, quedarse con la Regular
+//        if (cond1.equals("Regular") && cond2.equals("Cursando")) return nota1;
+//        if (cond1.equals("Cursando") && cond2.equals("Regular")) return nota2;
+//
+//        // Si una es Libre y la otra Cursando, quedarse con la Cursando
+//        if (cond1.equals("Libre") && cond2.equals("Cursando")) return nota2;
+//        if (cond1.equals("Cursando") && cond2.equals("Libre")) return nota1;
+//
+//        // Si una es Ausente y la otra tiene otro estado, quedarse con el otro estado
+//        if (cond1.equals("Ausente")) return nota2;
+//        if (cond2.equals("Ausente")) return nota1;
+//
+//        // En cualquier otro caso, quedarse con la última
+//        return nota2;
+//    }
+
+
+
     public NotaMateriaDTO validadorAnalitico(NotaMateriaDTO nota1, NotaMateriaDTO nota2) {
+        if (nota1 == null || nota2 == null) {
+            throw new IllegalArgumentException("Las notas no pueden ser nulas");
+        }
+
         String cond1 = nota1.getNotaEstado();
         String cond2 = nota2.getNotaEstado();
+        System.out.println("Condiciones: " + cond1 + ", " + cond2);
 
-        // Dar prioridad a la materia aprobada
-        if (cond1.equals("Aprobado")) return nota1;
-        if (cond2.equals("Aprobado")) return nota2;
+        // Validar que los estados sean válidos
+        if (!esEstadoValido(cond1) || !esEstadoValido(cond2)) {
+            throw new IllegalArgumentException("Estado de la nota no válido");
+        }
 
-        // Si ambas están en estado regular, quedarse con la última
-        if (cond1.equals("Regular") && cond2.equals("Regular")) return nota2;
+        // Obtener la prioridad de los estados
+        int prioridad1 = obtenerPrioridad(cond1);
+        int prioridad2 = obtenerPrioridad(cond2);
 
-        // Si una es Regular y la otra Desaprobado, quedarse con la Regular
-        if (cond1.equals("Regular") && cond2.equals("Desaprobado")) return nota1;
-        if (cond1.equals("Desaprobado") && cond2.equals("Regular")) return nota2;
+        if (prioridad1 < prioridad2) {
+            System.out.println("Se devuelve nota1: " + nota1.getNotaEstado() + " " + nota1.getMateriaNombre());
+            return nota1;
+        }
+        if (prioridad2 < prioridad1) {
+            System.out.println("Se devuelve nota2: " + nota2.getNotaEstado() + " " + nota2.getMateriaNombre());
+            return nota2;
+        }
 
-        // Si una es Regular y la otra Cursando, quedarse con la Regular
-        if (cond1.equals("Regular") && cond2.equals("Cursando")) return nota1;
-        if (cond1.equals("Cursando") && cond2.equals("Regular")) return nota2;
-
-        // Si una es Libre y la otra Cursando, quedarse con la Cursando
-        if (cond1.equals("Libre") && cond2.equals("Cursando")) return nota2;
-        if (cond1.equals("Cursando") && cond2.equals("Libre")) return nota1;
-
-        // Si una es Ausente y la otra tiene otro estado, quedarse con el otro estado
-        if (cond1.equals("Ausente")) return nota2;
-        if (cond2.equals("Ausente")) return nota1;
-
-        // En cualquier otro caso, quedarse con la última
+        // Si ambas tienen la misma prioridad, quedarse con la última
+        System.out.println("Prioridades iguales, se devuelve nota2: " + nota2);
         return nota2;
+    }
+
+    // Método para validar si el estado es uno de los valores esperados
+    private boolean esEstadoValido(String estado) {
+        return estado.equals("Aprobado") || estado.equals("Regular") || estado.equals("Cursando") ||
+                estado.equals("Desaprobado") || estado.equals("Ausente") || estado.equals("Pendiente") ||
+                estado.equals("Libre");
+    }
+
+    // Método para obtener la prioridad del estado (cuanto menor es el número, más alta es la prioridad)
+    private int obtenerPrioridad(String estado) {
+        switch (estado) {
+            case "Aprobado":
+                return 1;
+            case "Regular":
+                return 2;
+            case "Cursando":
+                return 3;
+            case "Desaprobado":
+                return 4;
+            case "Ausente":
+                return 5;
+            case "Pendiente":
+                return 6;
+            case "Libre":  // Agregar "Libre" aquí
+                return 7;
+            default:
+                throw new IllegalArgumentException("Estado no reconocido: " + estado);
+        }
     }
 
 
