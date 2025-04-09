@@ -21,4 +21,17 @@ public class AlumnoLegajoController {
             @RequestParam String apellido) {
         return alumnoLegajoService.obtenerAlumnosLegajos(dato, estado, apellido);
     }
+
+    @GetMapping("/alumnos-cursadas")
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(
+            @RequestParam String dato,
+            @RequestParam String estado,
+            @RequestParam String apellido) {
+        return alumnoLegajoService.obtenerAlumnosConCursadas(dato, estado, apellido);
+    }
+
+
+
+
+
 }

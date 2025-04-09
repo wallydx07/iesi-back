@@ -59,7 +59,7 @@ public class NotaServiceImpl implements NotaService {
             dto.setNotaId((Integer) row[0]);
             dto.setMateriaOrden((Integer) row[1]);
             dto.setMateriaNombre((String) row[2]);
-            dto.setNotaCalificacionNumero((String) row[3]);
+            dto.setNotaCalificacionNumero((Double) row[3]);
             dto.setNotaCalificacionLetra((String) row[4]);
             dto.setNotaCondicion((String) row[5]);
             dto.setNotaEstado((String) row[6]);
@@ -218,9 +218,15 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 
     @Override
     public List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materaId, boolean cursadaInscripto) {
+        System.out.println("📥 Llamado a findNotasByCarreraAndMateria con:");
+        System.out.println("🔹 carreraId: " + carreraId);
+        System.out.println("🔹 materiaId: " + materaId);
+        System.out.println("🔹 cursadaInscripto: " + cursadaInscripto);
+
         List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId, cursadaInscripto, "Cursada");
         return todasLasNotas;
     }
+
 
     @Override
     public List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
@@ -334,9 +340,6 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
     }
 
 
-    /**
-     * Define el estado final de la nota según su estado actual.
-     */
     private String definirNotaFinal(NotaMateriaDTO nota) {
         Set<String> desaprobados = Set.of("Desaprobado", "Libre", "Ausente");
 
@@ -401,7 +404,7 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
                 System.out.println("Objeto NotaMateriaDTO encontrado: " + xd.toString());
 
                 String cond = xd.getNotaEstado() != null ? xd.getNotaEstado() : "";
-                String valorString = xd.getNotaCalificacionNumero() != null ? xd.getNotaCalificacionNumero() : "";
+                String valorString = xd.getNotaCalificacionNumero() != null ? xd.getNotaCalificacionNumero().toString() : "";
 
                 // Verificar el estado y calificación
                 System.out.println("Nota Estado: " + cond);

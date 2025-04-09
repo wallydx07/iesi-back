@@ -16,9 +16,10 @@ public class Nota {
     @Column(name = "nota_id", nullable = false)
     private Long notaId;
 
-    @Size(max = 50)
-    @Column(name = "nota_calificacion_nota_numero", length = 50)
-    private String notaCalificacionNotaNumero;
+
+    @Column(name = "nota_calificacion_nota_numero")
+    private Double notaCalificacionNotaNumero;
+
 
     @Size(max = 50)
     @Column(name = "nota_calificacion_nota_letra", length = 50)
@@ -89,13 +90,6 @@ public class Nota {
         this.notaId = id;
     }
 
-    public String getNotaCalificacionNotaNumero() {
-        return notaCalificacionNotaNumero;
-    }
-
-    public void setNotaCalificacionNotaNumero(String notaCalificacionNotaNumero) {
-        this.notaCalificacionNotaNumero = notaCalificacionNotaNumero;
-    }
 
     public String getNotaCalificacionNotaLetra() {
         return notaCalificacionNotaLetra;
@@ -176,5 +170,13 @@ public class Nota {
 
     public void setExamen(Set<Examen> examen) {
         this.examen = examen;
+    }
+
+    public Double getNotaCalificacionNotaNumero() {
+        return notaCalificacionNotaNumero;
+    }
+
+    public void setNotaCalificacionNotaNumero(Double notaCalificacionNotaNumero) {
+        this.notaCalificacionNotaNumero = notaCalificacionNotaNumero;
     }
 }

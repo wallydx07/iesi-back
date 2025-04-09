@@ -8,7 +8,7 @@ public class NotaMateriaDTO {
     private Integer notaId;
     private Integer materiaOrden;
     private String materiaNombre;
-    private String notaCalificacionNumero;
+    private Double notaCalificacionNumero;
     private String notaCalificacionLetra;
     private String notaCondicion;
     private String notaEstado;
@@ -55,8 +55,8 @@ public class NotaMateriaDTO {
     public void setMateriaOrden(Integer materiaOrden) { this.materiaOrden = materiaOrden; }
     public String getMateriaNombre() { return materiaNombre; }
     public void setMateriaNombre(String materiaNombre) { this.materiaNombre = materiaNombre; }
-    public String getNotaCalificacionNumero() { return notaCalificacionNumero; }
-    public void setNotaCalificacionNumero(String notaCalificacionNumero) { this.notaCalificacionNumero = notaCalificacionNumero; }
+    public Double getNotaCalificacionNumero() { return notaCalificacionNumero; }
+    public void setNotaCalificacionNumero(Double notaCalificacionNumero) { this.notaCalificacionNumero = notaCalificacionNumero; }
     public String getNotaCalificacionLetra() { return notaCalificacionLetra; }
     public void setNotaCalificacionLetra(String notaCalificacionLetra) { this.notaCalificacionLetra = notaCalificacionLetra; }
     public String getNotaCondicion() { return notaCondicion; }

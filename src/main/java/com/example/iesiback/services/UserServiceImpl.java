@@ -1,14 +1,20 @@
 package com.example.iesiback.services;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import com.example.iesiback.entities.PasswordResetToken;
+import com.example.iesiback.repositories.PasswordResetTokenRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -129,4 +135,114 @@ public class UserServiceImpl implements UserService {
 
         return repository.findByUsername(username);
     }
+
+    @Override
+    public User update(String username, User updatedUser) {
+        return repository.findByUsername(username).map(user -> {
+            user.setUserNombre(updatedUser.getUserNombre());
+            user.setUserApellido(updatedUser.getUserApellido());
+            user.setUserEmail(updatedUser.getUserEmail());
+            user.setUserStatus(updatedUser.getUserStatus());
+            // No actualizamos password ni roles aquí por seguridad
+            return repository.save(user);
+        }).orElse(null);
+    }
+
+    @Override
+    public void deleteByUsername(Long username) {
+        repository.deleteById(username);
+    }
+
+    @Override
+    public boolean resetPassword(String username, String newPassword) {
+        return repository.findByUsername(username).map(user -> {
+            user.setPassword(newPassword);
+            repository.save(user);
+            return true;
+        }).orElse(false);
+    }
+
+
+
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
+    private JavaMailSender mailSender; // Necesitás configurar esto
+
+    @Override
+    public void sendPasswordResetToken(String email) {
+        System.out.println("🔵 Solicitud de reset recibida para: " + email);
+
+        Optional<User> userOpt = repository.findByUserEmail(email);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            System.out.println("✅ Usuario encontrado: " + user.getUsername());
+
+            PasswordResetToken token = new PasswordResetToken(user);
+            tokenRepository.save(token);
+
+            String resetLink = "http://localhost:4200/reset-password?token=" + token.getToken();
+            System.out.println("🔗 Enlace generado: " + resetLink);
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getUserEmail());
+            message.setSubject("Restablecer tu contraseña");
+            message.setText("Hacé clic en el siguiente enlace para restablecer tu contraseña: " + resetLink);
+
+            try {
+                mailSender.send(message);
+                System.out.println("📧 Correo enviado correctamente a: " + user.getUserEmail());
+            } catch (Exception e) {
+                System.err.println("❌ Error al enviar el correo: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+        } else {
+            System.err.println("⚠️ No se encontró usuario con email: " + email);
+        }
+    }
+
+
+    @Override
+    public boolean resetPasswordWithToken(String token, String newPassword) {
+        System.out.println("🔐 Intentando restablecer contraseña con token: " + token);
+
+        try {
+            Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(token);
+
+            if (tokenOpt.isPresent()) {
+                PasswordResetToken prt = tokenOpt.get();
+                System.out.println("✅ Token encontrado para el usuario: " + prt.getUser().getUsername());
+
+                if (prt.getExpirationDate().isAfter(LocalDateTime.now())) {
+                    User user = prt.getUser();
+                    System.out.println("🕒 Token válido. Procediendo a actualizar contraseña...");
+                    user.setPassword(newPassword); // 🚨 Asegurate de cifrarla en producción
+
+                    user.setPassword(passwordEncoder.encode(newPassword));
+                    repository.save(user);
+                    tokenRepository.delete(prt);
+                    System.out.println("✅ Contraseña actualizada correctamente y token eliminado.");
+                    return true;
+
+                } else {
+                    System.err.println("⛔ Token expirado: " + prt.getExpirationDate());
+                }
+
+            } else {
+                System.err.println("❌ Token no encontrado en la base de datos.");
+            }
+
+        } catch (Exception e) {
+            System.err.println("🚨 Error al restablecer la contraseña: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+
+
 }

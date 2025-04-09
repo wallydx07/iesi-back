@@ -41,4 +41,40 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             @Param("dato") String dato,
             @Param("estado") String estado,
             @Param("apellido") String apellido);
+
+
+    @Query("SELECT DISTINCT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
+            "l.legajoId, " +
+            "a.alumnoDni, " +
+            "a.alumnoApellido, " +
+            "a.alumnoNombre, " +
+            "car.carreraId, " +
+            "l.legajoFotocopiaDni, " +
+            "l.legajoCertificadoNacimiento, " +
+            "l.legajoFotocopiaTitulo, " +
+            "l.legajoPlanillaProntuarial, " +
+            "l.legajoCarnetSanitario, " +
+            "l.legajoFoto, " +
+            "l.legajoAval, " +
+            "l.legajoCarpetaColgante, " +
+            "l.usuario, " +
+            "a.alumnoFechaNacimiento, " +
+            "a.domicilioAlumnoCorreo, " +
+            "a.domicilioAlumnoCelular" +
+            ") " +
+            "FROM Cursada cu " +
+            "JOIN cu.legajo l " +
+            "JOIN l.legajoAlumnoDni a " +
+            "JOIN cu.materiaCarrera mc " +
+            "JOIN mc.carrera car " +
+            "WHERE (:dato IS NULL OR car.carreraId LIKE CONCAT(:dato, '%')) " +
+            "AND (:estado IS NULL OR l.legajoEstado = :estado) " +
+            "AND (:apellido IS NULL OR a.alumnoApellido LIKE CONCAT(:apellido, '%') OR CAST(a.alumnoDni AS string) LIKE CONCAT(:apellido, '%')) " +
+            "ORDER BY a.alumnoApellido, a.alumnoNombre ASC")
+    List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(
+            @Param("dato") String dato,
+            @Param("estado") String estado,
+            @Param("apellido") String apellido);
+
+
 }

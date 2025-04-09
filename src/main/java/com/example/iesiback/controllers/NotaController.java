@@ -52,14 +52,40 @@ public class NotaController {
         return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId));
     }
 
+//    @GetMapping("/obtenerTodasNotasPorMateria")
+//    public ResponseEntity<List<NotaCursadaDTO>> obtenerTodasNotasPorMateria(
+//            @RequestParam String carreraId,
+//            @RequestParam String materiaId,
+//            @RequestParam(required = false) Boolean cursadaInscripto
+//    ) {
+//        List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(carreraId, materiaId, cursadaInscripto);
+//        return ResponseEntity.ok(notas);
+//    }
+
+
     @GetMapping("/obtenerTodasNotasPorMateria")
-    public ResponseEntity<List<NotaCursadaDTO>> obtenerTodasNotasPorMateria(
+    public ResponseEntity<?> obtenerTodasNotasPorMateria(
             @RequestParam String carreraId,
             @RequestParam String materiaId,
             @RequestParam(required = false) Boolean cursadaInscripto
     ) {
-        List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(carreraId, materiaId, cursadaInscripto);
-        return ResponseEntity.ok(notas);
+        try {
+            System.out.println("🔍 Recibiendo parámetros:");
+            System.out.println("  carreraId: " + carreraId);
+            System.out.println("  materiaId: " + materiaId);
+            System.out.println("  cursadaInscripto: " + cursadaInscripto);
+
+            List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(
+                    carreraId, materiaId, cursadaInscripto != null ? cursadaInscripto : false
+            );
+
+            return ResponseEntity.ok(notas);
+        } catch (Exception e) {
+            System.err.println("❌ Error al obtener notas por materia:");
+            e.printStackTrace(); // Muestra la traza completa del error en consola
+
+            return ResponseEntity.status(500).body("Ocurrió un error al buscar las notas: " + e.getMessage());
+        }
     }
 
     @GetMapping("/obtenerTodasNotasPorExamen")

@@ -1,6 +1,7 @@
 package com.example.iesiback.auth;
 
 import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -20,10 +21,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import com.example.iesiback.auth.filter.JwtAuthenticationFilter;
 import com.example.iesiback.auth.filter.JwtValidationFilter;
+
 @Configuration
 public class SpringSecurityConfig {
-@Autowired
-private AuthenticationConfiguration authenticationConfiguration;
+    @Autowired
+    private AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
     AuthenticationManager authenticationManager() throws Exception {
@@ -39,13 +41,15 @@ private AuthenticationConfiguration authenticationConfiguration;
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         return http.authorizeHttpRequests(authz -> authz
-                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/page/{page}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("USER", "ADMIN")
-                    .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/page/{page}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/documento/descargar").authenticated() // 👈 ESTA ES CLAVE
+                        .requestMatchers("/api/users/request-password-reset", "/api/users/reset-password").permitAll()
                         .requestMatchers("/debug/**").permitAll()
-                .anyRequest().authenticated())
+                        .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtValidationFilter(authenticationManager()))

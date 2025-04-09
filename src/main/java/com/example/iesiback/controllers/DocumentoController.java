@@ -51,7 +51,7 @@ public class DocumentoController {
     private DocumentoRepository documentoRepository;
     // Ruta donde se almacenarán los archivos (en el disco D)
     private static final String UPLOAD_DIR = "D:/files/";  // Directorio donde se almacenan los archivos
-    //private static final String UPLOAD_DIR = "/var/www/app/files/";  // Linux
+    // private static final String UPLOAD_DIR = "/var/www/app/files/";  // Linux
     public DocumentoController(ArchivoService archivoService) {
         this.archivoService = archivoService;
     }
@@ -113,19 +113,17 @@ public class DocumentoController {
 
             // Si es una fotoID, se recorta la imagen, de lo contrario se guarda directamente
             if ("fotoId".equals(tipoDocumento)) {
-                // Convertir el archivo recibido a una imagen de OpenCV usando el InputStream
+
                 byte[] bytes = file.getBytes();
                 Mat image = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_COLOR);
                 if (image.empty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La imagen no es válida.");
                 }
-                // Recortar la imagen usando OpenCV
                 Mat croppedImage = recortarImagen(image);
-                // Guardar la imagen recortada
                 Imgcodecs.imwrite(ruta, croppedImage);
+                System.out.println("Se ha guardado:"+ruta);
             } else {
-                // Guardar la imagen original sin recortar
-                file.transferTo(dest);
+               // file.transferTo(dest);
             }
 
             // Llamar al método para guardar la información en la base de datos
@@ -143,15 +141,14 @@ public class DocumentoController {
         // Convertir la imagen a escala de grises
         Mat gray = new Mat();
         Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
-
         // Aplicar un umbral para mejorar la detección de bordes
         Mat thresholdImage = new Mat();
-        Imgproc.threshold(gray, thresholdImage, 128, 255, Imgproc.THRESH_BINARY);
+        Imgproc.threshold(gray, thresholdImage, 200, 255, Imgproc.THRESH_BINARY_INV);
 
         // Buscar los contornos en la imagen umbralizada
         java.util.List<MatOfPoint> contours = new java.util.ArrayList<>();
         Mat hierarchy = new Mat();
-        Imgproc.findContours(thresholdImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+       Imgproc.findContours(thresholdImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
         // Buscar el contorno más grande (probablemente la foto de 4x4)
         double maxArea = 0;
@@ -165,10 +162,13 @@ public class DocumentoController {
         }
 
         if (boundingRect != null) {
+            System.out.println("SE ha enocntrado el contorno");
             // Recortar la imagen usando la caja delimitadora del contorno encontrado
             return new Mat(image, boundingRect);
         } else {
             // Si no se encuentra un contorno válido, se devuelve la imagen original
+
+            System.out.println("imposible encontrar contorno");
             return image;
         }
     }
@@ -239,6 +239,19 @@ public class DocumentoController {
 
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
+
+
+
+    @GetMapping("/getDocumentoPorEntidadYTipo")
+    public ResponseEntity<Documento> getDocumentoPorEntidadYTipo(
+            @RequestParam String entidadId,
+            @RequestParam String tipoDocumento) {
+
+        return documentoRepository.findByEntidadIdAndTipoDocumento(entidadId, tipoDocumento)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
 
 

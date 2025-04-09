@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 
 @Entity
-@Table(name = "constancia")
-public class Constancia {
+@Table(name = "certificado_estudiante")
+public class CertificadoEstudiante {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Hibernate maneja la secuencia automáticamente
     @Column(name = "constancia_id", nullable = false)

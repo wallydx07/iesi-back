@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import be.quodlibet.boxable.*;
+import com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO;
 import com.example.iesiback.dto.NotaExamenDTO;
 import com.example.iesiback.dto.NotaMateriaDTO;
 import com.example.iesiback.entities.*;
@@ -35,18 +36,21 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final NotaService notaService;
     private final MateriaCarreraRepository materiaCarreraRepository;
     private final LegajoService legajoSerevice;
+    private final AlumnoLegajoService alumnoLegajoService;
 
     @Autowired
     public CertificadoServiceImpl(@Lazy AlumnoService alumnoService,
                               CarreraService carreraService,
                                   NotaService notaService,
                                   MateriaCarreraRepository materiaCarreraRepository,
-                                  LegajoService legajoService) {
+                                  LegajoService legajoService,
+                                  AlumnoLegajoService alumnoLegajoService) {
         this.alumnoService= alumnoService;
         this.carreraService= carreraService;
         this.notaService= notaService;
         this.materiaCarreraRepository = materiaCarreraRepository;
         this.legajoSerevice=legajoService;
+        this.alumnoLegajoService=alumnoLegajoService;
     }
 
 @Override
@@ -762,7 +766,7 @@ public PDDocument generaRegular(String dniId, String legajoId, String autoridade
                     altura = altura + filaHeight;
                     if (!mat.getNotaFinal().equals("Desaprobado") && !mat.getNotaFinal().equals("Cursando") && !mat.getNotaFinal().equals("(-)")) {
                         try {
-                            double nota = Double.parseDouble(mat.getNotaCalificacionNumero());
+                            double nota = mat.getNotaCalificacionNumero();
                             nuevoProm += nota;
                             contProm++;
                         } catch (NumberFormatException e) {
@@ -1839,6 +1843,179 @@ public PDDocument generaFichaActualizacion(String legajoId) throws IOException{
         //Documento.close();
         return Documento;
 
+    }
+
+@Override
+public PDDocument generaPlanillaTutores(String carreraId, String estado, String ape){
+        Carrera carrera=this.carreraService.findCarreraById(carreraId);
+        List<AlumnoLegajoInscripcionCarreraDTO> listado = this.alumnoLegajoService.obtenerAlumnosConCursadas(carreraId, estado, ape);
+        PDImageXObject Iesc1,Iesc2;
+        String año=carrera.getCarreraYear();
+        String tecnicatura=carrera.getCarreraNombre();
+        PDDocument Documento=new PDDocument();
+        try {
+            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+            if (iesc1I==null){
+                System.out.println("readFilesInBytes: File " + "file"+" does not exist");
+            }
+
+            byte[]ba =IOUtils.toByteArray(iesc1I);
+            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");//divujar desde el path
+            PDPage Pagina= new PDPage(PDRectangle.A4);
+            //Pagina.setRotation(90);
+            Documento.addPage(Pagina);
+            PDPageContentStream contenido=new PDPageContentStream(Documento,Pagina);
+            int n=-10;//distancia entre lineas
+            contenido.beginText();
+            contenido.setFont(PDType1Font.HELVETICA, 8);
+            contenido.newLineAtOffset(200,820);
+            contenido.showText("INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL");
+            contenido.newLineAtOffset(40,n);
+            contenido.showText("“CAMPINTA GUAZU GLORIA PEREZ”");
+            contenido.newLineAtOffset(-25,n);
+            contenido.showText("Del Consejo de Organizaciones Aborígenes de Jujuy");
+            contenido.newLineAtOffset(-6,n);
+            contenido.showText("Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15");
+            contenido.newLineAtOffset(-15,n);
+            contenido.showText("Bahia Blanca Nº 235 Bº .Kennedy – Tel. Fax. N° (0388)-4237323");
+            contenido.newLineAtOffset(-55,n);
+            contenido.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy – Kollasuyu- República Argentina");
+            contenido.newLineAtOffset(-108,n);
+            contenido.showText("________________________________________________________________________________________________________________________");
+            contenido.endText();
+            contenido.close();
+            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+            PDesc1.drawImage( Iesc1, 30, 770, 65, 60);//Draw an image at the x,y coordinates, with the given size.
+            PDesc1.close();
+
+            PDPageContentStream regular=new PDPageContentStream(Documento,Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            n=-18;//distancia entre lineas
+            regular.beginText();
+            regular.setFont(PDType1Font.HELVETICA_BOLD, 15);
+            regular.newLineAtOffset(40,740);//titulo
+            regular.showText("Planilla de Tutores");
+            regular.newLineAtOffset(0,n );
+            regular.setFont(PDType1Font.HELVETICA, 10);
+            regular.showText("CARRERA: "+tecnicatura);
+            regular.newLineAtOffset(0,n );
+            String curso="";
+            int anioActual = java.time.Year.now().getValue();
+            if (Integer.valueOf(carrera.getCarreraYear()) == anioActual) {
+                curso="1er año";
+                System.out.println("1er año");
+            } else if (Integer.valueOf(carrera.getCarreraYear()) == anioActual - 1) {
+                curso="2do año";
+                System.out.println("2do año");
+            } else if (Integer.valueOf(carrera.getCarreraYear()) == anioActual - 2) {
+                curso="3er año";
+                System.out.println("3er año");
+            }
+            regular.showText("Curso: "+curso);
+
+            regular.endText();
+            regular.close();
+            PDRectangle mediabox = Pagina.getMediaBox();
+            float margin = 20;
+            float width = mediabox.getWidth() - 4*margin;
+            float X = mediabox.getLowerLeftX() + margin;
+            float Y = mediabox.getUpperRightY() - margin;
+            List<String> lineas= new ArrayList<String>();
+            int letra=12;
+            PDType1Font normal=PDType1Font.HELVETICA;
+            PDType1Font negrita=PDType1Font.HELVETICA_BOLD;
+            PDPageContentStream cuadro=new PDPageContentStream(Documento,Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            margin = 60;
+            // starting y position is whole page height subtracted by top and bottom margin
+            float yStartNewPage = Pagina.getMediaBox().getHeight() - (1 * margin);
+            // we want table across whole page width (subtracted by left and right margin ofcourse)
+            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+            boolean drawContent = true;
+            float yStart = 660;//650yStartNewPage;
+            float bottomMargin = 70;
+            float auxmargin = 40;//55
+            float yPosition = 300;
+            BaseTable table =  new  BaseTable (yStart, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true ,drawContent);
+            int espaciado=0;
+            cuadro.beginText();
+            cuadro.newLineAtOffset(-10, 660);//X=600
+            Row< PDPage > headerRow = table.createRow(50);
+            int a=5;
+            Cell<PDPage>cell=headerRow.createCell(7, "Nº" );
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setFontSize(8);
+            cuadro.setCharacterSpacing(espaciado);
+            cell=headerRow.createCell(15, "DNI" );
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setFontSize(8);
+            cell=headerRow.createCell(40,"APELLIDO Y NOMBRE" );//30
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setFontSize(8);
+            cell=headerRow.createCell(15,"Celular" );//30
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setFontSize(8);
+            cell=headerRow.createCell(25,"Correo electronico" );//30
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setFontSize(8);
+
+            table.draw();
+
+            BaseTable Cursoaño =  new  BaseTable (yStart-headerRow.getHeight()+1, yStartNewPage,bottomMargin, tableWidth, auxmargin, Documento, Pagina, true ,drawContent);
+            float H=0;
+            int i=0;
+            for (AlumnoLegajoInscripcionCarreraDTO dto : listado) {
+                i++;
+                Long dni=dto.getAlumnoDni();
+                String apellido=dto.getAlumnoApellido()+", "+dto.getAlumnoNombre();
+                String celular=dto.getDomicilioAlumnoCelular();
+                String correo=dto.getDomicilioAlumnoCorreo();
+
+                Row<PDPage> rew = Cursoaño.createRow(5);
+                float altura=0;
+                cell = rew.createCell(7, String.valueOf(i));//año
+                cell.setAlign(HorizontalAlignment.CENTER);
+                cell.setValign(VerticalAlignment.MIDDLE);
+                cell.setFont( PDType1Font.HELVETICA );
+                cell.setFontSize(8);
+
+                // Celda para la columna "Nombre Materia"
+                Cell<PDPage> cellNombreMateria = rew.createCell(15, String.valueOf(dni));
+                cellNombreMateria.setAlign(HorizontalAlignment.CENTER);
+                cellNombreMateria.setValign(VerticalAlignment.MIDDLE);
+                cellNombreMateria.setFont(PDType1Font.HELVETICA);
+                cellNombreMateria.setFontSize(8);
+                // Celda para la columna "Nota Final"
+                Cell<PDPage> cellNotaFinal = rew.createCell(40, apellido);
+                cellNotaFinal.setAlign(HorizontalAlignment.LEFT);
+                cellNotaFinal.setValign(VerticalAlignment.MIDDLE);
+                cellNotaFinal.setFont(PDType1Font.HELVETICA);
+                cellNotaFinal.setFontSize(8);
+                Cell<PDPage> cellFirma = rew.createCell(15, celular);
+                cellFirma.setAlign(HorizontalAlignment.LEFT);
+                cellFirma.setValign(VerticalAlignment.MIDDLE);
+                cellFirma.setFont(PDType1Font.HELVETICA);
+                cellFirma.setFontSize(8);
+                Cell<PDPage> cellcorreo = rew.createCell(25, correo);
+                cellcorreo.setAlign(HorizontalAlignment.LEFT);
+                cellcorreo.setValign(VerticalAlignment.MIDDLE);
+                cellcorreo.setFont(PDType1Font.HELVETICA);
+                cellcorreo.setFontSize(8);
+                // Celda para la columna "Nota Final"
+                float filaHeight = rew.getHeight();
+                H=H+filaHeight;
+            }
+
+            Cursoaño.draw();
+            cuadro.endText();
+            cuadro.close();
+        } catch (IOException e) {
+        }
+        return Documento;
     }
 
 }

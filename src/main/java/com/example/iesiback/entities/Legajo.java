@@ -90,7 +90,7 @@ public class Legajo {
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private Set<Constancia> constancias = new LinkedHashSet<>();
+    private Set<CertificadoEstudiante> certificadoEstudiantes = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -157,12 +157,12 @@ public class Legajo {
         this.aportes = aportes;
     }
 
-    public Set<Constancia> getConstancias() {
-        return constancias;
+    public Set<CertificadoEstudiante> getConstancias() {
+        return certificadoEstudiantes;
     }
 
-    public void setConstancias(Set<Constancia> constancias) {
-        this.constancias = constancias;
+    public void setConstancias(Set<CertificadoEstudiante> certificadoEstudiantes) {
+        this.certificadoEstudiantes = certificadoEstudiantes;
     }
 
     public Set<Inscripcion> getInscripcions() {

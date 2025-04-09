@@ -15,4 +15,9 @@ public class AlumnoLegajoService {
         return alumnoLegajoRepository.obtenerAlumnosLegajos(dato, estado, termino);
     }
 
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(String dato, String estado, String termino) {
+        return alumnoLegajoRepository.obtenerAlumnosConCursadas(dato, estado, termino);
+    }
+
+
 }

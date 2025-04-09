@@ -18,4 +18,6 @@ public interface CertificadoService {
     PDDocument generaCertificadoAsistencia(String alumnoDNI, String legajoId, String autoridades, String curso, String entrada, String salida, String fecT, String accion);
 
     PDDocument generaFichaActualizacion(String legajoId) throws IOException;
+
+    PDDocument generaPlanillaTutores(String carreraId, String estado, String ape);
 }

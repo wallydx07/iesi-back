@@ -200,4 +200,32 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+
+    @GetMapping("/generaPlanillaTutores")
+    public ResponseEntity<ByteArrayResource> generaPlanillaTutores(
+            @RequestParam String carreraId,
+            @RequestParam String estado,
+            @RequestParam String apellido) {
+
+        try {
+          PDDocument document = certificadoService.generaPlanillaTutores(carreraId,estado,apellido);
+            // Convertir PDDocument a byte[]
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            // document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=planillaTutores-certificado_regular.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

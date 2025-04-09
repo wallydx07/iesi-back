@@ -3,6 +3,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.entities.Documento;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentoService {
 
@@ -15,4 +16,6 @@ public interface DocumentoService {
     Documento getDocumentoById(Long id);
 
     void deleteDocumento(Long id);
+
+    Optional<Documento> obtenerDocumentoPorEntidadYTipo(String entidadId, String tipoDocumento);
 }

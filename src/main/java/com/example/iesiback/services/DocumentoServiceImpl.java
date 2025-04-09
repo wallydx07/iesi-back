@@ -51,4 +51,9 @@ public class DocumentoServiceImpl implements DocumentoService {
     public void deleteDocumento(Long id) {
         documentoRepository.deleteById(id);
     }
+
+@Override
+public Optional<Documento> obtenerDocumentoPorEntidadYTipo(String entidadId, String tipoDocumento) {
+        return documentoRepository.findByEntidadIdAndTipoDocumento(entidadId, tipoDocumento);
+    }
 }

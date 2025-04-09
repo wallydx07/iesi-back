@@ -13,22 +13,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.iesiback.entities.User;
 import com.example.iesiback.models.UserRequest;
 import com.example.iesiback.services.UserService;
 
 import jakarta.validation.Valid;
-
-import org.springframework.web.bind.annotation.PutMapping;
 
 
 @CrossOrigin(origins={"*"})
@@ -111,5 +102,40 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
         }
+    }
+
+    @PutMapping("/{username}")
+    public ResponseEntity<User> updateUser(@PathVariable String username, @RequestBody User user) {
+        User updated = service.update(username, user);
+        if (updated != null) return ResponseEntity.ok(updated);
+        else return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long username) {
+        service.deleteByUsername(username);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{username}/reset-password")
+    public ResponseEntity<String> resetPassword(@PathVariable String username, @RequestBody String newPassword) {
+        boolean success = service.resetPassword(username, newPassword);
+        if (success) return ResponseEntity.ok("Contraseña actualizada.");
+        else return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<String> requestPasswordReset(@RequestBody String email) {
+        service.sendPasswordResetToken(email);
+        return ResponseEntity.ok("Si el correo está registrado, se ha enviado un enlace.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPasswordWithToken(
+            @RequestParam String token,
+            @RequestBody String newPassword) {
+        boolean success = service.resetPasswordWithToken(token, newPassword);
+        if (success) return ResponseEntity.ok("Contraseña actualizada.");
+        return ResponseEntity.badRequest().body("Token inválido o expirado.");
     }
 }

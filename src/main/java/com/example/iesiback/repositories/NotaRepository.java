@@ -39,8 +39,6 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 """, nativeQuery = true)
  List<Object[]> findNotasPorLegajo(@Param("legajoId") String legajoId);
 
-
-
     @Query(value = """
     SELECT nota.nota_id , alumno.alumno_dni,
            alumno.alumno_apellido , alumno.alumno_nombre ,
