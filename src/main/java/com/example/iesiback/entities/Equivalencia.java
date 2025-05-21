@@ -44,10 +44,6 @@ public class Equivalencia {
     @Column(name = "status", length = 50)
     private String status;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "fecha")
-    private Instant fecha;
-
     @Size(max = 100)
     @Column(name = "usuario", length = 100)
     private String usuario;
@@ -124,13 +120,6 @@ public class Equivalencia {
         this.status = status;
     }
 
-    public Instant getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Instant fecha) {
-        this.fecha = fecha;
-    }
 
     public String getUsuario() {
         return usuario;

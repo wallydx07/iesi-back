@@ -14,16 +14,10 @@ public interface CursadaService {
     void agregarMateriasACursadaPorCarrera(String carreraId, Legajo legajo);
     List<Cursada> getAllCursadas();
     Optional<Cursada> getCursadaById(Integer id);
-
     Optional<Cursada> obtenerCursadaPorLegajoMateriaCarrera(String legajoId, String materiaId, String carreraId);
-
     Cursada saveCursada(Cursada cursada);
-
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, int materiaCarreraId);
-
     void deleteCursada(Integer id);
-
-
     List<Cursada> findByLegajoId(String legajoId);
     List<Cursada> getCursadasNoAprobadas(String legajoId);
     List<Cursada> findByLegajoAndMateria(String legajo, String materia);

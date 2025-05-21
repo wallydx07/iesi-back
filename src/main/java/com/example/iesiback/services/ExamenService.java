@@ -2,10 +2,13 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.InscripcionExamenDTO;
 import com.example.iesiback.entities.Cursada;
+import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Examen;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 @Service
 public interface ExamenService {
     List<Examen> getAllExamenes();
@@ -21,4 +24,5 @@ public interface ExamenService {
     void darDeBajaExamen(Long examenId);
     void activarExamen(Long examenId);
 
+    Optional<CursadaExamen> obtenerPorMateriaYTurno(String materiaId, String turnoId);
 }

@@ -78,4 +78,11 @@ public class ConstanciaController {
     public List<CertificadoEstudiante> findByLegajoId(@PathVariable String legajoId) {
         return service.findByLegajoId(legajoId);
     }
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<CertificadoEstudiante>> guardarVarios(@RequestBody List<CertificadoEstudiante> certificados) {
+        List<CertificadoEstudiante> guardados = service.saveAll(certificados);
+        return ResponseEntity.ok(guardados);
+    }
+
 }

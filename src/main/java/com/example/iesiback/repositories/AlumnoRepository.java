@@ -1,4 +1,5 @@
 package com.example.iesiback.repositories;
+import com.example.iesiback.dto.AlumnoAsistenciaDTO;
 import com.example.iesiback.entities.Alumno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -36,17 +37,28 @@ public interface AlumnoRepository extends JpaRepository<Alumno, String> {
             "JOIN Legajo l ON l.legajoAlumnoDni.alumnoDni = a.alumnoDni" +
             " WHERE l.legajoId = :legajoId")
     Alumno findAlumnoByLegajoId(@Param("legajoId") String legajoId);
-
-
-//    @Query("SELECT new com.example.iesiback.dto.AlumnoExamenDTO(l.legajoId, a.alumnoDni, a.alumnoApellido, a.alumnoNombre) " +
-//            "FROM Alumno a " +
-//            "JOIN a.legajos l " +
-//            "JOIN Inscripcion i ON l.legajoId = i.legajo.legajoId " +
-//            "WHERE a.alumnoApellido LIKE CONCAT(:apellido, '%') " +
-//            "AND i.carrera.carreraNombre = :carreraNombre")
-//    List<AlumnoExamenDTO> buscarAlumnos(@Param("apellido") String apellido,
-//                                        @Param("carreraNombre") String carreraNombre);
 //
+//    @Query("""
+//        SELECT new com.example.iesiback.dto.AlumnoAsistenciaDTO(
+//            a.alumnoDni, a.alumnoApellido, a.alumnoNombre, l.legajoId
+//        )
+//        FROM Alumno a
+//        JOIN Legajo l ON a.alumnoDni = l.legajoAlumnoDni.alumnoDni
+//        JOIN Cursada c ON l.legajoId = c.legajo.legajoId
+//        JOIN MateriaCarrera mc ON c.materiaCarrera.id = mc.id
+//        JOIN Materia m ON mc.materia.materiaId = m.materiaId
+//        JOIN Carrera ca ON mc.carrera.carreraId = ca.carreraId
+//        WHERE ca.carreraId = :carreraId
+//          AND m.materiaNombre = :materiaNombre
+//        ORDER BY a.alumnoApellido, a.alumnoNombre
+//    """)
+//    List<AlumnoAsistenciaDTO> obtenerAlumnosParaAsistencia(
+//            @Param("carreraId") String carreraId,
+//            @Param("materiaNombre") String materiaNombre
+//    );
+
+
+
 
 
 }

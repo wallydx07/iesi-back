@@ -1,5 +1,6 @@
 package com.example.iesiback.repositories;
 
+import com.example.iesiback.dto.CatedraDTO;
 import com.example.iesiback.dto.MateriaCarreraDTO;
 import com.example.iesiback.entities.MateriaCarrera;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -69,6 +70,16 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
                                  @Param("dia") String dia,
                                  @Param("inicio") String inicio,
                                  @Param("fin") String fin);
+
+    @Query("SELECT new com.example.iesiback.dto.CatedraDTO(mc.id, m.materiaId, m.materiaNombre, c.carreraId, mc.division, mc.turno, mc.dia, mc.inicio, mc.fin, mc.materia.catedras, c.carreraNombre) " +
+            "FROM MateriaCarrera mc " +
+            "JOIN mc.materia m " +
+            "JOIN mc.carrera c " +
+            "WHERE mc.fmcDocente = :dni AND c.carreraYear = :year " +
+            "ORDER BY m.materiaId ASC")
+    List<CatedraDTO> findCatedrasByDocenteAndYear(@Param("dni") String dni, @Param("year") String year);
+
+
 
 
 }

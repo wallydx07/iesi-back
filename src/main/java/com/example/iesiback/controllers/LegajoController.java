@@ -50,7 +50,7 @@ public class LegajoController {
         UpdateLegajo.setLegajoCarnetSanitario(legajo.getLegajoCarnetSanitario());
         UpdateLegajo.setLegajoAval(legajo.getLegajoAval());
         UpdateLegajo.setLegajoEstado(legajo.getLegajoEstado());
-        //UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
+        UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
         //UpdateLegajo.setLegajoCarpetaColgante(legajo.getLegajoCarpetaColgante());
         Legajo updatedLegajo = LegajoService.updateLegajo(UpdateLegajo);
         return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);
@@ -86,12 +86,9 @@ public class LegajoController {
             Legajo legajo = objectMapper.convertValue(request.get("legajo"), Legajo.class);
             Carrera carrera = objectMapper.convertValue(request.get("carrera"), Carrera.class);
             String alumnoDni = (String) request.get("alumnoDni");
-
             LocalDate hoy = LocalDate.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
             String fechaFormateada = hoy.format(formatter);
-
-// Establecer la fecha en legajo
             legajo.setLegajoFecha(fechaFormateada);
             System.out.println("📌 Alumno DNI: " + alumnoDni);
             System.out.println("📌 Carrera: " + carrera);

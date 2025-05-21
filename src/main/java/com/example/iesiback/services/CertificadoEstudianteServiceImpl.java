@@ -72,4 +72,10 @@ import java.util.List;
         public List<CertificadoEstudiante> findByLegajoId(String legajoId) {
             return repository.findByLegajo_LegajoId(legajoId);
         }
+
+    @Override
+    public List<CertificadoEstudiante> saveAll(List<CertificadoEstudiante> certificados) {
+        return repository.saveAll(certificados);
     }
+
+}

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.List;
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -34,11 +36,15 @@ public class CursadaExamenController {
     @PostMapping("/crear")
     public ResponseEntity<CursadaExamen> crearCursadaExamen(
             @RequestParam String turnoId,
-            @RequestParam String materiaId) {
-
-        CursadaExamen nuevaCursada = cursadaExamenService.crearCursadaExamen(turnoId, materiaId);
+            @RequestParam String materiaId,
+            @RequestParam String fecha,
+            @RequestParam String hora // ahora como String directamente
+    ) {
+        LocalDate fechaExamen = LocalDate.parse(fecha); // esto sigue siendo LocalDate
+        CursadaExamen nuevaCursada = cursadaExamenService.crearCursadaExamen(turnoId, materiaId, fechaExamen, hora);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCursada);
     }
+
 
     @GetMapping("/todas")
     public ResponseEntity<List<CursadaExamen>> obtenerTodasLasCursadas() {

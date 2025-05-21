@@ -1,4 +1,5 @@
 package com.example.iesiback.services;
+
 import com.example.iesiback.entities.CertificadoEstudiante;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface CertificadoEstudianteService {
     List<CertificadoEstudiante> findByMonto(Integer monto);
     List<CertificadoEstudiante> findByAtencionId(Integer atencionId);
     List<CertificadoEstudiante> findByLegajoId(String legajoId);
+
+    List<CertificadoEstudiante> saveAll(List<CertificadoEstudiante> certificados);
 }

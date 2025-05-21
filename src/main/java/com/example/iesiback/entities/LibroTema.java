@@ -22,7 +22,6 @@ public class LibroTema {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "materia_carrera_id")
-    @JsonManagedReference
     private MateriaCarrera materiaCarrera;
 
     @Column(name = "fecha")

@@ -16,6 +16,9 @@ public interface NotaService {
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId);
     List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); // ✅ Corregido, sin implementación en la interfaz
     List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materiaId, boolean cursadaInscripto);
+
+    List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, boolean cursadaInscripto);
+
     List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(Long  cursadaExamenId, Boolean soloInscritos);
     boolean isMateriaAprobada(String legajoId, String materiaId);
     Nota guardarNota(Nota nota);

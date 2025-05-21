@@ -37,4 +37,34 @@ public class EmailService {
         helper.setFrom("alumnos@iesijujuy.edu.ar");
         mailSender.send(message);
     }
+
+    public void enviarCorreoConAdjunto(
+            String to,
+            String subject,
+            String templateName,
+            Map<String, Object> variables,
+            byte[] adjunto,
+            String nombreArchivo
+    ) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+        // 1. Procesar plantilla HTML
+        Context context = new Context();
+        context.setVariables(variables);
+        String htmlContent = templateEngine.process(templateName, context);
+
+        // 2. Armar correo
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        helper.setFrom("alumnos@iesijujuy.edu.ar");
+
+        // 3. Agregar el PDF como adjunto
+        helper.addAttachment(nombreArchivo, new org.springframework.core.io.ByteArrayResource(adjunto));
+
+        // 4. Enviar
+        mailSender.send(message);
+    }
+
 }

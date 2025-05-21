@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.CatedraDTO;
 import com.example.iesiback.dto.MateriaCarreraDTO;
 import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
@@ -40,6 +41,12 @@ public int obtenerCantidadMateriasPorNivel(String carreraId, String nivel) {
     public Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id) {
         return materiaCarreraRepository.findById(id);
     }
+
+
+    @Override
+    public List<CatedraDTO> obtenerCatedrasPorDocenteYAnio(String dni, String year) {
+        return materiaCarreraRepository.findCatedrasByDocenteAndYear(dni, year);
+    }
 /*
 
 @Override
@@ -58,4 +65,30 @@ public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO
                 materiaCarreraDTO.getFin()
         );
     }*/
+
+    @Override
+    public List<MateriaCarrera> findAll() {
+        return materiaCarreraRepository.findAll();
+    }
+
+    @Override
+    public Optional<MateriaCarrera> findById(Long id) {
+        return materiaCarreraRepository.findById(id);
+    }
+
+    @Override
+    public MateriaCarrera save(MateriaCarrera materiaCarrera) {
+        return materiaCarreraRepository.save(materiaCarrera);
+    }
+
+    @Override
+    public MateriaCarrera update(Integer id, MateriaCarrera materiaCarrera) {
+        materiaCarrera.setId(id);
+        return materiaCarreraRepository.save(materiaCarrera);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        materiaCarreraRepository.deleteById(id);
+    }
 }

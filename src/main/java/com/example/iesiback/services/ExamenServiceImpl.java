@@ -101,18 +101,19 @@ public class ExamenServiceImpl implements ExamenService {
                     }
                 }
             }
-            inscripcion.setFecha(
-                    cursada.getMateriaCarrera().getFecha() != null
-                            ? cursada.getMateriaCarrera().getFecha().toString()
-                            : "Fecha no disponible"
-            );
+//            inscripcion.setFecha(
+//                    cursada.getMateriaCarrera().getFecha() != null
+//                            ? cursada.getMateriaCarrera().getFecha().toString()
+//                            : "Fecha no disponible"
+//            );
 
             Boolean estado = examenRepository.getEstadoExamen(turno, cursada.getMateriaId(), legajoId);
             boolean inscripto = estado != null && estado;  // ✅ Si es null, devuelve false
             inscripcion.setInscripto(inscripto);
-
             String fecha = cursadaExamenService.obtenerFechaPorMateriaYTurno(cursada.getMateriaId(), turno);
-            inscripcion.setFechaHoraMesa(fecha);
+            String hora=cursadaExamenService.obtenerHoraPorMateriaYTurno(cursada.getMateriaId(), turno);
+            inscripcion.setHora(hora);
+            inscripcion.setFecha(fecha);
             inscripcion.setCorrelativas(cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria()));
             inscripciones.add(inscripcion);
         });
@@ -145,7 +146,6 @@ public class ExamenServiceImpl implements ExamenService {
         }
         CursadaExamen cursadaExamen = cursadaExistente.get();
         Optional<Examen> examenExistente = examenRepository.findByPermisoAndCursadaExamen(permiso, cursadaExamen);
-
 
 
         if (examenExistente.isPresent()) {
@@ -192,6 +192,14 @@ public class ExamenServiceImpl implements ExamenService {
         examen.setExamenInscripto(true); // ✅ Se reactiva el examen
         examenRepository.save(examen);
     }
+
+    @Override
+    public Optional<CursadaExamen> obtenerPorMateriaYTurno(String materiaId, String turnoId) {
+        return cursadaExamenRepository.findByMateriaIdAndTurno_TurnoId(materiaId, turnoId);
+    }
+
+
+
 
 
 }

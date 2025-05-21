@@ -4,6 +4,8 @@ import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.services.*;
+import com.itextpdf.html2pdf.ConverterProperties;
+import com.itextpdf.html2pdf.HtmlConverter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -201,8 +205,6 @@ public class CertificadoController {
         }
     }
 
-
-
     @GetMapping("/generaPlanillaTutores")
     public ResponseEntity<ByteArrayResource> generaPlanillaTutores(
             @RequestParam String carreraId,
@@ -227,5 +229,87 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/generaPlanillaAsitencia")
+    public ResponseEntity<ByteArrayResource> generaPlanillaAsitencia(
+            @RequestParam Long id) {
+        try {
+            PDDocument document = certificadoService.generaPlanillaAsistencia(id);
+            // Convertir PDDocument a byte[]
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            // document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=planillaAsitencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    @GetMapping("/planillaSeguimiento")
+    public ResponseEntity<ByteArrayResource> planillaSeguimiento(
+            @RequestParam String materiaId,
+            @RequestParam String carreraId,
+            @RequestParam Boolean cursadaInscripto) {
+        try {
+            System.out.println("Materia ID: " + materiaId);
+            System.out.println("carreraId: " + carreraId);
+            System.out.println("cursadaInscripto: " + cursadaInscripto);
+
+            // 🔴 POSIBLE ERROR 1: certificadoService.generaPlanilla() puede retornar null o lanzar una excepción
+            PDDocument document = certificadoService.generaPlanilla(carreraId, materiaId, cursadaInscripto);
+            if (document == null) {
+                // Buen control defensivo
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+
+            // 🔴 POSIBLE ERROR 2: IOException al guardar el documento
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);  // <-- Esto puede lanzar IOException
+
+            // 🔴 POSIBLE ERROR 3: falta cerrar el documento (fuga de recursos)
+            document.close();
+
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=planillaAsitencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+
+        } catch (IOException e) {
+            e.printStackTrace(); // ✅ Recomendado para ver el error real en consola/log
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            e.printStackTrace(); // ✅ Agregado para capturar otros errores inesperados
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/credencialEstudiantil")
+    public ResponseEntity<byte[]> generarCredencial(@RequestBody String legajoId) {
+        System.out.println("LEG: " + legajoId); // Debug básico
+
+        try {
+            byte[] pdf = certificadoService.generarCredencialEstudiantil(legajoId);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=credencial.pdf")
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(("Error generando credencial: " + e.getMessage()).getBytes());
+        }
+    }
+
 
 }

@@ -16,9 +16,18 @@ public class InscripcionExamenDTO {
     private String fechaHoraMesa;
     private List<String> correlativas;
     private String turnoId;
+    private String hora;
 
     public InscripcionExamenDTO() {
 
+    }
+
+    public String getHora() {
+        return hora;
+    }
+
+    public void setHora(String hora) {
+        this.hora = hora;
     }
 
     public List<String> getCorrelativas() {

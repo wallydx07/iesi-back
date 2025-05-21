@@ -69,15 +69,15 @@
         private Carrera carrera;
 
 
-        @OneToMany
+        @OneToMany(mappedBy = "materiaCarrera", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonIgnore
-        private Set<com.example.iesiback.entities.InformeAsistenciaAlumno> informeAsistenciaAlumnos = new LinkedHashSet<>();
+        private Set<InformeAsistenciaAlumno> informeAsistenciaAlumnos = new LinkedHashSet<>();
 
-        @OneToMany
+        @OneToMany(mappedBy = "materiaCarrera", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonIgnore
         private Set<com.example.iesiback.entities.LibroTema> libroTemas = new LinkedHashSet<>();
 
-        @OneToMany
+        @OneToMany(mappedBy = "materiaCarrera", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonIgnore
         private Set<com.example.iesiback.entities.PersonalHorario> personalHorarios = new LinkedHashSet<>();
 

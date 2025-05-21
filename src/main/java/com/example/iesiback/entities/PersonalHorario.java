@@ -11,10 +11,13 @@ import org.hibernate.annotations.ColumnDefault;
 @Entity
 @Table(name = "personal_horarios")
 public class PersonalHorario {
+
     @Id
-    @ColumnDefault("nextval('personal_horarios_id_seq')")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ph_seq")
+    @SequenceGenerator(name = "ph_seq", sequenceName = "personal_horarios_id_seq", allocationSize = 1)
     @Column(name = "id", nullable = false)
     private Integer id;
+
 
     @Size(max = 20)
     @Column(name = "dia", length = 20)
@@ -30,6 +33,13 @@ public class PersonalHorario {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "razon")
-    private MateriaCarrera razon;
+    private MateriaCarrera materiaCarrera;  // ✅ Nombre corregido para que coincida con el mappedBy
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dni")
+    private Personal dni;
+
+    @Column(name = "year")
+    private Integer year;
 
 }

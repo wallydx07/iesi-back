@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.repositories.CarreraRepository;
+import com.example.iesiback.repositories.TutorCarreraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,12 @@ public class CarreraServiceImpl implements CarreraService {
     private final PersonalService personalService;
 
     @Autowired
+    private TutorCarreraService tutorCarreraService;
+
+
+    @Autowired
     public CarreraServiceImpl(InscripcionService inscripcionService,
-                              PersonalService personalService) {
+                              PersonalService personalService, TutorCarreraRepository tutorCarreraRepository) {
         this.inscripcionService = inscripcionService;
         this.personalService=personalService;
     }
@@ -121,7 +126,6 @@ public class CarreraServiceImpl implements CarreraService {
         }
     }
 
-
     @Override
     public Integer obtenerDuracionCarrera(String libretaEstudiantil) throws Exception {
         // Obtener el año actual
@@ -138,4 +142,10 @@ public class CarreraServiceImpl implements CarreraService {
         return diferencia+1;
 
     }
+
+    @Override
+    public List<Carrera> obtenerCarrerasPorTutor(Long tutorDni) {
+        return tutorCarreraService.obtenerCarrerasPorTutor(tutorDni);
+    }
+
 }

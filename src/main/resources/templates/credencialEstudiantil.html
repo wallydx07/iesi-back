@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Credencial de Estudiante</title>
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "DejaVu Sans", sans-serif;
+
+        }
+
+        .page-wrapper {
+            width: 100%;
+            height: 29.7cm;
+            padding-top: 5cm;
+            text-align: center;
+        }
+
+        .card-combined {
+            display: table;
+            margin: 0 auto;
+            width: 18cm;
+            height: 6cm;
+            border: 1px dashed #ccc;
+            border-radius: 10px;
+            table-layout: fixed;
+        }
+
+        .card-side {
+            display: table-cell;
+            width: 40%;
+            padding: 0.2cm;
+            vertical-align: top;
+        }
+
+        .header, .logo {
+            font-size: 12px;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .title {
+            text-align: right;
+            font-weight: bold;
+            font-size: 11px;
+            color: #0066cc;
+        }
+
+        .content {
+            margin: 0.1cm 0;
+        }
+
+        .photo {
+            width: 2.5cm;
+            height: 2.5cm;
+            background-color: #eee;
+            border: 1px solid #ccc;
+            display: inline-block;
+        }
+
+        .details {
+            display: inline-block;
+            vertical-align: top;
+            margin-left: 0.1cm;
+            text-align: left;
+        }
+
+        .details h3 {
+            margin: 0 0 0.2cm 0;
+            font-size: 12px;
+            color: #003366;
+        }
+
+        .details p {
+            margin: 0.05cm 0;
+            font-size: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            height: 0.5cm;
+            overflow: hidden;
+        }
+
+        .footer img {
+            height: 1.5cm;
+        }
+
+        .qr-img {
+            width: 3cm;
+            height: 3cm;
+        }
+
+        .back-details ul {
+            padding-left: 0.5cm;
+            font-size: 10px;
+            margin: 0;
+        }
+
+        .small-text {
+            font-size: 9px;
+        }
+
+        .back-footer {
+            font-size: 8px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #ccc;
+            margin: 0;
+            padding: 0;
+            line-height: 1.1;
+        }
+
+        .back-footer p {
+            margin: 0;
+            padding: 0;
+            font-size: 8px;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        .card-side.back .content {
+            display: flex;
+            gap: 1cm;
+            align-items: center;
+            justify-content: center;
+        }
+
+    </style>
+</head>
+<body>
+<div class="page-wrapper">
+    <div class="card-combined">
+        <!-- Frente -->
+        <div class="card-side front">
+            <div class="header" style="text-align: right;">
+                <div class="logo">Instituto de Educación Superior Intercultural</div>
+                <div class="title">CREDENCIAL DE ESTUDIANTE</div>
+            </div>
+
+            <div class="content">
+                <div class="photo"></div>
+                <div class="details">
+                    <h3>${nombre}</h3>
+                    <p><strong>DNI:</strong> ${dni} | <strong>Libreta:</strong> ${legajoId}</p>
+                    <p><strong>Carrera:</strong> ${carrera}</p>
+                    <p><strong>Teléfono:</strong> ${telefono}</p>
+                    <p><strong>Correo:</strong> ${correo}</p>
+                    <p><strong>Emisión:</strong> ${emision}</p>
+                </div>
+            </div>
+            <div class="footer">
+                <img src="${codigo_barras}" alt="Código de Barras" />
+            </div>
+        </div>
+        <!-- Reverso -->
+        <div class="card-side back">
+            <div class="title" style="text-align: center; margin-bottom: 0.4cm;">Estado del Legajo</div>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <!-- QR -->
+                    <td style="width: 3cm; text-align: center; vertical-align: middle;">
+                        <img src="${qr_base64}" alt="QR del estudiante" style="width: 2.5cm; height: 2.5cm;" />
+                    </td>
+
+                    <!-- Lista al lado del QR -->
+                    <td style="text-align: left; vertical-align: middle; padding-left: 0.5cm;">
+                        <ul style="font-size: 10px; margin: 0; padding-left: 0.8em;">
+                            <li><strong>Fotocopia DNI:</strong> ${fotocopia_dni}</li>
+                            <li><strong>Cert. Nacimiento:</strong> ${cert_nacimiento}</li>
+                            <li><strong>Carnet Sanitario:</strong> ${carnet_sanitario}</li>
+                            <li><strong>Título Secundario:</strong> ${titulo_secundario}</li>
+                            <li><strong>Foto:</strong> ${foto}</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="back-footer" style="margin-top: 0.4cm;">
+                <p>Incorporado a la Enseñanza Oficial - Resol. Nº 2936-E-15</p>
+                <p>Bahía Blanca Nº 235, San Salvador de Jujuy</p>
+                <p>En caso de encontrar esta credencial comunicarse al 3883428370</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

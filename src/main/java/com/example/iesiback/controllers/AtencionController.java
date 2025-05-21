@@ -31,7 +31,6 @@ public class AtencionController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
     @PostMapping
     public Atencion create(@RequestBody Atencion atencion) {
         System.out.println(atencion);

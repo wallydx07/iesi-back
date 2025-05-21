@@ -35,12 +35,15 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             "WHERE (:dato IS NULL OR c.carreraId LIKE CONCAT(:dato, '%')) " +
             "AND (:estado IS NULL OR l.legajoEstado = :estado) " +
             "AND (:apellido IS NULL OR a.alumnoApellido LIKE CONCAT(:apellido, '%') OR CAST(a.alumnoDni AS string) LIKE CONCAT(:apellido, '%')) " +
-            "ORDER BY a.alumnoDni ASC")
+            "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
 
     List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(
             @Param("dato") String dato,
             @Param("estado") String estado,
             @Param("apellido") String apellido);
+
+
+
 
 
     @Query("SELECT DISTINCT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
@@ -75,6 +78,41 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             @Param("dato") String dato,
             @Param("estado") String estado,
             @Param("apellido") String apellido);
+
+    @Query("""
+    SELECT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(
+        l.legajoId,
+        a.alumnoDni,
+        a.alumnoApellido,
+        a.alumnoNombre,
+        c.carreraId,
+        l.legajoFotocopiaDni,
+        l.legajoCertificadoNacimiento,
+        l.legajoFotocopiaTitulo,
+        l.legajoPlanillaProntuarial,
+        l.legajoCarnetSanitario,
+        l.legajoFoto,
+        l.legajoAval,
+        l.legajoCarpetaColgante,
+        l.usuario,
+        a.alumnoFechaNacimiento,
+        a.domicilioAlumnoCorreo,
+        a.domicilioAlumnoCelular
+    )
+    FROM Legajo l
+    JOIN l.legajoAlumnoDni a
+    JOIN Cursada cu ON cu.legajo = l
+    JOIN MateriaCarrera mc ON cu.materiaCarrera.id = mc.id
+    JOIN mc.carrera c
+    WHERE (mc.id = :dato)
+      AND (l.legajoEstado = :estado)
+    ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC
+""")
+    List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(
+            @Param("dato") Long dato,
+            @Param("estado") String estado
+    );
+
 
 
 }

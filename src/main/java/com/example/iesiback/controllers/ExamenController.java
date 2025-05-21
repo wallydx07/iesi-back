@@ -3,6 +3,7 @@ package com.example.iesiback.controllers;
 import com.example.iesiback.dto.ExamenRequestDTO;
 import com.example.iesiback.dto.InscripcionExamenDTO;
 import com.example.iesiback.entities.Cursada;
+import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Examen;
 import com.example.iesiback.services.ExamenService;
 import org.slf4j.Logger;
@@ -113,4 +114,6 @@ public class ExamenController {
         examenService.activarExamen(examenId);
         return ResponseEntity.ok("✅ Examen activado correctamente.");
     }
+
+
 }

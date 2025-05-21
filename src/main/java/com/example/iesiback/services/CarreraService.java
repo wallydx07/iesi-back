@@ -24,4 +24,6 @@ public interface CarreraService {
     String obtenerAnioCursada(String libretaEstudiantil) throws Exception;
 
     Integer obtenerDuracionCarrera(String libretaEstudiantil) throws Exception;
+
+    List<Carrera> obtenerCarrerasPorTutor(Long id);
 }

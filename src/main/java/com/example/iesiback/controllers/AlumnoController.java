@@ -1,4 +1,5 @@
 package com.example.iesiback.controllers;
+import com.example.iesiback.dto.AlumnoAsistenciaDTO;
 import com.example.iesiback.dto.AlumnoExamenDTO;
 import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.services.AlumnoService;
@@ -124,6 +125,11 @@ public class AlumnoController {
                         .body(response);
             }
         }
+
+
+
+
+
 
 
 

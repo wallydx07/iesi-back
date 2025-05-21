@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -73,12 +74,17 @@ public class PermisoServiceImpl implements PermisoService {
         PDImageXObject Iesc1, Iesc2;
         PDDocument Documento = new PDDocument();
         try {
-            Optional<Legajo> legajo= legajoService.findById(libreta);
-            Alumno alumno = legajo.get().getLegajoAlumnoDni();
+//            Optional<Legajo> legajo= legajoService.findById(libreta);
+//            Alumno alumno = legajo.get().getLegajoAlumnoDni();
+
+            Legajo legajo = legajoService.findById(libreta)
+                    .orElseThrow(() -> new RuntimeException("No se encontró el legajo con ID: " + libreta));
+
+            Alumno alumno = legajo.getLegajoAlumnoDni();
 
             String carrera = permisoRepository.obtenerCarreraPorLibreta(libreta);
             Optional<Permiso> permiso = permisoRepository.findPermisoByLegajoAndTurnoOrdered(libreta, turno);
-            int dni = permisoRepository.obtenerDniPorLibreta(libreta) - 1;
+            int dni = permisoRepository.obtenerDniPorLibreta(libreta);
             String nombre = permisoRepository.obtenerNombrePorDni(dni);
             String apellido = permisoRepository.obtenerApellidoPorDni(dni);
             List<InscripcionExamenDTO> inscripcionesActivas = examenService.completarCursadas(libreta, turno);
@@ -98,9 +104,10 @@ public class PermisoServiceImpl implements PermisoService {
             Iesc2 = PDImageXObject.createFromByteArray(Documento, be, "static/imagenes/esc2.png");
 
             //===================================Texto del encabezado==============================================//
+            int inicio=421;//desde le borde o desde el centro como esta hoja es horizontal
             encabezado.beginText();
             encabezado.setFont(PDType1Font.HELVETICA, 8);
-            encabezado.newLineAtOffset(105, 580);
+            encabezado.newLineAtOffset(inicio+105, 580);//105
             encabezado.showText("INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL");
             encabezado.newLineAtOffset(40, n);
             encabezado.showText("“CAMPINTA GUAZU GLORIA PEREZ”");
@@ -108,22 +115,22 @@ public class PermisoServiceImpl implements PermisoService {
             encabezado.showText("Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15");
             encabezado.newLineAtOffset(-15, n);
             encabezado.showText("Bahia Blanca Nº 235 Bº .Kennedy – Tel. Fax. N°(0388)-3428370");
-            encabezado.newLineAtOffset(-50, n);
+            encabezado.newLineAtOffset(-40, n);
             encabezado.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina");
             encabezado.newLineAtOffset(-20, 0);
-            encabezado.showText("______________________________________________________________________");
+            encabezado.showText("____________________________________________________________________________________");
             encabezado.endText();
             encabezado.close();
             PDPageContentStream PDesc2 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
             PDesc2.moveTo(200, 100);
-            PDesc2.drawImage(Iesc2, 15, 545, 40, 40);
+            PDesc2.drawImage(Iesc2, 15+inicio, 550, 40, 40);
             PDesc2.close();
             PDPageContentStream titulo = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
             // Texto de constancia
             n = -11; // distancia entre lineas
             titulo.beginText();
             titulo.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            titulo.newLineAtOffset(150, 530); // titulo/(250,745)
+            titulo.newLineAtOffset(160+inicio, 530); // titulo/(250,745)
             titulo.showText("Permiso de examen");
             titulo.newLineAtOffset(0, 0);
             titulo.showText("_________________");
@@ -140,7 +147,7 @@ public class PermisoServiceImpl implements PermisoService {
             float longitud = 375; // longitud permitida para justificar
             pTexto.beginText();
             pTexto.setFont(normal, letra);
-            pTexto.newLineAtOffset(25, 515);
+            pTexto.newLineAtOffset(25+inicio, 515);
             String carrera_nombre = carrera;
             String t1 = "Permiso N°:" + permiso.get().getId() + "                                              Turno: " + turno;
             String t2 = "Conste que por la presente " + genero1 + " estudiante: " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre();
@@ -171,7 +178,7 @@ public class PermisoServiceImpl implements PermisoService {
             boolean drawContent = true;
             float yStart = 480; // yStartNewPage;
             float bottomMargin = 70;
-            float auxmargin = 25;
+            float auxmargin = 25+inicio;
             float yPosition = 300;
             BaseTable table = new BaseTable(yStart, yStartNewPage, 0, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
             Row<PDPage> headerRow = table.createRow(20);
@@ -228,7 +235,7 @@ public class PermisoServiceImpl implements PermisoService {
                             e.printStackTrace();
                         }
                     }
-                    String hora ="00:00";// crud.consultaString("select hora from cursada_examen where turno_id='" + turno_id + "' and materia_id='" + materia_id + "';", "hora", true);
+                    String hora =  inscripcionesActivas.get(row1).getHora();
                     row.createCell(8, fecha); // Fecha
                     row.createCell(5, hora); // hora
                     row.createCell(9, " "); // Firma
@@ -239,8 +246,8 @@ public class PermisoServiceImpl implements PermisoService {
             }
 
             System.out.println("indice vale: " + indice);
-            if (indice < 5) {
-                int rowsToAdd = 5 - indice;
+            if (indice < 6) {
+                int rowsToAdd = 6 - indice;
                 System.out.println("filas agregar vale: " + rowsToAdd);
                 for (int i = 0; i < rowsToAdd; i++) {
                     indice++;
@@ -254,21 +261,23 @@ public class PermisoServiceImpl implements PermisoService {
                     yStart = yStart - row.getHeight();
                 }
             }
-            yStart = yStart - 20;//Ajuste
+            yStart = yStart - 40;//Ajuste 20
             table.draw();
             PDPageContentStream fin = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
             fin.beginText();
             fin.setFont(normal, letra);
-            fin.newLineAtOffset(25, yStart);
+            fin.newLineAtOffset(inicio+25, yStart);
             fin.setCharacterSpacing(0);
             SimpleDateFormat form = new SimpleDateFormat("dd '-' MMMM '-' yyyy", new Locale("ES"));
             Date fechaDatee = new Date();
             String fec = form.format(fechaDatee);
             String p1 = "San salvador de jujuy " + fec;
             String firma = "    ______________________                                  ________________________";
-            String firma1 = "               " + userService.getAuthenticatedUser().get().getUserApellido()+"                                               Firma Alumno";
+            //String firma1 = "               " + userService.getAuthenticatedUser().get().getUserApellido()+"                                                  Firma Alumno";
+            String firma1 = "               Firma del Secretario                                                      Firma Alumno";
+
             String p2 = "El dia del examen el estudiante debera presentar: Libreta - Permiso de examen - D.N.I";
-            String p6 = "-----------------------------------------------------";
+            String p6 = "----------------------------------------------------------";
             fin.showText(firma);
             fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
             fin.showText(firma1);
@@ -282,7 +291,7 @@ public class PermisoServiceImpl implements PermisoService {
             fin.showText(p6);
             fin.setFont(normal, letra);
             fin.setCharacterSpacing(0);
-            String titulop = "                      Constancia de Solicitud de permiso de examen";
+            String titulop = "                        Constancia de Solicitud de permiso de examen";
             String subtitulo = "                     _________________________________________";
             String p7 = "Permiso N°:" + permiso.get().getId() + "      Turno:" +turno + "-" + carrera_nombre;
             String p8 = "Apellido y Nombre " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre() + ", DNI:" + dni;
@@ -333,8 +342,8 @@ public class PermisoServiceImpl implements PermisoService {
                 }
             }
             System.out.println("Indice vale:" + indice);
-            if (indice < 5) {
-                int rowsToAdd = 5 - indice;
+            if (indice < 6) {
+                int rowsToAdd = 6 - indice;
 
                 System.out.println("filas a agregar v vale:" + rowsToAdd);
                 for (int i = 0; i < rowsToAdd; i++) {
@@ -367,4 +376,42 @@ public class PermisoServiceImpl implements PermisoService {
         }
         return Documento;
     }
+
+
+
+    @Autowired
+    private EmailService emailService;
+
+    @Override
+    public void enviarPermisoPorEmail(String libreta, String turno, String usuarioNombre, String destinatario) {
+        try {
+            PDDocument documento = generaPermiso(libreta, turno, usuarioNombre);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            documento.save(baos);
+            documento.close();
+            byte[] pdfBytes = baos.toByteArray();
+
+            Map<String, Object> variables = Map.of(
+                    "nombre", usuarioNombre,
+                    "turno", turno,
+                    "libreta", libreta
+            );
+
+            emailService.enviarCorreoConAdjunto(
+                    destinatario,
+                    "Permiso de Examen IESI",
+                    "permiso-template", // nombre del archivo HTML de la plantilla (por ejemplo: resources/templates/permiso-template.html)
+                    variables,
+                    pdfBytes,
+                    "permiso_" + libreta + "_" + turno + ".pdf"
+            );
+
+            System.out.println("📤 Permiso enviado a " + destinatario);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al enviar permiso por email: " + e.getMessage());
+        }
+    }
+
 }

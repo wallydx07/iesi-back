@@ -76,6 +76,9 @@ public class CursadaController {
         return cursadaService.saveCursada(cursada);
     }
 
+
+
+
     @PutMapping("/{id}")
     public Cursada updateCursada(@PathVariable Integer id, @RequestBody Cursada cursadaDetails) {
         return cursadaService.getCursadaById(id)

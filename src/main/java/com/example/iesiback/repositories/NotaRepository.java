@@ -1,5 +1,6 @@
 package com.example.iesiback.repositories;
 
+import com.example.iesiback.dto.EquivalenciaDTO;
 import com.example.iesiback.dto.NotaExamenDTO;
 import com.example.iesiback.dto.NotaCursadaDTO;
 import com.example.iesiback.entities.Nota;
@@ -15,7 +16,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
  //es UNION ALL
  @Query(value = """
     SELECT
-        n.nota_id,
+        n.nota_id AS notaId,
         m.materia_orden,
         m.materia_nombre,
         n.nota_calificacion_nota_numero,
@@ -35,9 +36,11 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
     INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
     INNER JOIN materia m ON mc.materia_id = m.materia_id
-    WHERE c.cursada_legajo_id = :legajoId order by materia_orden asc,nota_fecha_nota asc;
+    WHERE c.cursada_legajo_id = :legajoId
+    ORDER BY m.materia_orden ASC, n.nota_fecha_nota ASC
 """, nativeQuery = true)
  List<Object[]> findNotasPorLegajo(@Param("legajoId") String legajoId);
+
 
     @Query(value = """
     SELECT nota.nota_id , alumno.alumno_dni,
@@ -66,6 +69,38 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
             @Param("cursadaInscripto") boolean cursadaInscripto,
+            @Param("notaCondicion") String notaCondicion
+    );
+
+
+
+
+
+    @Query(value = """
+    SELECT nota.nota_id , alumno.alumno_dni,
+           alumno.alumno_apellido , alumno.alumno_nombre ,
+           nota.nota_fecha_nota ,
+           nota.nota_calificacion_nota_numero ,
+           nota.nota_calificacion_nota_letra ,
+           nota.nota_estado ,
+           nota.nota_libro_nota , nota.nota_folio_nota ,
+           cursada.status , nota.nota_observaciones ,
+           nota.nota_usuario
+    FROM alumno
+    INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
+    INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
+    INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id
+    INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id
+    INNER JOIN carrera ON materia_carrera.carrera_id = carrera.carrera_id
+    INNER JOIN nota ON cursada.cursada_id = nota.nota_cursada_id
+    WHERE carrera.carrera_id = :carreraId
+      AND materia.materia_id = :materiaId
+      AND nota.nota_condicion = :notaCondicion
+    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+   """, nativeQuery = true)
+    List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(
+            @Param("carreraId") String carreraId,
+            @Param("materiaId") String materiaId,
             @Param("notaCondicion") String notaCondicion
     );
 
@@ -148,5 +183,36 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 
 
     long countByCursadaId(Integer cursada_id);
+
+
+    @Query("""
+SELECT new com.example.iesiback.dto.EquivalenciaDTO(
+    e.id,
+    a.alumnoDni,
+    a.alumnoApellido,
+    a.alumnoNombre,
+    e.materiaOrigen,
+    e.institucionOrigen,
+    e.resolucion,
+    m.materiaNombre,
+    n.notaCalificacionNotaNumero,
+    e.status,
+    n.notaFechaNota,
+    n.notaCalificacionNotaLetra,
+    n.notaLibroNota,
+    n.notaFolioNota,
+    n.notaUsuario
+)
+FROM Equivalencia e
+JOIN e.nota n
+JOIN n.cursada cu
+JOIN cu.legajo l
+JOIN l.legajoAlumnoDni a
+JOIN cu.materiaCarrera mc
+JOIN mc.materia m
+JOIN mc.carrera c
+""")
+    List<EquivalenciaDTO> listarEquivalenciasDetalladas();
+
 
 }

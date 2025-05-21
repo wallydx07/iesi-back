@@ -2,7 +2,9 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.services.CarreraService;
+import com.example.iesiback.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,9 +13,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/carreras")
 public class CarreraController {
+    private final UserService userService;
 
     @Autowired
     private CarreraService carreraService;
+
+    public CarreraController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<Carrera> obtenerCarreras() {
@@ -26,6 +33,21 @@ public class CarreraController {
         return ResponseEntity.ok(carreras);
     }
 
+    @GetMapping("/ordenadas/por-usuario/")
+    public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario() {
+        List<Carrera> carreras;
+        String userRol= String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
+        Long userId= Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
+        if ("ROLE_ADMIN".equalsIgnoreCase(userRol)) {
+            carreras = carreraService.obtenerCarrerasOrdenadas();
+        } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
+            carreras = carreraService.obtenerCarrerasPorTutor(userId);
+        } else {
+            return ResponseEntity.status(
+                     HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(carreras);
+    }
 
     @GetMapping("/inscripcion")
     public ResponseEntity<List<Carrera>> obtenerCarrerasInscripcion(@RequestParam String alumnoDni) {

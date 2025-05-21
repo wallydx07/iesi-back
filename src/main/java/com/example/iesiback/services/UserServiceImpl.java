@@ -183,7 +183,7 @@ public class UserServiceImpl implements UserService {
             PasswordResetToken token = new PasswordResetToken(user);
             tokenRepository.save(token);
 
-            String resetLink = "http://localhost:4200/reset-password?token=" + token.getToken();
+            String resetLink = "https://gestionacademica.iesijujuy.edu.ar/reset-password?token=" + token.getToken();
             System.out.println("🔗 Enlace generado: " + resetLink);
 
             SimpleMailMessage message = new SimpleMailMessage();

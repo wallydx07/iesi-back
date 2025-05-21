@@ -18,6 +18,9 @@ public interface CursadaExamenRepository extends JpaRepository<CursadaExamen, In
     @Query("SELECT c.fecha FROM CursadaExamen c WHERE c.materiaId = :materiaId AND c.turno.turnoId = :turnoId")
     Optional<LocalDate> findFechaByMateriaIdAndTurnoId(@Param("materiaId") String materiaId, @Param("turnoId") String turnoId);
 
+    @Query("SELECT c.hora FROM CursadaExamen c WHERE c.materiaId = :materiaId AND c.turno.turnoId = :turnoId")
+    Optional<String> findHoraByMateriaIdAndTurnoId(@Param("materiaId") String materiaId, @Param("turnoId") String turnoId);
+
     boolean existsByTurno_TurnoIdAndMateriaId(String turnoId, String materiaId);
 
     Optional<CursadaExamen> findByMateriaIdAndTurno_TurnoId(String materiaId, String turnoId);

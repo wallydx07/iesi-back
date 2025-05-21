@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprobante de Trámite</title>
+
+  <!-- Incluimos los iconos de Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .comprobante-container {
+      max-width: 700px;
+      margin: 20px auto;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+      overflow: hidden;
+    }
+
+    /* Encabezado */
+    .header {
+      background-color: #2e7d32;
+      color: white;
+      padding: 25px 20px;
+      position: relative;
+      text-align: center;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-weight: bold;
+      font-size: 24px;
+    }
+
+    .header-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      margin: 5px 0 0 0;
+      font-size: 14px;
+    }
+
+    .check-seal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      background-color: white;
+      color: #2e7d32;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    /* Cuerpo del comprobante */
+    .comprobante-body {
+      padding: 25px;
+    }
+
+    /* Secciones */
+    .section {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid;
+    }
+
+    .section-personal {
+      border-left-color: #2e7d32;
+    }
+
+    .section-tramite {
+      border-left-color: #0d6efd;
+    }
+
+    .section-consulta {
+      border-left-color: #0dcaf0;
+    }
+
+    .section-title {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .text-success {
+      color: #2e7d32;
+    }
+
+    .text-primary {
+      color: #0d6efd;
+    }
+
+    .text-info {
+      color: #0dcaf0;
+    }
+
+    .text-danger {
+      color: #dc3545;
+    }
+
+    .text-secondary {
+      color: #6c757d;
+    }
+
+    .text-muted {
+      color: #6c757d;
+    }
+
+    /* Filas y columnas */
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-right: -10px;
+      margin-left: -10px;
+    }
+
+    .col-6 {
+      flex: 0 0 50%;
+      max-width: 50%;
+      padding: 0 10px;
+    }
+
+    .col-4 {
+      flex: 0 0 33.333333%;
+      max-width: 33.333333%;
+      padding: 0 10px;
+    }
+
+    .col-12 {
+      flex: 0 0 100%;
+      max-width: 100%;
+      padding: 0 10px;
+    }
+
+    /* Campos de información */
+    .field-label {
+      font-size: 13px;
+      color: #6c757d;
+      font-weight: 300;
+      margin-bottom: 5px;
+    }
+
+    .field-value {
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    .field-value-lg {
+      font-size: 18px;
+    }
+
+    .field-value-success {
+      color: #2e7d32;
+    }
+
+    /* Subsecciones */
+    .subsection {
+      background-color: white;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .subsection-title {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    /* Pie de página */
+    .footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #dee2e6;
+    }
+
+    .divider-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .divider {
+      height: 2px;
+      background-color: #dee2e6;
+      width: 25%;
+    }
+
+    .divider-text {
+      color: #6c757d;
+      padding: 0 15px;
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 5px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      background-color: #2e7d32;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-top: 15px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .col-6, .col-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="comprobante-container">
+  <!-- Encabezado -->
+  <div class="header">
+    <div>
+      <i class="bi bi-file-earmark-check-fill" style="font-size: 28px; margin-right: 10px;"></i>
+      <h2 style="display: inline-block; vertical-align: middle;">Comprobante de Trámite</h2>
+    </div>
+    <p class="header-subtitle">Universidad Nacional - Departamento Académico</p>
+
+    <div class="check-seal">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+  </div>
+
+  <!-- Cuerpo -->
+  <div class="comprobante-body">
+    <!-- Información personal -->
+    <div class="section section-personal">
+      <h5 class="section-title text-success">
+        <i class="bi bi-person-fill" style="margin-right: 8px;"></i>Información Personal
+      </h5>
+
+      <div class="row">
+        <div class="col-6">
+          <div class="field-label">Nombre:</div>
+          <p class="field-value field-value-lg">{{ nombre }}</p>
+        </div>
+        <div class="col-6">
+          <div class="field-label">DNI:</div>
+          <p class="field-value field-value-lg">{{ dni }}</p>
+        </div>
+        <div class="col-6">
+          <div class="field-label">Correo:</div>
+          <p class="field-value">{{ correo }}</p>
+        </div>
+        <div class="col-6">
+          <div class="field-label">Celular:</div>
+          <p class="field-value">{{ celular }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalles del trámite -->
+    <div class="section section-tramite">
+      <h5 class="section-title text-primary">
+        <i class="bi bi-clipboard-check-fill" style="margin-right: 8px;"></i>Detalles del Trámite
+      </h5>
+
+      <div class="row">
+        <div class="col-6">
+          <div class="field-label">Fecha:</div>
+          <p class="field-value">{{ fecha }}</p>
+        </div>
+        <div class="col-6">
+          <div class="field-label">Motivo del trámite:</div>
+          <p class="field-value">{{ motivo }}</p>
+        </div>
+      </div>
+
+      <!-- Certificado -->
+      <div *ngIf="tipoCertificado" class="subsection">
+        <h6 class="subsection-title text-success">
+          <i class="bi bi-file-earmark-text" style="margin-right: 8px;"></i>Información del Certificado
+        </h6>
+
+        <div class="row">
+          <div class="col-4">
+            <div class="field-label">Tipo de certificado:</div>
+            <p class="field-value">{{ tipoCertificado }}</p>
+          </div>
+          <div class="col-4">
+            <div class="field-label">Presentado en:</div>
+            <p class="field-value">{{ dondePresenta }}</p>
+          </div>
+          <div class="col-4">
+            <div class="field-label">Monto abonado:</div>
+            <p class="field-value field-value-success">${{ monto }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nota Ingreso -->
+      <div *ngIf="notaIngreso" class="subsection">
+        <h6 class="subsection-title text-primary">
+          <i class="bi bi-inbox-fill" style="margin-right: 8px;"></i>Nota de Ingreso
+        </h6>
+
+        <div class="row">
+          <div class="col-4">
+            <div class="field-label">N° Nota Ingreso:</div>
+            <p class="field-value">{{ nroIngreso }}</p>
+          </div>
+          <div class="col-4">
+            <div class="field-label">Remitente:</div>
+            <p class="field-value">{{ remitenteIngreso }}</p>
+          </div>
+          <div class="col-4">
+            <div class="field-label">Destinatario:</div>
+            <p class="field-value">{{ destinatarioIngreso }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nota Egreso -->
+      <div *ngIf="notaEgreso" class="subsection">
+        <h6 class="subsection-title text-danger">
+          <i class="bi bi-box-arrow-right" style="margin-right: 8px;"></i>Nota de Egreso
+        </h6>
+
+        <div class="row">
+          <div class="col-4">
+            <div class="field-label">N° Nota Egreso:</div>
+            <p class="field-value">{{ nroEgreso }}</p>
+          </div>
+          <div class="col-4">
+            <div class="field-label">Remitente:</div>
+            <p class="field-value">{{ remitenteEgreso }}</p>
+          </div>
+          <div class="col-4">
+            <div class="field-label">Destinatario:</div>
+            <p class="field-value">{{ destinatarioEgreso }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consulta y Solución -->
+    <div class="section section-consulta">
+      <h5 class="section-title text-info">
+        <i class="bi bi-chat-left-text-fill" style="margin-right: 8px;"></i>Detalles de la Consulta
+      </h5>
+
+      <div class="subsection" style="margin-bottom: 15px;">
+        <h6 class="subsection-title text-secondary">
+          <i class="bi bi-question-circle-fill" style="margin-right: 8px;"></i>Consulta:
+        </h6>
+        <p style="margin-top: 10px; margin-bottom: 0;">{{ consulta }}</p>
+      </div>
+
+      <div class="subsection">
+        <h6 class="subsection-title text-success">
+          <i class="bi bi-check-circle-fill" style="margin-right: 8px;"></i>Solución:
+        </h6>
+        <p style="margin-top: 10px; margin-bottom: 0;">{{ solucion }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie de página -->
+  <div class="footer">
+    <div class="divider-container">
+      <div class="divider"></div>
+      <div class="divider-text">Documento Oficial</div>
+      <div class="divider"></div>
+    </div>
+
+    <p class="footer-note">
+      <i class="bi bi-info-circle" style="margin-right: 5px;"></i>
+      Este comprobante fue generado automáticamente. No requiere firma.
+    </p>
+
+    <div>
+      <div class="status-badge">
+        <i class="bi bi-check-circle" style="margin-right: 5px;"></i>Trámite Registrado
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

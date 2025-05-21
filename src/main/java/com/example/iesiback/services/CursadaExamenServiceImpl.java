@@ -36,6 +36,12 @@ public class CursadaExamenServiceImpl implements CursadaExamenService {
         Optional<LocalDate> fechaOpt = cursadaExamenRepository.findFechaByMateriaIdAndTurnoId(materiaId, turnoId);
         return fechaOpt.map(LocalDate::toString).orElse("No asignado");
     }
+    @Override
+    public String obtenerHoraPorMateriaYTurno(String materiaId, String turnoId) {
+        Optional<String> horaOpt = cursadaExamenRepository.findHoraByMateriaIdAndTurnoId(materiaId, turnoId);
+        return horaOpt.orElse("No asignada");
+    }
+
 
     public List<CursadaExamen> obtenerTodasLasCursadas() {
         return cursadaExamenRepository.findAll();
@@ -56,10 +62,13 @@ public Optional<CursadaExamen> obtenerPorId(Integer id) {
         return cursadaExamenRepository.findById(id);
     }
 
+
+
     @Override
-    public CursadaExamen crearCursadaExamen(String turnoId, String materiaId) {
+    public CursadaExamen crearCursadaExamen(String turnoId, String materiaId, LocalDate fecha, String hora) {
         Turno turno = this.turnoService.obtenerTurnoPorId(turnoId);
         Optional<CursadaExamen> existente = cursadaExamenRepository.findByTurnoAndMateriaId(turno, materiaId);
+
         if (existente.isPresent()) {
             throw new RuntimeException("Ya existe un CursadaExamen para el turno " + turnoId + " y materia " + materiaId);
         }
@@ -67,9 +76,11 @@ public Optional<CursadaExamen> obtenerPorId(Integer id) {
         CursadaExamen cursadaExamen = new CursadaExamen();
         cursadaExamen.setTurno(turno);
         cursadaExamen.setMateriaId(materiaId);
-        cursadaExamen.setFecha(LocalDate.now()); // Opcional: Asignar la fecha actual
+        cursadaExamen.setFecha(fecha);
+        cursadaExamen.setHora(hora); // ✅ acá seteás la hora como String
 
         return cursadaExamenRepository.save(cursadaExamen);
     }
+
 
 }

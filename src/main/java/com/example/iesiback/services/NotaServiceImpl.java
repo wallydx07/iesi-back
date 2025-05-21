@@ -56,7 +56,9 @@ public class NotaServiceImpl implements NotaService {
         List<NotaMateriaDTO> dtoList = new ArrayList<>();
         for (Object[] row : results) {
             NotaMateriaDTO dto = new NotaMateriaDTO();
-            dto.setNotaId((Integer) row[0]);
+//            dto.setNotaId((Integer) row[0]);
+            Integer id = ((Number) row[0]).intValue(); // más genérico y seguro
+            dto.setNotaId(id);
             dto.setMateriaOrden((Integer) row[1]);
             dto.setMateriaNombre((String) row[2]);
             dto.setNotaCalificacionNumero((Double) row[3]);
@@ -164,6 +166,9 @@ public class NotaServiceImpl implements NotaService {
 //                    return obj;
 //                }).collect(Collectors.toList());
 //    }
+
+
+
 public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
     List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
     List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
@@ -200,6 +205,8 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 }
 
 
+
+
     @Override
     public boolean isMateriaAprobada(String legajoId, String materiaId) {
         List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
@@ -224,6 +231,17 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         System.out.println("🔹 cursadaInscripto: " + cursadaInscripto);
 
         List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId, cursadaInscripto, "Cursada");
+        return todasLasNotas;
+    }
+
+    @Override
+    public List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, boolean cursadaInscripto) {
+        System.out.println("📥 Llamado a findNotasByCarreraAndMateria con:");
+        System.out.println("🔹 carreraId: " + carreraId);
+        System.out.println("🔹 materiaId: " + materaId);
+        System.out.println("🔹 cursadaInscripto: " + cursadaInscripto);
+
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "Cursada");
         return todasLasNotas;
     }
 

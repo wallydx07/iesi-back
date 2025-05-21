@@ -74,4 +74,79 @@ public class PersonalController {
         return ResponseEntity.ok(exists);
     }
 
+    @GetMapping("/buscar/nombre")
+    public List<Personal> buscarPorNombre(@RequestParam String nombre) {
+        return personalService.findByPersonalNombre(nombre);
+    }
+
+    @GetMapping("/buscar/apellido")
+    public List<Personal> buscarPorApellido(@RequestParam String apellido) {
+        return personalService.findByPersonalApellido(apellido);
+    }
+
+    @GetMapping("/buscar/correo")
+    public List<Personal> buscarPorCorreo(@RequestParam String correo) {
+        return personalService.findByPersonalCorreo(correo);
+    }
+
+    @GetMapping("/buscar/celular")
+    public List<Personal> buscarPorCelular(@RequestParam String celular) {
+        return personalService.findByPersonalCelular(celular);
+    }
+
+    @GetMapping("/buscar/tipo")
+    public List<Personal> buscarPorTipo(@RequestParam String tipo) {
+        return personalService.findByPersonalTipo(tipo);
+    }
+
+    @GetMapping("/buscar/rdni")
+    public List<Personal> buscarPorRdni(@RequestParam Boolean rdni) {
+        return personalService.findByPersonalRdni(rdni);
+    }
+
+    @GetMapping("/buscar/rresidencia")
+    public List<Personal> buscarPorRresidencia(@RequestParam Boolean rresidencia) {
+        return personalService.findByPersonalRresidencia(rresidencia);
+    }
+
+    @GetMapping("/buscar/rplanilla")
+    public List<Personal> buscarPorRplanilla(@RequestParam Boolean rplanilla) {
+        return personalService.findByPersonalRplanilla(rplanilla);
+    }
+
+    @GetMapping("/buscar/rsanitario")
+    public List<Personal> buscarPorRsanitario(@RequestParam Boolean rsanitario) {
+        return personalService.findByPersonalRsanitario(rsanitario);
+    }
+
+    @GetMapping("/buscar/rnacimiento")
+    public List<Personal> buscarPorRnacimiento(@RequestParam Boolean rnacimiento) {
+        return personalService.findByPersonalRnacimiento(rnacimiento);
+    }
+
+    @GetMapping("/buscar/declaracion")
+    public List<Personal> buscarPorDeclaracion(@RequestParam Boolean declaracion) {
+        return personalService.findByDeclaracion(declaracion);
+    }
+
+    @GetMapping("/buscar/cargo")
+    public List<Personal> buscarPorCargo(@RequestParam Boolean cargo) {
+        return personalService.findByCargo(cargo);
+    }
+
+    @GetMapping("/buscar/cuil")
+    public List<Personal> buscarPorCuil(@RequestParam Boolean cuil) {
+        return personalService.findByCuil(cuil);
+    }
+
+    @GetMapping("/buscar/titulo")
+    public List<Personal> buscarPorTitulo(@RequestParam Boolean titulo) {
+        return personalService.findByTitulo(titulo);
+    }
+
+    @GetMapping("/buscar/curriculum")
+    public List<Personal> buscarPorCurriculum(@RequestParam Boolean curriculum) {
+        return personalService.findByCurriculum(curriculum);
+    }
+
 }

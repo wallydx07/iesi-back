@@ -49,6 +49,9 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/documento/descargar").authenticated() // 👈 ESTA ES CLAVE
                         .requestMatchers("/api/users/request-password-reset", "/api/users/reset-password").permitAll()
                         .requestMatchers("/debug/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/horarios/**").permitAll() // Horarios sin auth
+                        .requestMatchers(HttpMethod.POST, "/api/asistencias/registrar").permitAll() // Asistencia sin auth
+
                         .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))

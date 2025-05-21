@@ -52,6 +52,9 @@ public class NotaController {
         return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId));
     }
 
+
+
+
 //    @GetMapping("/obtenerTodasNotasPorMateria")
 //    public ResponseEntity<List<NotaCursadaDTO>> obtenerTodasNotasPorMateria(
 //            @RequestParam String carreraId,

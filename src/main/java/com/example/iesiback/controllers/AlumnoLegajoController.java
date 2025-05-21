@@ -30,8 +30,11 @@ public class AlumnoLegajoController {
         return alumnoLegajoService.obtenerAlumnosConCursadas(dato, estado, apellido);
     }
 
-
-
-
-
+    @GetMapping("/legajos-por-materia")
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerLegajosPorMateria(
+            @RequestParam("materiaCarreraId") Long materiaCarreraId,
+            @RequestParam("estado") String estado
+    ) {
+        return alumnoLegajoService.obtenerAlumnosMateriaCursadaId(materiaCarreraId, estado);
+    }
 }

@@ -28,6 +28,25 @@ public class PermisoController {
         this.permisoService = permisoService;
     }
 
+
+
+    @PostMapping("/enviar")
+    public ResponseEntity<String> enviarPermisoPorEmail(
+            @RequestParam String libreta,
+            @RequestParam String turno,
+            @RequestParam String usuarioNombre,
+            @RequestParam String destinatario
+    ) {
+        try {
+            permisoService.enviarPermisoPorEmail(libreta, turno, usuarioNombre, destinatario);
+            return ResponseEntity.ok("Permiso enviado por correo"); // ✅ esto es correcto
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al enviar permiso: " + e.getMessage()); // ✅ manejo de error
+        }
+    }
+
+
     @PostMapping("/generar")
     public ResponseEntity<ByteArrayResource> generarPermiso(
             @RequestParam String libreta,

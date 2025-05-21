@@ -12,4 +12,6 @@ public interface PermisoService {
             String turno,
             String usuarioNombre
     );
+
+    void enviarPermisoPorEmail(String libreta, String turno, String usuarioNombre, String destinatario);
 }

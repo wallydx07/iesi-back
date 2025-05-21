@@ -1,5 +1,6 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.CatedraDTO;
 import com.example.iesiback.dto.MateriaCarreraDTO;
 import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.entities.Turno;
@@ -53,6 +54,31 @@ public class MateriaCarreraController {
     }
 
 
+    @GetMapping("/docente/{dni}/anio/{year}")
+    public ResponseEntity<List<CatedraDTO>> obtenerCatedras(
+            @PathVariable String dni,
+            @PathVariable String year) {
+        List<CatedraDTO> catedras = materiaCarreraService.obtenerCatedrasPorDocenteYAnio(dni, year);
+        return ResponseEntity.ok(catedras);
+    }
 
+
+//============
+
+    @PostMapping
+    public MateriaCarrera save(@RequestBody MateriaCarrera materiaCarrera) {
+        return materiaCarreraService.save(materiaCarrera);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MateriaCarrera> update(@PathVariable Integer id, @RequestBody MateriaCarrera materiaCarrera) {
+        return ResponseEntity.ok(materiaCarreraService.update(id, materiaCarrera));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        materiaCarreraService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
 

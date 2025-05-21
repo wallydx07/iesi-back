@@ -8,24 +8,25 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Entity
 @Table(name = "informe_asistencia_alumnos")
 public class InformeAsistenciaAlumno {
+
     @Id
-    @ColumnDefault("nextval('informe_asistencia_alumnos_id_informe_seq')")
-    @Column(name = "id_informe", nullable = false)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_informe")
+    private Integer idInforme;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "materia_carrera_id")
-    @JsonManagedReference
     private MateriaCarrera materiaCarrera;
 
-    @Size(max = 50)
-    @Column(name = "fecha", length = 50)
-    private String fecha;
+    @Column(name = "fecha")
+    private LocalDate fecha;
 
     @Size(max = 50)
     @Column(name = "horario", length = 50)
