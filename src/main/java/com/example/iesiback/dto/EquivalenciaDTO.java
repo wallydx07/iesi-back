@@ -14,7 +14,7 @@ public class EquivalenciaDTO {
     private String materiaActualNombre;
     private Double nota;
     private String status;
-    private String fecha;
+    private LocalDate fecha;
     private Long cursadaId;
     private String notaLetra;
     private String libro;
@@ -23,7 +23,7 @@ public class EquivalenciaDTO {
 
     public EquivalenciaDTO(Integer id, Long alumnoDni, String alumnoApellido, String alumnoNombre,
                            String materiaOrigen, String institucionOrigen, String resolucion,
-                           String materiaActualNombre, Double nota, String status, String fecha,
+                           String materiaActualNombre, Double nota, String status, LocalDate fecha,
                            String notaLetra, String libro, String folio, String usuario) {
         this.id = id;
         this.alumnoDni = alumnoDni;
@@ -73,8 +73,8 @@ public class EquivalenciaDTO {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public String getFecha() { return fecha; }
-    public void setFecha(String fecha) { this.fecha = fecha; }
+    public LocalDate getFecha() { return fecha; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
 
     public Long getCursadaId() { return cursadaId; }
     public void setCursadaId(Long cursadaId) { this.cursadaId = cursadaId; }

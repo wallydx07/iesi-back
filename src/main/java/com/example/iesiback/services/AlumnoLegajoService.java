@@ -12,9 +12,10 @@ public class AlumnoLegajoService {
     @Autowired
     private AlumnoLegajoRepository alumnoLegajoRepository;
 
-    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(String dato, String estado, String termino) {
-        return alumnoLegajoRepository.obtenerAlumnosLegajos(dato, estado, termino);
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(String carreraId, String estado, String busqueda) {
+        return alumnoLegajoRepository.obtenerAlumnosLegajos(carreraId, estado, busqueda);
     }
+
 
     public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(Long dato, String estado) {
         return alumnoLegajoRepository.obtenerAlumnosMateriaCursadaId(dato, estado);

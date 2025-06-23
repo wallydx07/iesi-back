@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalTime;
+
 @Getter
 @Setter
 @Entity
@@ -23,13 +25,13 @@ public class PersonalHorario {
     @Column(name = "dia", length = 20)
     private String dia;
 
-    @Size(max = 8)
-    @Column(name = "entrada", length = 8)
-    private String entrada;
+    @Column(name = "entrada")
+    private LocalTime entrada;
 
-    @Size(max = 8)
-    @Column(name = "salida", length = 8)
-    private String salida;
+
+    @Column(name = "salida")
+    private LocalTime salida;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "razon")

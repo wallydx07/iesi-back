@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.BatchSize;
+
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -25,9 +28,12 @@ public class Nota {
     @Column(name = "nota_calificacion_nota_letra", length = 50)
     private String notaCalificacionNotaLetra;
 
-    @Size(max = 50)
-    @Column(name = "nota_fecha_nota", length = 50)
-    private String notaFechaNota;
+//    @Size(max = 50)
+//    @Column(name = "nota_fecha_nota", length = 50)
+//    private String notaFechaNota;
+
+    @Column(name = "nota_fecha_nota")
+    private LocalDate notaFechaNota;
 
     @Size(max = 50)
     @Column(name = "nota_condicion", length = 50)
@@ -99,11 +105,11 @@ public class Nota {
         this.notaCalificacionNotaLetra = notaCalificacionNotaLetra;
     }
 
-    public String getNotaFechaNota() {
+    public LocalDate getNotaFechaNota() {
         return notaFechaNota;
     }
 
-    public void setNotaFechaNota(String notaFechaNota) {
+    public void setNotaFechaNota(LocalDate notaFechaNota) {
         this.notaFechaNota = notaFechaNota;
     }
 

@@ -14,8 +14,6 @@ public class RequestLoggingConfig {
         filter.setIncludePayload(true);     // Registrar el cuerpo de la solicitud
         filter.setMaxPayloadLength(10000);  // Limitar la longitud máxima del cuerpo registrado
         filter.setAfterMessagePrefix("Request: "); // Prefijo para los logs de solicitud
-        System.out.println("RequestLoggingFilter is active!");
-
         return filter;
     }
 }

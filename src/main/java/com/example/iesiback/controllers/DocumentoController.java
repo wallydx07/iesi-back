@@ -112,21 +112,21 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
         ruta = uploadDir + uniqueFileName;
         File dest = new File(ruta);
 
-        if ("fotoId".equals(tipoDocumento)) {
-            byte[] bytes = file.getBytes();
-            Mat image = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_COLOR);
-            if (image.empty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La imagen no es válida.");
-            }
-
-            Mat croppedImage = recortarImagen(image);
-            boolean success = Imgcodecs.imwrite(ruta, croppedImage);
-            if (!success) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No se pudo guardar la imagen recortada.");
-            }
-        } else {
+//        if ("fotoId".equals(tipoDocumento)) {
+//            byte[] bytes = file.getBytes();
+//            Mat image = Imgcodecs.imdecode(new MatOfByte(bytes), Imgcodecs.IMREAD_COLOR);
+//            if (image.empty()) {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La imagen no es válida.");
+//            }
+//
+//            Mat croppedImage = recortarImagen(image);
+//            boolean success = Imgcodecs.imwrite(ruta, croppedImage);
+//            if (!success) {
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No se pudo guardar la imagen recortada.");
+//            }
+//        } else {
             file.transferTo(dest);
-        }
+//        }
 
         // Guardar en la base de datos solo si el archivo fue guardado correctamente
         guardarDocumentoEnBaseDeDatos(file, ruta, tipoEntidad, entidadId, tipoDocumento);

@@ -22,13 +22,6 @@ public class CertificadoEstudiante {
     @Column(name = "constancia_id", nullable = false)
     private Integer id;
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "legajo_id", nullable = false)
-    @JsonBackReference
-    private Legajo legajo;
-
-
     @Size(max = 50)
     @Column(name = "tipo", length = 50)
     private String tipo;
@@ -59,9 +52,26 @@ public class CertificadoEstudiante {
     @Column(name = "monto")
     private Integer monto;
 
+//
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "legajo_id", nullable = false)
+//    @JsonBackReference
+//    private Legajo legajo;
+//
+//
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "atencion_id")
+//    @JsonBackReference("atencion-certificados")
+//    private Atencion atencion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "legajo_id", nullable = false)
+    @JsonBackReference
+    private Legajo legajo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "atencion_id")
-    @JsonIgnore // 👈 agrega esta línea
+    @JsonBackReference("atencion-certificados")
     private Atencion atencion;
 
 

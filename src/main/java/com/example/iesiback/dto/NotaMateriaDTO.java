@@ -5,7 +5,7 @@ import java.util.List;
 
 public class NotaMateriaDTO {
 
-    private Integer notaId;
+    private Long notaId;
     private Integer materiaOrden;
     private String materiaNombre;
     private Double notaCalificacionNumero;
@@ -25,6 +25,28 @@ public class NotaMateriaDTO {
     private Integer cursadaId;
 
     public NotaMateriaDTO(){ }
+    public NotaMateriaDTO(Long notaId, Integer materiaOrden, String materiaNombre,
+                          Double notaCalificacionNumero, String notaCalificacionLetra,
+                          String notaCondicion, String notaEstado, String notaLibro,
+                          String notaFolio, LocalDate notaFecha, String notaObservaciones,
+                          String notaUsuario, String materiaId, String materiaNivel,
+                          Integer cursadaId) {
+        this.notaId = notaId;
+        this.materiaOrden = materiaOrden;
+        this.materiaNombre = materiaNombre;
+        this.notaCalificacionNumero = notaCalificacionNumero;
+        this.notaCalificacionLetra = notaCalificacionLetra;
+        this.notaCondicion = notaCondicion;
+        this.notaEstado = notaEstado;
+        this.notaLibro = notaLibro;
+        this.notaFolio = notaFolio;
+        this.notaFecha = notaFecha;
+        this.notaObservaciones = notaObservaciones;
+        this.notaUsuario = notaUsuario;
+        this.materiaId = materiaId;
+        this.materiaNivel = materiaNivel;
+        this.cursadaId = cursadaId;
+    }
 
     public Integer getCursadaId() {
         return cursadaId;
@@ -49,8 +71,8 @@ public class NotaMateriaDTO {
     public String getNotaStatus() { return notaStatus; }
     public void setNotaStatus(String notaStatus) { this.notaStatus = notaStatus; }
 
-    public Integer getNotaId() { return notaId; }
-    public void setNotaId(Integer notaId) { this.notaId = notaId; }
+    public Long getNotaId() { return notaId; }
+    public void setNotaId(Long notaId) { this.notaId = notaId; }
     public Integer getMateriaOrden() { return materiaOrden; }
     public void setMateriaOrden(Integer materiaOrden) { this.materiaOrden = materiaOrden; }
     public String getMateriaNombre() { return materiaNombre; }

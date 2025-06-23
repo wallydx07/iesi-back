@@ -1,0 +1,43 @@
+--------Compilar y Guardar el contenedor de Docker----------
+--------------------------------------------------SpringBoot
+
+mvn clean package
+docker build -t iesi-back .
+docker save -o iesi-back.tar iesi-back:latest
+docker load -i iesi-back.tar
+
+
+---------Compilar y Guardar el contenedor de Docker-------
+----------------------------------------------------Angular
+ng build --configuration=production
+docker build -t iesi-front .
+docker save -o iesi-front.tar iesi-front:latest
+docker load -i iesi-front.tar
+
+
+ --------------Reemplazar contenedores-------------------
+
+# 1. Eliminar contenedores de docker-compose y órfanos
+docker-compose down --remove-orphans
+
+# 2. Eliminar cualquier contenedor detenido (no solo de docker-compose)
+docker container prune -f
+
+# 3. Cargar imágenes nuevas
+docker load -i iesi-back.tar
+docker load -i iesi-front.tar
+
+# 4. Levantar contenedores nuevos
+docker-compose up -d
+
+--------------ver logs-------------------
+docker logs -f app_backend_1
+
+-----------------------------------Otros
+docker-compose down
+docker-compose up -d
+docker network create app-network
+docker network inspect app-network
+
+sudo systemctl restart apache2
+git checkout master

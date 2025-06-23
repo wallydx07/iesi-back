@@ -32,17 +32,14 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             "JOIN l.legajoAlumnoDni a " +
             "JOIN Inscripcion i ON i.legajo = l " +
             "JOIN i.carrera c " +
-            "WHERE (:dato IS NULL OR c.carreraId LIKE CONCAT(:dato, '%')) " +
+            "WHERE (:carreraId IS NULL OR c.carreraId LIKE :carreraId) " +
             "AND (:estado IS NULL OR l.legajoEstado = :estado) " +
-            "AND (:apellido IS NULL OR a.alumnoApellido LIKE CONCAT(:apellido, '%') OR CAST(a.alumnoDni AS string) LIKE CONCAT(:apellido, '%')) " +
+            "AND (:busqueda IS NULL OR a.alumnoApellido LIKE :busqueda OR a.alumnoNombre LIKE :busqueda OR CONCAT(a.alumnoApellido, ' ', a.alumnoNombre) LIKE :busqueda OR CAST(a.alumnoDni AS string) LIKE :busqueda) " +
             "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
-
     List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(
-            @Param("dato") String dato,
+            @Param("carreraId") String carreraId,
             @Param("estado") String estado,
-            @Param("apellido") String apellido);
-
-
+            @Param("busqueda") String busqueda);
 
 
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="es">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <title>Credencial de Estudiante</title>
     <style type="text/css">
         * {
@@ -17,9 +17,10 @@
         .page-wrapper {
             width: 100%;
             height: 29.7cm;
-            padding-top: 5cm;
+            padding-top: 0cm; /* o 0.5cm si querés un pequeño margen arriba */
             text-align: center;
         }
+
 
         .card-combined {
             display: table;
@@ -44,24 +45,62 @@
             color: #003366;
         }
 
+        .header {
+            display: flex; /* Convierte el .header en un contenedor flex para alinear sus hijos */
+            justify-content: space-between; /* Distribuye el espacio entre .logo y .title */
+            align-items: center; /* Centra verticalmente los elementos hijos si tienen alturas diferentes */
+            width: 100%; /* O el ancho que desees para el header */
+            /* Otros estilos para el header si los necesitas, como padding, background, etc. */
+            background-color: #FFFFFF;
+            padding: 10px;
+        }
+
+        .logo {
+            display: flex; /* Convierte el .logo en un contenedor flex */
+            flex-direction: column; /* Apila los divs internos verticalmente */
+            align-items: flex-start; /* Alinea los ítems a la izquierda dentro de .logo */
+            /* Otros estilos para el logo si los necesitas, como margin-right, font-size, etc. */
+        }
+
+        .logo div {
+            /* Estilos específicos para los textos dentro del logo */
+            text-align: left; /* Asegura que el texto esté alineado a la izquierda dentro de cada div */
+            /* font-size: 1em; */ /* Ajusta si es necesario */
+        }
+
         .title {
-            text-align: right;
-            font-weight: bold;
-            font-size: 11px;
-            color: #0066cc;
+            display: flex; /* Convierte el .title en un contenedor flex */
+            flex-direction: column; /* Apila los divs internos verticalmente */
+            align-items: flex-end; /* Alinea los ítems a la derecha dentro de .title (asumiendo que quieres el título a la derecha) */
+            /* Si quieres el título también a la izquierda, cambia a flex-start */
+            /* align-items: flex-start; */
+            text-align: right; /* Asegura que el texto dentro del título esté alineado a la derecha */
+            /* Otros estilos para el título */
+        }
+
+        .title div {
+            /* Estilos específicos para los textos dentro del título */
+            /* font-size: 1.2em; */ /* Ajusta si es necesario */
+            /* font-weight: bold; */
         }
 
         .content {
-            margin: 0.1cm 0;
+            /* Usa valores negativos con cuidado */
+            margin: 0.1cm 0 0.1cm -1cm;
         }
 
+
         .photo {
-            width: 2.5cm;
-            height: 2.5cm;
+            width: 3cm;
+            height: 3cm;
             background-color: #eee;
             border: 1px solid #ccc;
             display: inline-block;
+            background-size: cover; /* Escala la imagen para cubrir todo */
+            background-position: right; /* Centra la imagen */
+            background-repeat: no-repeat; /* No repetir */
         }
+
 
         .details {
             display: inline-block;
@@ -73,7 +112,7 @@
         .details h3 {
             margin: 0 0 0.2cm 0;
             font-size: 12px;
-            color: #003366;
+            color: #000000;
         }
 
         .details p {
@@ -110,8 +149,8 @@
             font-size: 8px;
             text-align: center;
             color: #666;
-            border-top: 1px solid #ccc;
             margin: 0;
+            margin-top: 1cm;
             padding: 0;
             line-height: 1.1;
         }
@@ -126,6 +165,7 @@
             size: A4 portrait;
             margin: 0;
         }
+
         .card-side.back .content {
             display: flex;
             gap: 1cm;
@@ -140,13 +180,23 @@
     <div class="card-combined">
         <!-- Frente -->
         <div class="card-side front">
-            <div class="header" style="text-align: right;">
-                <div class="logo">Instituto de Educación Superior Intercultural</div>
-                <div class="title">CREDENCIAL DE ESTUDIANTE</div>
+            <div class="header" style="background-color:#FFFFFF; padding:8px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="text-align:left; color:#003366; font-weight:bold; font-size:14px;">
+                            Instituto de Educación<br/>
+                            Superior Intercultural
+                        </td>
+                        <td style="text-align:right; color:#003366; font-weight:bold; font-size:14px;">
+                            Credencial<br/>
+                            de estudiante
+                        </td>
+                    </tr>
+                </table>
             </div>
 
             <div class="content">
-                <div class="photo"></div>
+                <div class="photo" style="background-image: url('${photo}');"></div>
                 <div class="details">
                     <h3>${nombre}</h3>
                     <p><strong>DNI:</strong> ${dni} | <strong>Libreta:</strong> ${legajoId}</p>
@@ -156,19 +206,22 @@
                     <p><strong>Emisión:</strong> ${emision}</p>
                 </div>
             </div>
+
             <div class="footer">
-                <img src="${codigo_barras}" alt="Código de Barras" />
+                <img src="${codigo_barras}" alt="Código de Barras"/>
             </div>
         </div>
         <!-- Reverso -->
         <div class="card-side back">
-            <div class="title" style="text-align: center; margin-bottom: 0.4cm;">Estado del Legajo</div>
+            <div class="title" style="text-align: left; color: #003366; font-weight: bold; font-size: 14px;padding:8px;">
+                Estado del Legajo
+            </div>
 
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <!-- QR -->
                     <td style="width: 3cm; text-align: center; vertical-align: middle;">
-                        <img src="${qr_base64}" alt="QR del estudiante" style="width: 2.5cm; height: 2.5cm;" />
+                        <img src="${qr_base64}" alt="QR del estudiante" style="width: 2.5cm; height: 2.5cm;"/>
                     </td>
 
                     <!-- Lista al lado del QR -->
@@ -184,13 +237,12 @@
                 </tr>
             </table>
 
-            <div class="back-footer" style="margin-top: 0.4cm;">
+            <div class="back-footer" style="margin-top: 1cm;">
                 <p>Incorporado a la Enseñanza Oficial - Resol. Nº 2936-E-15</p>
                 <p>Bahía Blanca Nº 235, San Salvador de Jujuy</p>
                 <p>En caso de encontrar esta credencial comunicarse al 3883428370</p>
             </div>
         </div>
-
     </div>
 </div>
 </body>

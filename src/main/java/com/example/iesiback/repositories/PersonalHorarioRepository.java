@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Repository
@@ -24,5 +25,28 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
       AND ph.year = :year
 """)
     List<HorarioDTO> obtenerHorariosPorDniYAnio(@Param("dni") String dni, @Param("year") Integer year);
+
+    List<PersonalHorario> findByDiaAndEntrada(String dia, LocalTime entrada);
+
+    @Query("SELECT ph FROM PersonalHorario ph " +
+            "WHERE ph.dia = :dia " +
+            "AND ph.entrada BETWEEN :horaInicio AND :horaFin " +
+            "AND ph.year = :anio")
+    List<PersonalHorario> findByDiaHoraEntradaEnRangoYAnio(
+            @Param("dia") String dia,
+            @Param("horaInicio") LocalTime horaInicio,
+            @Param("horaFin") LocalTime horaFin,
+            @Param("anio") Integer anio);
+
+
+    @Query("SELECT ph FROM PersonalHorario ph " +
+            "WHERE ph.dia = :dia " +
+            "AND ph.year = :anio")
+    List<PersonalHorario> findByDiaYAnio(
+            @Param("dia") String dia,
+            @Param("anio") Integer anio);
+
+
+
 
 }

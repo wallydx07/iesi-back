@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -36,6 +37,94 @@ public class Cursada {
 
     @OneToMany(mappedBy = "cursada", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Nota> notas = new LinkedHashSet<>();
+
+    @Column(name = "primer_parcial", precision = 5, scale = 2)
+    private BigDecimal primerParcial;
+
+    @Column(name = "recuperatorio1", precision = 5, scale = 2)
+    private BigDecimal recuperatorio1;
+
+    @Column(name = "segundo_parcial", precision = 5, scale = 2)
+    private BigDecimal segundoParcial;
+
+    @Column(name = "recuperatorio2", precision = 5, scale = 2)
+    private BigDecimal recuperatorio2;
+
+    @Column(name = "trabajos_practicos", precision = 5, scale = 2)
+    private BigDecimal trabajosPracticos;
+
+    @Column(name = "asistencia", precision = 5, scale = 2)
+    private BigDecimal asistencia;
+
+    @Column(name = "coloquio", precision = 5, scale = 2)
+    private BigDecimal coloquio;
+
+    @Column(name = "trabajo_institucional", precision = 5, scale = 2)
+    private BigDecimal trabajoInstitucional;
+
+    public BigDecimal getTrabajoInstitucional() {
+        return trabajoInstitucional;
+    }
+
+    public void setTrabajoInstitucional(BigDecimal trabajoInstitucional) {
+        this.trabajoInstitucional = trabajoInstitucional;
+    }
+
+    public BigDecimal getColoquio() {
+        return coloquio;
+    }
+
+    public void setColoquio(BigDecimal coloquio) {
+        this.coloquio = coloquio;
+    }
+
+    public BigDecimal getAsistencia() {
+        return asistencia;
+    }
+
+    public void setAsistencia(BigDecimal asistencia) {
+        this.asistencia = asistencia;
+    }
+
+    public BigDecimal getTrabajosPracticos() {
+        return trabajosPracticos;
+    }
+
+    public void setTrabajosPracticos(BigDecimal trabajosPracticos) {
+        this.trabajosPracticos = trabajosPracticos;
+    }
+
+    public BigDecimal getRecuperatorio2() {
+        return recuperatorio2;
+    }
+
+    public void setRecuperatorio2(BigDecimal recuperatorio2) {
+        this.recuperatorio2 = recuperatorio2;
+    }
+
+    public BigDecimal getSegundoParcial() {
+        return segundoParcial;
+    }
+
+    public void setSegundoParcial(BigDecimal segundoParcial) {
+        this.segundoParcial = segundoParcial;
+    }
+
+    public BigDecimal getRecuperatorio1() {
+        return recuperatorio1;
+    }
+
+    public void setRecuperatorio1(BigDecimal recuperatorio1) {
+        this.recuperatorio1 = recuperatorio1;
+    }
+
+    public BigDecimal getPrimerParcial() {
+        return primerParcial;
+    }
+
+    public void setPrimerParcial(BigDecimal primerParcial) {
+        this.primerParcial = primerParcial;
+    }
 
     // ✅ Métodos seguros con null-check para evitar el error de serialización
 

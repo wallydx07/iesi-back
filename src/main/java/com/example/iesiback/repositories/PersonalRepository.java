@@ -2,6 +2,8 @@ package com.example.iesiback.repositories;
 
 import com.example.iesiback.entities.Personal;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -22,4 +24,12 @@ public interface PersonalRepository extends JpaRepository<Personal, String> {
     List<Personal> findByCuil(Boolean cuil);
     List<Personal> findByTitulo(Boolean titulo);
     List<Personal> findByCurriculum(Boolean curriculum);
+
+    @Query("SELECT p FROM Personal p WHERE " +
+            "LOWER(p.personalNombre) LIKE LOWER(CONCAT('%', :texto, '%')) OR " +
+            "LOWER(p.personalApellido) LIKE LOWER(CONCAT('%', :texto, '%')) OR " +
+            "LOWER(CONCAT(p.personalNombre, ' ', p.personalApellido)) LIKE LOWER(CONCAT('%', :texto, '%'))")
+    List<Personal> buscarPorTextoLibre(@Param("texto") String texto);
+
+
 }

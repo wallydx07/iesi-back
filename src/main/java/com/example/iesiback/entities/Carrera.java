@@ -38,6 +38,17 @@ public class Carrera {
     @JsonIgnore
     private Set<MateriaCarrera> materiaCarreras = new LinkedHashSet<>();
 
+    @Column(name = "carrera_horas_reloj")
+    private Integer carreraHorasReloj;
+
+    public Integer getCarreraHorasReloj() {
+        return carreraHorasReloj;
+    }
+
+    public void setCarreraHorasReloj(Integer carreraHorasReloj) {
+        this.carreraHorasReloj = carreraHorasReloj;
+    }
+
     public Set<com.example.iesiback.entities.MateriaCarrera> getMateriaCarreras() {
         return materiaCarreras;
     }
@@ -86,4 +97,6 @@ public class Carrera {
     public void setCarreraYear(String carreraYear) {
         this.carreraYear = carreraYear;
     }
+
+
 }

@@ -10,24 +10,41 @@ import java.util.List;
 @Repository
 public interface AlumnoRepository extends JpaRepository<Alumno, String> {
 
+//
+//    @Query("SELECT CONCAT(a.alumnoApellido,',',a.alumnoNombre,'-',l.legajoId) " +
+//            "FROM Alumno a " +
+//            "JOIN Legajo l ON a.alumnoDni = l.legajoAlumnoDni.alumnoDni " +
+//            "WHERE LOWER(a.alumnoApellido) LIKE LOWER(CONCAT(:apellido, '%')) " +
+//            "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
+//    List<String> buscarPorApellido(@Param("apellido") String apellido);
+//
 
-    @Query("SELECT CONCAT(a.alumnoApellido,',',a.alumnoNombre,'-',l.legajoId) " +
+    @Query("SELECT CONCAT(a.alumnoApellido, ',', a.alumnoNombre, '-', l.legajoId) " +
             "FROM Alumno a " +
             "JOIN Legajo l ON a.alumnoDni = l.legajoAlumnoDni.alumnoDni " +
-            "WHERE LOWER(a.alumnoApellido) LIKE LOWER(CONCAT(:apellido, '%')) " +
+            "WHERE (:busqueda IS NULL OR " +
+            "      LOWER(CAST(a.alumnoDni AS string)) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(a.alumnoApellido) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(a.alumnoNombre) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(CONCAT(a.alumnoApellido, ' ', a.alumnoNombre)) LIKE LOWER(:busqueda)) " +
             "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
-    List<String> buscarPorApellido(@Param("apellido") String apellido);
+    List<String> buscarPorDniApellidoNombre(@Param("busqueda") String busqueda);
 
 
 
-    @Query("SELECT CONCAT(a.alumnoApellido,',', a.alumnoNombre,'-',l.legajoId) " +
+    @Query("SELECT CONCAT(a.alumnoApellido, ', ', a.alumnoNombre, '-', l.legajoId) " +
             "FROM Alumno a " +
             "JOIN Legajo l ON a.alumnoDni = l.legajoAlumnoDni.alumnoDni " +
             "JOIN Inscripcion i ON l.legajoId = i.legajo.legajoId " +
-            "WHERE LOWER(a.alumnoApellido) LIKE LOWER(CONCAT(:apellido, '%')) " +
-            "AND i.carrera.carreraNombre = :carreraNombre")
-    List<String> buscarPorApellidoYCarrera(@Param("apellido") String apellido, @Param("carreraNombre") String carreraNombre);
-
+            "WHERE (:busqueda IS NULL OR " +
+            "       LOWER(a.alumnoApellido) LIKE LOWER(:busqueda) OR " +
+            "       LOWER(a.alumnoNombre) LIKE LOWER(:busqueda) OR " +
+            "       LOWER(CONCAT(a.alumnoApellido, ' ', a.alumnoNombre)) LIKE LOWER(:busqueda) OR " +
+            "       CAST(a.alumnoDni AS string) LIKE :busqueda) " +
+            "AND (:carreraNombre IS NULL OR LOWER(i.carrera.carreraNombre) = LOWER(:carreraNombre)) " +
+            "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
+    List<String> buscarPorApellidoYCarrera(@Param("busqueda") String busqueda,
+                                           @Param("carreraNombre") String carreraNombre);
 
 
     @Query(value = "SELECT * FROM alumno WHERE CAST(alumno_dni AS text) LIKE CONCAT('%', :dni, '%')", nativeQuery = true)

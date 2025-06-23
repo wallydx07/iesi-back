@@ -45,9 +45,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         try {
             // Leer el cuerpo de la solicitud como un String para depurar
             String requestBody = new String(request.getInputStream().readAllBytes());
-            System.out.println("Request Body: " + requestBody);
-
-            // Convertir el String a la clase User
             User user = new ObjectMapper().readValue(requestBody, User.class);
             username = user.getUsername();
             password = user.getPassword();

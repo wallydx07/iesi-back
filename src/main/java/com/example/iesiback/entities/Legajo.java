@@ -97,8 +97,6 @@ public class Legajo {
     private Set<Inscripcion> inscripcions = new LinkedHashSet<>();
 
 
-
-
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<Observacione> observaciones = new LinkedHashSet<>();

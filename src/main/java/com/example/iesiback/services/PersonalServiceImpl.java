@@ -119,4 +119,10 @@ public class PersonalServiceImpl implements PersonalService {
         return personalRepository.findByCurriculum(curriculum);
     }
 
+    @Override
+    public List<Personal> buscarPorTextoLibre(String texto) {
+        return personalRepository.buscarPorTextoLibre(texto);
+    }
+
+
 }

@@ -1,16 +1,18 @@
 package com.example.iesiback.dto;
 
+import java.time.LocalTime;
+
 public class HorarioDTO {
     private Integer id;
     private String dia;
-    private String entrada;
-    private String salida;
+    private LocalTime entrada;
+    private LocalTime salida;
     private String materiaNombre;
     private String carreraId;
     private Integer razonId; // ID de materia_carrera
 
     // Constructor
-    public HorarioDTO(Integer id, String dia, String entrada, String salida,
+    public HorarioDTO(Integer id, String dia, LocalTime entrada, LocalTime salida,
                       String materiaNombre, String carreraId, Integer razonId) {
         this.id = id;
         this.dia = dia;
@@ -37,19 +39,19 @@ public class HorarioDTO {
         this.dia = dia;
     }
 
-    public String getEntrada() {
+    public LocalTime getEntrada() {
         return entrada;
     }
 
-    public void setEntrada(String entrada) {
+    public void setEntrada(LocalTime entrada) {
         this.entrada = entrada;
     }
 
-    public String getSalida() {
+    public LocalTime getSalida() {
         return salida;
     }
 
-    public void setSalida(String salida) {
+    public void setSalida(LocalTime salida) {
         this.salida = salida;
     }
 

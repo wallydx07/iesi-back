@@ -33,7 +33,7 @@ public class AtencionController {
 
     @PostMapping
     public Atencion create(@RequestBody Atencion atencion) {
-        System.out.println(atencion);
+        atencion.setAtencionFecha(LocalDate.now());
         return service.save(atencion);
     }
 

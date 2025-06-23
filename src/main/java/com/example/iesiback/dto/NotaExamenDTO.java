@@ -1,5 +1,7 @@
 package com.example.iesiback.dto;
 
+import java.time.LocalDate;
+
 public interface NotaExamenDTO {
 
     // Datos del alumno
@@ -14,7 +16,7 @@ public interface NotaExamenDTO {
     String getNotaEstado();
     String getNotaLibro();
     String getNotaFolio();
-    String getNotaFecha();
+    LocalDate getNotaFechaNota(); // ✅ coincide con nota_fecha_nota
     String getNotaObservaciones();
     String getNotaUsuario();
     Long getPermisoId();

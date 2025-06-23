@@ -13,7 +13,9 @@ public interface AlumnoService {
     Optional<Alumno> findById(String id);
     Alumno save(Alumno alumno);
     boolean delete(String id);
-    List<String> buscarAlumnosPorApellido(String apellido);
+
+    List<String> buscarPorDniApellidoNombre(String busqueda);
+
     List<Alumno> buscarPorDni(String dni);
     Alumno createAlumno(Alumno alumno);
     List<String> buscarPorApellidoYCarrera(String apellido, String carreraNombre);

@@ -90,6 +90,7 @@ public class PermisoServiceImpl implements PermisoService {
             List<InscripcionExamenDTO> inscripcionesActivas = examenService.completarCursadas(libreta, turno);
             PDType1Font normal = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+
             PDRectangle a4 = PDRectangle.A4;
             PDRectangle a4Landscape = new PDRectangle(a4.getHeight(), a4.getWidth());
             PDPage Pagina = new PDPage(a4Landscape);

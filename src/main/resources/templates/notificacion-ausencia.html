@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Notificación de Ausencia</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+<div style="background-color: #ffffff; padding: 30px; border-radius: 10px; border: 1px solid #ddd;">
+    <h2 style="color: #d9534f;">🚫 Notificación Automática de Ausencia</h2>
+
+    <p>
+        Se ha detectado una inasistencia en el siguiente horario programado:
+    </p>
+
+    <ul>
+        <li><strong>Materia:</strong> <span th:text="${Materia}">Materia</span></li>
+        <li><strong>Carrera:</strong> <span th:text="${Carrera}">Carrera</span></li>
+        <li><strong>DNI:</strong> <span th:text="${dni}">DNI</span></li>
+        <li><strong>Fecha:</strong> <span th:text="${fecha}">Fecha</span></li>
+        <li><strong>Horario:</strong> <span th:text="${hora}">Hora</span></li>
+    </ul>
+
+    <p>
+        Le solicitamos justificar su ausencia en el menor tiempo posible.
+    </p>
+
+    <p>
+        En caso de que haya existido un <strong>cambio de horario</strong>, se ruega notificarlo mediante una nota.
+        Si se tratase de un <strong>error administrativo</strong>, también deberá presentar la correspondiente nota para su revisión y rectificación.
+    </p>
+
+    <p style="margin-top: 30px;">
+        Agradecemos su colaboración.<br>
+        <em>Secretaría Académica</em>
+    </p>
+</div>
+</body>
+</html>

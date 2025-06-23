@@ -201,6 +201,13 @@
             <version>1.10.0</version> <!-- o una versión compatible -->
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+
+
 
     </dependencies>
 

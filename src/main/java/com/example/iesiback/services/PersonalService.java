@@ -33,4 +33,6 @@ public interface PersonalService {
     List<Personal> findByCuil(Boolean cuil);
     List<Personal> findByTitulo(Boolean titulo);
     List<Personal> findByCurriculum(Boolean curriculum);
+
+    List<Personal> buscarPorTextoLibre(String texto);
 }

@@ -31,4 +31,6 @@ public interface NotaService {
 
     @Transactional
     void eliminarNota(Long id);
+
+    NotaMateriaDTO obtenerUltimaNota(String legajoId);
 }

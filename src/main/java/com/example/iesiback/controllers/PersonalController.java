@@ -149,4 +149,10 @@ public class PersonalController {
         return personalService.findByCurriculum(curriculum);
     }
 
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Personal>> buscarPorTexto(@RequestParam String texto) {
+        return ResponseEntity.ok(personalService.buscarPorTextoLibre(texto));
+    }
+
+
 }

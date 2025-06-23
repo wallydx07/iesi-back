@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -60,5 +62,12 @@ public class Atencion {
     @Size(max = 50)
     @Column(name = "atencion_usuario", length = 50)
     private String atencionUsuario;
+
+    @OneToMany(mappedBy = "atencion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("atencion-certificados")
+    private List<CertificadoEstudiante> certificados;
+
+
+
 
 }

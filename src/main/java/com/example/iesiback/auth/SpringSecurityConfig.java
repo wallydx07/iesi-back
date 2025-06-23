@@ -50,7 +50,7 @@ public class SpringSecurityConfig {
                         .requestMatchers("/api/users/request-password-reset", "/api/users/reset-password").permitAll()
                         .requestMatchers("/debug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/horarios/**").permitAll() // Horarios sin auth
-                        .requestMatchers(HttpMethod.POST, "/api/asistencias/registrar").permitAll() // Asistencia sin auth
+                        .requestMatchers(HttpMethod.POST, "/api/asistencias/desde-dispositivo").permitAll() // Asistencia sin auth
 
                         .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(configurationSource()))
@@ -65,7 +65,7 @@ public class SpringSecurityConfig {
     CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList("*"));
-        // config.setAllowedOrigins(Arrays.asList("https://gestionacademica.iesijujuy.edu.ar:8443"));
+        //config.setAllowedOrigins(Arrays.asList("https://gestionacademica.iesijujuy.edu.ar:8443"));
         config.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         config.setAllowCredentials(true);

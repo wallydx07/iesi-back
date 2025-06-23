@@ -1,12 +1,14 @@
 package com.example.iesiback.repositories;
 
 import org.apache.commons.text.StringSubstitutor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -30,13 +32,13 @@ public class HtmlService {
 
 
     public String procesarHtmlPlano(String templateName, Map<String, Object> datos) throws IOException {
-        // Ruta absoluta al archivo HTML
-        String ruta = "src/main/resources/templates/" + templateName + ".html";
+        // Cargar el recurso desde el classpath
+        ClassPathResource resource = new ClassPathResource("templates/" + templateName + ".html");
 
-        // Leer el contenido del archivo como String
-        String html = new String(Files.readAllBytes(Paths.get(ruta)), StandardCharsets.UTF_8);
-
-        // Reemplazar las variables ${...} por los valores del mapa
-        return new StringSubstitutor(datos).replace(html);
+        // Leer el contenido como String
+        try (InputStream inputStream = resource.getInputStream()) {
+            String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            return new StringSubstitutor(datos).replace(html);
+        }
     }
 }

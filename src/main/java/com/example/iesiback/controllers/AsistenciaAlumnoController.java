@@ -48,6 +48,8 @@ public class AsistenciaAlumnoController {
         return ResponseEntity.notFound().build();
     }
 
+
+    //AQUI SE OBTIENE LOS ALUMNOS DE ASISTENCIA///////
     @GetMapping("/detalle")
     public List<AlumnoAsistenciaDTO> getAsistencias(
             @RequestParam Integer idInforme

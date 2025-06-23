@@ -1,10 +1,11 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.AlumnoAsistenciaDTO;
 import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.repositories.AlumnoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,20 +54,40 @@ public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
         }).orElse(false);
     }
 
-@Override
-    public List<String> buscarAlumnosPorApellido(String apellido) {
-        return alumnoRepository.buscarPorApellido(apellido);
+    @Override
+    public List<String> buscarPorDniApellidoNombre(String busqueda) {
+        if (busqueda == null || busqueda.trim().isEmpty()) {
+            return alumnoRepository.buscarPorDniApellidoNombre(null);
+        }
+        // Armamos patrón de búsqueda con múltiples palabras
+        String[] palabras = busqueda.trim().split("\\s+");
+        String busquedaParam = "%" + String.join("%", palabras) + "%"; // Ej: %juan%perez%
+
+        return alumnoRepository.buscarPorDniApellidoNombre(busquedaParam.toLowerCase());
     }
+
+
 
     @Override
     public List<Alumno> buscarPorDni(String dni) {
         return alumnoRepository.buscarPorDni(dni);
     }
 
+
+
     @Override
-    public List<String> buscarPorApellidoYCarrera(String apellido, String carreraNombre) {
-        return alumnoRepository.buscarPorApellidoYCarrera(apellido, carreraNombre);
+    public List<String> buscarPorApellidoYCarrera(String busqueda, String carreraNombre) {
+        String busquedaParam = null;
+        if (busqueda != null && !busqueda.trim().isEmpty()) {
+            String[] palabras = busqueda.trim().split("\\s+");
+            busquedaParam = "%" + String.join("%", palabras) + "%";
+        }
+        return alumnoRepository.buscarPorApellidoYCarrera(
+                busquedaParam != null ? busquedaParam.toLowerCase() : null,
+                carreraNombre != null && !carreraNombre.trim().isEmpty() ? carreraNombre.toLowerCase() : null
+        );
     }
+
 
 
 

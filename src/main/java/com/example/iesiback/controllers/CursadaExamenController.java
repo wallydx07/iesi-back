@@ -28,7 +28,6 @@ public class CursadaExamenController {
     public ResponseEntity<String> obtenerFecha(
             @RequestParam String materiaId,
             @RequestParam String turnoId) {
-
         String fecha = cursadaExamenService.obtenerFechaPorMateriaYTurno(materiaId, turnoId);
         return ResponseEntity.ok(fecha);
     }

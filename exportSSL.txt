@@ -1,0 +1,6 @@
+openssl pkcs12 -export \
+  -in /etc/letsencrypt/live/gestionacademica.iesijujuy.edu.ar/fullchain.pem \
+  -inkey /etc/letsencrypt/live/gestionacademica.iesijujuy.edu.ar/privkey.pem \
+  -out /etc/letsencrypt/live/gestionacademica.iesijujuy.edu.ar/keystore.p12 \
+  -name gestionacademica \
+  -password pass:mudinamico

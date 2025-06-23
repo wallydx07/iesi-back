@@ -65,7 +65,7 @@ public class NotaController {
 //        return ResponseEntity.ok(notas);
 //    }
 
-
+    //AQUI SE OBTIENE LOS ALUMNOS DE CURSADA///////
     @GetMapping("/obtenerTodasNotasPorMateria")
     public ResponseEntity<?> obtenerTodasNotasPorMateria(
             @RequestParam String carreraId,
@@ -73,18 +73,11 @@ public class NotaController {
             @RequestParam(required = false) Boolean cursadaInscripto
     ) {
         try {
-            System.out.println("🔍 Recibiendo parámetros:");
-            System.out.println("  carreraId: " + carreraId);
-            System.out.println("  materiaId: " + materiaId);
-            System.out.println("  cursadaInscripto: " + cursadaInscripto);
-
             List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(
                     carreraId, materiaId, cursadaInscripto != null ? cursadaInscripto : false
             );
-
             return ResponseEntity.ok(notas);
         } catch (Exception e) {
-            System.err.println("❌ Error al obtener notas por materia:");
             e.printStackTrace(); // Muestra la traza completa del error en consola
 
             return ResponseEntity.status(500).body("Ocurrió un error al buscar las notas: " + e.getMessage());
@@ -103,12 +96,12 @@ public class NotaController {
     @PostMapping("/crear")
     public ResponseEntity<Nota> crearNota(@RequestBody Nota nota) {
         Nota nuevaNotaAux = this.notaService.obtenerNotaPorId(nota.getNotaId());
-        String notaFecha = nota.getNotaFechaNota();
-        if (notaFecha != null && !notaFecha.isEmpty()) {
-            LocalDate fecha = LocalDate.parse(notaFecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            String fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            nota.setNotaFechaNota(fechaFormateada);
-        }
+//        String notaFecha = nota.getNotaFechaNota();
+//        if (notaFecha != null && !notaFecha.isEmpty()) {
+//            LocalDate fecha = LocalDate.parse(notaFecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+//            String fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+//            nota.setNotaFechaNota(fechaFormateada);
+//        }
         nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
         nota.setCursada(nuevaNotaAux.getCursada());
         Nota nuevaNota = notaService.guardarNota(nota);

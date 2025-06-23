@@ -20,18 +20,14 @@ import java.util.Optional;
 @RequestMapping("/api/alumnos")
 public class AlumnoController {
 
-    @Autowired
-    private AlumnoService alumnoService;
-
-
-
+    private final AlumnoService alumnoService;
     private final PersonalService personalService;
 
     @Autowired
-    public AlumnoController(PersonalService personalService) {
+    public AlumnoController(AlumnoService alumnoService, PersonalService personalService) {
+        this.alumnoService = alumnoService;
         this.personalService = personalService;
     }
-
     @GetMapping
     public List<Alumno> obtenerAlumno() {
         return alumnoService.obtenerAlumnos();
@@ -46,15 +42,15 @@ public class AlumnoController {
 
     @GetMapping("/buscar")
     public List<String> buscarAlumnos(@RequestParam String apellido) {
-        return alumnoService.buscarAlumnosPorApellido(apellido);
+        return alumnoService.buscarPorDniApellidoNombre(apellido);
     }
 
 
     @GetMapping("/buscarPorApellidoYCarrera")
     public List<String> buscarPorApellidoYCarrera(
-            @RequestParam String apellido,
+            @RequestParam String busqueda,
             @RequestParam String carreraNombre) {
-        return alumnoService.buscarPorApellidoYCarrera(apellido, carreraNombre);
+        return alumnoService.buscarPorApellidoYCarrera(busqueda, carreraNombre);
     }
 
     @GetMapping("/buscar/dni")
@@ -95,36 +91,62 @@ public class AlumnoController {
     }
 
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getAlumnoById(@PathVariable String id) {
+    @GetMapping("personalForbbiden/{id}")
+    public ResponseEntity<?> getAlumnoByIdForbbiden(@PathVariable String id) {
+        System.out.println("➡️ Buscando alumno con DNI: " + id);
 
         if (this.personalService.existsByDni(id)) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", 403);
             response.put("message", "No se permite al personal inscribirse a las carreras");
 
+            System.out.println("⛔ Personal detectado, devolviendo 403: " + response);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .headers(headers)
                     .body(response);
         }
+
         var alumnoOpt = alumnoService.findById(id);
-            if (alumnoOpt.isPresent()) {
-                return ResponseEntity.ok().body(alumnoOpt.get());
-            } else {
-                Map<String, Object> response = new HashMap<>();
-                response.put("status", 404);
-                response.put("message", "Alumno no encontrado");
-                // ✅ Configurar las cabeceras correctamente
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .headers(headers) // ✅ Agregar las cabeceras manualmente
-                        .body(response);
-            }
+
+        if (alumnoOpt.isPresent()) {
+            System.out.println("✅ Alumno encontrado: " + alumnoOpt.get());
+            return ResponseEntity.ok().body(alumnoOpt.get());
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 404);
+            response.put("message", "Alumno no encontrado");
+
+            System.out.println("❌ Alumno no encontrado, devolviendo 404: " + response);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .headers(headers)
+                    .body(response);
         }
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getAlumnoById(@PathVariable String id) {
+        var alumnoOpt = alumnoService.findById(id);
+        if (alumnoOpt.isPresent()) {
+            return ResponseEntity.ok().body(alumnoOpt.get());
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 404);
+            response.put("message", "Alumno no encontrado");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .headers(headers)
+                    .body(response);
+        }
+    }
+
 
 
 

@@ -3,6 +3,7 @@ package com.example.iesiback.repositories;
 import com.example.iesiback.dto.EquivalenciaDTO;
 import com.example.iesiback.dto.NotaExamenDTO;
 import com.example.iesiback.dto.NotaCursadaDTO;
+import com.example.iesiback.dto.NotaMateriaDTO;
 import com.example.iesiback.entities.Nota;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -42,6 +43,38 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
  List<Object[]> findNotasPorLegajo(@Param("legajoId") String legajoId);
 
 
+//    @Query(value = """
+//    SELECT nota.nota_id , alumno.alumno_dni,
+//           alumno.alumno_apellido , alumno.alumno_nombre ,
+//           nota.nota_fecha_nota ,
+//           nota.nota_calificacion_nota_numero ,
+//           nota.nota_calificacion_nota_letra ,
+//           nota.nota_estado ,
+//           nota.nota_libro_nota , nota.nota_folio_nota ,
+//           cursada.status , nota.nota_observaciones ,
+//           nota.nota_usuario
+//    FROM alumno
+//    INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
+//    INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
+//    INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id
+//    INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id
+//    INNER JOIN carrera ON materia_carrera.carrera_id = carrera.carrera_id
+//    INNER JOIN nota ON cursada.cursada_id = nota.nota_cursada_id
+//    WHERE carrera.carrera_id = :carreraId
+//      AND materia.materia_id = :materiaId
+//      AND (cursada.cursada_inscripto = TRUE OR (:cursadaInscripto = FALSE))
+//      AND nota.nota_condicion = :notaCondicion
+//    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+//   """, nativeQuery = true)
+//    List<NotaCursadaDTO> findNotasByCarreraAndMateria(
+//            @Param("carreraId") String carreraId,
+//            @Param("materiaId") String materiaId,
+//            @Param("cursadaInscripto") boolean cursadaInscripto,
+//            @Param("notaCondicion") String notaCondicion
+//    );
+//    //AQUI SE OBTIENE LOS ALUMNOS DE CURSADA///////
+//
+
     @Query(value = """
     SELECT nota.nota_id , alumno.alumno_dni,
            alumno.alumno_apellido , alumno.alumno_nombre ,
@@ -51,7 +84,17 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
            nota.nota_estado ,
            nota.nota_libro_nota , nota.nota_folio_nota ,
            cursada.status , nota.nota_observaciones ,
-           nota.nota_usuario
+           nota.nota_usuario,
+           -- Nuevas columnas
+           cursada.primer_parcial,
+           cursada.recuperatorio1,
+           cursada.segundo_parcial,
+           cursada.recuperatorio2,
+           cursada.trabajos_practicos,
+           cursada.asistencia,
+           cursada.coloquio,
+           cursada.trabajo_institucional
+
     FROM alumno
     INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
     INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
@@ -71,9 +114,6 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
             @Param("cursadaInscripto") boolean cursadaInscripto,
             @Param("notaCondicion") String notaCondicion
     );
-
-
-
 
 
     @Query(value = """
@@ -213,6 +253,34 @@ JOIN mc.materia m
 JOIN mc.carrera c
 """)
     List<EquivalenciaDTO> listarEquivalenciasDetalladas();
+
+
+   @Query("""
+    SELECT new com.example.iesiback.dto.NotaMateriaDTO(
+        n.notaId,
+        m.materiaOrden,
+        m.materiaNombre,
+        n.notaCalificacionNotaNumero,
+        n.notaCalificacionNotaLetra,
+        n.notaCondicion,
+        n.notaEstado,
+        n.notaLibroNota,
+        n.notaFolioNota,
+        n.notaFechaNota,
+        n.notaObservaciones,
+        n.notaUsuario,
+        mc.materia.materiaId,
+        m.materiaNivel,
+        c.materiaCarrera.id
+    )
+    FROM Nota n
+    JOIN n.cursada c
+    JOIN c.materiaCarrera mc
+    JOIN mc.materia m
+    WHERE c.legajo.legajoId = :legajoId
+    ORDER BY n.notaFechaNota DESC
+""")
+   List<NotaMateriaDTO> findUltimaNotaPorLegajo(@Param("legajoId") String legajoId);
 
 
 }
