@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -63,11 +64,23 @@ public class Atencion {
     @Column(name = "atencion_usuario", length = 50)
     private String atencionUsuario;
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "legajo_id", nullable = false)
+    @JsonBackReference
+    private Legajo legajo;
+
     @OneToMany(mappedBy = "atencion", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("atencion-certificados")
     private List<CertificadoEstudiante> certificados;
 
+    @Size(max = 20)
+    @Column(name = "codigo_seguimiento", length = 20)
+    private String codigoSeguimiento;
 
-
+    @Transient
+    public String getLegajoId() {
+        return legajo != null ? legajo.getLegajoId() : null;
+    }
 
 }

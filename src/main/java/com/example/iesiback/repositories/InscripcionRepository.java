@@ -25,5 +25,11 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Intege
     Inscripcion findInscripcionByLegajoId(@Param("legajoId") String legajoId);
 
 
-
+//    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
+//            "FROM Inscripcion i " +
+//            "WHERE i.legajo.legajoAlumnoDni = :dniAlumno " +
+//            "AND i.carrera.carreraId = :carreraId")
+//    boolean existsByAlumnoDniAndCarreraId(@Param("dniAlumno") String dniAlumno,
+//                                          @Param("carreraId") String carreraId);
+//
 }

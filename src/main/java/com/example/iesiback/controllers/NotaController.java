@@ -1,9 +1,12 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.EvaluacionCorrelativaResponse;
 import com.example.iesiback.dto.NotaExamenDTO;
 import com.example.iesiback.dto.NotaCursadaDTO;
 import com.example.iesiback.dto.NotaMateriaDTO;
+import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
+import com.example.iesiback.entities.User;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import com.example.iesiback.services.CursadaService;
 import com.example.iesiback.services.NotaService;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -51,9 +55,6 @@ public class NotaController {
     public ResponseEntity<List<NotaMateriaDTO>> obtenerTodasNotasPorLegajo(@PathVariable String legajoId) {
         return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId));
     }
-
-
-
 
 //    @GetMapping("/obtenerTodasNotasPorMateria")
 //    public ResponseEntity<List<NotaCursadaDTO>> obtenerTodasNotasPorMateria(
@@ -102,7 +103,19 @@ public class NotaController {
 //            String fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 //            nota.setNotaFechaNota(fechaFormateada);
 //        }
-        nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
+
+//        nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
+
+        if (userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre().equals("ROLE_ADMIN")) {
+            System.out.println("ES administrador");
+            //     nota.setNotaUsuario(userService.getAuthenticatedUser().get().getRoles().get(0).equals("ROLE_ADMIN"));
+        } else {
+            System.out.println("no es administrador");
+            nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
+
+        }
+
+
         nota.setCursada(nuevaNotaAux.getCursada());
         Nota nuevaNota = notaService.guardarNota(nota);
         return ResponseEntity.ok(nuevaNota);
@@ -123,5 +136,44 @@ public class NotaController {
             @PathVariable String legajoId) {
         return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajoAnalitico(legajoId));
     }
+
+    @GetMapping("/{notaId}/cursada")
+    public ResponseEntity<Cursada> obtenerCursadaPorNota(@PathVariable Long notaId) {
+        Cursada cursada = notaService.obtenerCursadaPorNotaId(notaId);
+        if (cursada != null) {
+            // Actualizamos el status con el resultado de la evaluación
+            String nuevoStatus = notaService.evaluarCorrelativaIndividual(
+                    cursada.getLegajo().getLegajoId(),
+                    cursada.getMateriaCarrera().getMateria().getMateriaOrden()
+            ).getStatus();
+            cursada.setStatus(nuevoStatus);
+            return ResponseEntity.ok(cursada);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/evaluar/{legajoId}/{materiaOrden}")
+    public ResponseEntity<EvaluacionCorrelativaResponse> evaluarMateriaIndividual(
+            @PathVariable String legajoId,
+            @PathVariable Integer materiaOrden) {
+        EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId, materiaOrden);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/permitir-edicion")
+    public ResponseEntity<String> permitirEdicionMateria(
+            @RequestParam String carreraId,
+            @RequestParam String materiaId,
+            @RequestParam boolean editable) {
+        try {
+            notaService.permitirEdicionMateria(carreraId, materiaId, editable);
+            return ResponseEntity.ok("Permiso de edición actualizado correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al actualizar el permiso de edición: " + e.getMessage());
+        }
+    }
+
 }
 

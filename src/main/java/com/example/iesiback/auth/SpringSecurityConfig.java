@@ -51,7 +51,19 @@ public class SpringSecurityConfig {
                         .requestMatchers("/debug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/horarios/**").permitAll() // Horarios sin auth
                         .requestMatchers(HttpMethod.POST, "/api/asistencias/desde-dispositivo").permitAll() // Asistencia sin auth
-
+                        .requestMatchers(HttpMethod.GET,"/api/constancia-precios/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/alumnos/buscar/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/legajos/**").permitAll()   // <-- abrir legajos
+                        .requestMatchers(HttpMethod.GET, "/api/inscripcion/legajo/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/alumnos/legajo/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/carreras/anio-cursada").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/atenciones/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/certificados").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/constancias/batch").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/atencion/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/documento/upload").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/atenciones/seguimiento/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll()
                         .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))

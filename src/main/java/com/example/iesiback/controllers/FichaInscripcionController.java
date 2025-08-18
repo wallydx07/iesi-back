@@ -43,7 +43,7 @@ public class FichaInscripcionController {
     public ResponseEntity<ByteArrayResource> generarFicha(
             @RequestParam String alumnoId,
             @RequestParam String legajoId,
-            @RequestParam String aporteId,
+            @RequestParam Integer aporteId,
             @RequestParam String carreraId) {
         try {
             Alumno alumno=this.alumnoService.findAlumnoById(alumnoId);

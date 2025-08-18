@@ -35,8 +35,13 @@ public class Cursada {
     @JsonProperty(value = "legajo", access = JsonProperty.Access.WRITE_ONLY)
     private Legajo legajo;
 
+//    @OneToMany(mappedBy = "cursada", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<Nota> notas = new LinkedHashSet<>();
+
     @OneToMany(mappedBy = "cursada", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // ✅ Indica que este lado es el "padre" y debe ser serializado
     private Set<Nota> notas = new LinkedHashSet<>();
+
 
     @Column(name = "primer_parcial", precision = 5, scale = 2)
     private BigDecimal primerParcial;

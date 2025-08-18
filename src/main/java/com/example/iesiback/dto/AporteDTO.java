@@ -14,6 +14,7 @@ public class AporteDTO {
     private LocalDate aporteFecha;
     private String aporteObs;
     private String usuario;
+    private Boolean validado;
 
 
     // Constructor que coincida con los tipos y el orden de la consulta JPQL
@@ -27,7 +28,7 @@ public class AporteDTO {
                      Integer aporteTalonarioRecibo,
                      LocalDate aporteFecha,
                      String aporteObs,
-                     String usuario) {
+                     String usuario, Boolean validado) {
         this.aporteId = aporteId;
         this.alumnoDni = alumnoDni;
         this.alumnoApellido = alumnoApellido;
@@ -39,6 +40,7 @@ public class AporteDTO {
         this.aporteFecha = aporteFecha;
         this.aporteObs = aporteObs;
         this.usuario = usuario;
+        this.validado = validado;
     }
 
     public String getAlumnoApellido() {
@@ -129,5 +131,13 @@ public class AporteDTO {
 
     public void setLegajoId(String legajoId) {
         this.legajoId = legajoId;
+    }
+
+    public Boolean getValidado() {
+        return validado;
+    }
+
+    public void setValidado(Boolean validado) {
+        this.validado = validado;
     }
 }

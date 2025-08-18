@@ -1,10 +1,6 @@
 package com.example.iesiback.controllers;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -137,5 +133,18 @@ public class UserController {
         boolean success = service.resetPasswordWithToken(token, newPassword);
         if (success) return ResponseEntity.ok("Contraseña actualizada.");
         return ResponseEntity.badRequest().body("Token inválido o expirado.");
+    }
+
+    @GetMapping("/personal")
+    public ResponseEntity<List<User>> getPersonalUsers() {
+        List<String> roles = List.of("ROLE_PERSONAL", "ROLE_ADMIN", "ROLE_TUTOR");
+
+        List<User> personalUsers = service.getUsuariosPorRoles(roles);
+
+        if (personalUsers.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(personalUsers);
     }
 }

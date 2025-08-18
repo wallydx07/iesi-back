@@ -45,6 +45,31 @@ public class CertificadoController {
         this.cursadaExamenService = cursadaExamenService;
     }
 
+
+    @GetMapping("/finalizacion")
+    public ResponseEntity<ByteArrayResource> generarfinalizacion(
+            @RequestParam String alumnoId,
+            @RequestParam String legajoId,
+            @RequestParam String autoridades) {
+
+        try {
+            System.out.println("Solictando certificado");
+            PDDocument document = certificadoService.generaFinalizacionEstudios(legajoId, alumnoId, autoridades);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            document.close();
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=certificado_regular.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/estudianteregular")
     public ResponseEntity<ByteArrayResource> generarFicha(
             @RequestParam String alumnoId,
@@ -97,7 +122,6 @@ public class CertificadoController {
         }
     }
 
-
     @GetMapping("/generarActa")
     public ResponseEntity<ByteArrayResource> generarActaExamen(
             @RequestParam String materiaId,
@@ -109,6 +133,7 @@ public class CertificadoController {
             Materia materia=this.materiaService.findMateriaById(materiaId);
            // Carrera carrera=this.carreraService.findCarreraById(carreraId);
             CursadaExamen cursadaExamen=this.cursadaExamenService.obtenerPorId(cursadaExamenId).get();
+            System.out.println("la fecha es: "+cursadaExamen.getFecha());
             PDDocument document = certificadoService.generaExamen(materia, carrera, cursadaExamen, modalidad);
             // Convertir PDDocument a byte[]
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -132,11 +157,11 @@ public class CertificadoController {
     @GetMapping("/titulotramite")
     public ResponseEntity<ByteArrayResource> generatituloTramite(
             @RequestParam String carreraId,
-            @RequestParam String alumnoDni,
+            @RequestParam String legajoId,
             @RequestParam String autoridades) {
 
         try {
-            PDDocument document = certificadoService.generaTramite(carreraId, alumnoDni, autoridades);
+            PDDocument document = certificadoService.generaTramite(carreraId, legajoId, autoridades);
             // Convertir PDDocument a byte[]
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
@@ -403,14 +428,12 @@ public class CertificadoController {
             @RequestParam String legajoId,
             @RequestParam String autoridades,
             @RequestParam String curso,
-            @RequestParam String entrada,
-            @RequestParam String salida,
             @RequestParam String fecha,
             @RequestParam String accion,
             @RequestParam String materia
     ) {
         try {
-            PDDocument document = certificadoService.generaAsistenciaExamenFinal(legajoId,autoridades,fecha,curso,entrada, salida,accion,materia);
+            PDDocument document = certificadoService.generaAsistenciaExamenFinal(legajoId,autoridades,curso,fecha, accion,materia);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             byte[] pdfBytes = baos.toByteArray();
@@ -513,5 +536,73 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/generaUltimaMateria")
+    public ResponseEntity<ByteArrayResource> generaUltimaMateria(
+            @RequestParam String legajoId,
+            @RequestParam String autoridades
+    ) {
+        try {
+            PDDocument document = certificadoService.generaUltimaMateria(legajoId,autoridades);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/generaTroquelTramite")
+    public ResponseEntity<ByteArrayResource> generaAsistenciaExamenFinal(
+            @RequestParam String legajoId,
+            @RequestParam Integer atencionId
+    ) {
+        try {
+            PDDocument document = certificadoService.generaTroquelTramite(legajoId, atencionId);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/generarCalificador")
+    public ResponseEntity<ByteArrayResource> generarCalificador(
+            @RequestParam String legajoId
+    ) {
+        try {
+            PDDocument document = certificadoService.generaCalificador(legajoId);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
 
 }

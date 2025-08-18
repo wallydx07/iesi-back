@@ -1,6 +1,7 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.HorarioDTO;
+import com.example.iesiback.dto.PersonalHorarioDTO;
 import com.example.iesiback.entities.PersonalHorario;
 import com.example.iesiback.services.HorarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,4 +46,7 @@ public class HorarioController {
         return optional.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+
+
 }

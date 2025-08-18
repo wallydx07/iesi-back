@@ -78,26 +78,59 @@ public class CursadaController {
 
 
 
+//
+//    @PutMapping("/{id}")
+//    public Cursada updateCursada(@PathVariable Integer id, @RequestBody Cursada cursadaDetails) {
+//        return cursadaService.getCursadaById(id)
+//                .map(cursada -> {
+//                    cursada.setCursadaInscripto(cursadaDetails.getCursadaInscripto());
+//                    cursada.setStatus(cursadaDetails.getStatus());
+//                    cursada.setMateriaCarrera(cursadaDetails.getMateriaCarrera());
+//                    cursada.setNotas(cursadaDetails.getNotas());
+//                    return cursadaService.saveCursada(cursada);
+//                })
+//                .orElseGet(() -> {
+//                    cursadaDetails.setId(id);
+//                    return cursadaService.saveCursada(cursadaDetails);
+//                });
+//    }
+//
+//
+//
+//    @PutMapping("/{cursadaId}")
+//    public ResponseEntity<Cursada> actualizarCursada(@PathVariable Integer cursadaId, @RequestBody Cursada cursadaPost) {
+//        Optional<Cursada> cursadaExistente = cursadaService.buscarPorId(cursadaId);
+//
+//        if (cursadaExistente.isPresent()) {
+//            Cursada cursadaActualizada = cursadaService.actualizarCursada(cursadaExistente.get(), cursadaPost);
+//            return ResponseEntity.ok(cursadaActualizada);
+//        } else {
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
 
-    @PutMapping("/{id}")
-    public Cursada updateCursada(@PathVariable Integer id, @RequestBody Cursada cursadaDetails) {
-        return cursadaService.getCursadaById(id)
-                .map(cursada -> {
-                    cursada.setCursadaInscripto(cursadaDetails.getCursadaInscripto());
-                    cursada.setStatus(cursadaDetails.getStatus());
-                    cursada.setMateriaCarrera(cursadaDetails.getMateriaCarrera());
-                    cursada.setNotas(cursadaDetails.getNotas());
-                    return cursadaService.saveCursada(cursada);
-                })
-                .orElseGet(() -> {
-                    cursadaDetails.setId(id);
-                    return cursadaService.saveCursada(cursadaDetails);
-                });
+    @PutMapping("/{cursadaId}")
+    public ResponseEntity<Cursada> actualizarCursada(@PathVariable Integer cursadaId, @RequestBody Cursada cursadaPost) {
+        Optional<Cursada> cursadaExistente = cursadaService.buscarPorId(cursadaId);
+
+        if (cursadaExistente.isPresent()) {
+            // Si la cursada existe, actualizar
+            Cursada cursadaActualizada = cursadaService.actualizarCursada(cursadaExistente.get(), cursadaPost);
+            return ResponseEntity.ok(cursadaActualizada);
+        } else {
+            // Si la cursada no existe, crear una nueva
+            cursadaPost.setId(cursadaId);
+            Cursada nuevaCursada = cursadaService.saveCursada(cursadaPost);
+            return ResponseEntity.status(201).body(nuevaCursada); // 201 Created
+        }
     }
+
 
 
     @DeleteMapping("/{id}")
     public void deleteCursada(@PathVariable Integer id) {
         cursadaService.deleteCursada(id);
     }
+
+
 }

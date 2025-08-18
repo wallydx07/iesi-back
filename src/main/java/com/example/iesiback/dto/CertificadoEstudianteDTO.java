@@ -28,7 +28,7 @@ public class CertificadoEstudianteDTO {
         this.usuario = certificado.getUsuario();
         this.validado = certificado.getValidado();
         this.monto = certificado.getMonto();
-        this.legajoId = certificado.getLegajo() != null ? certificado.getLegajo().getLegajoId() : null;
+        this.legajoId = certificado.getAtencion().getLegajo() != null ? certificado.getAtencion().getLegajo().getLegajoId() : null;
         this.atencionId = certificado.getAtencion() != null ? certificado.getAtencion().getId() : null;
     }
 

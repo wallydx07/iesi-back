@@ -140,7 +140,8 @@ UNION
     WHERE ap.horario_id IS NULL
       AND EXTRACT(YEAR FROM ap.fecha) = :year
       AND ap.dni = :dni
-    """, nativeQuery = true)
+ORDER BY 12 DESC
+""", nativeQuery = true)
     List<Object[]> obtenerDetallePorDniYAnio(@Param("dni") Long dni, @Param("year") int year);
 
 

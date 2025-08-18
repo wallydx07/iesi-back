@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -69,14 +70,29 @@ public class Nota {
     @JsonIgnore // ✅ Evita que Jackson serialice esta relación
     private Set<Examen> examen = new LinkedHashSet<>();
 
-   // @ManyToOne(fetch = FetchType.LAZY)
-   // @JoinColumn(name = "nota_cursada_id")
-    //@JsonIgnore
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "nota_cursada_id", nullable = false)
+//    @JsonProperty(value = "cursada", access = JsonProperty.Access.WRITE_ONLY)
+//    private Cursada cursada;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nota_cursada_id", nullable = false)
-    @JsonProperty(value = "cursada", access = JsonProperty.Access.WRITE_ONLY)
+    @JsonBackReference // ✅ Este lado no se serializa, se ignora para evitar recursión
     private Cursada cursada;
+
+    @ColumnDefault("true")
+    @Column(name = "editable")
+    private Boolean editable;
+
+    public Boolean getEditable() {
+        return editable;
+    }
+
+    public void setEditable(Boolean editable) {
+        this.editable = editable;
+    }
+
 
     public Cursada getCursada() {
         return cursada;

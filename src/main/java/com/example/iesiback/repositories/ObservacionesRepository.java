@@ -10,6 +10,9 @@
       //  List<Observacione> findByLegajoId(String legajoId);
         // Buscar por legajo_id en la entidad Legajo
         List<Observacione> findByLegajo_LegajoId(String legajoId);
+        // Opción 1: Usando Query derivada
+        Observacione findTopByLegajo_LegajoIdOrderByFechaDesc(String legajoId);
+
 
     }
 

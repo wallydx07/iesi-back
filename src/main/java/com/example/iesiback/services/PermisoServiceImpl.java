@@ -108,18 +108,19 @@ public class PermisoServiceImpl implements PermisoService {
             int inicio=421;//desde le borde o desde el centro como esta hoja es horizontal
             encabezado.beginText();
             encabezado.setFont(PDType1Font.HELVETICA, 8);
-            encabezado.newLineAtOffset(inicio+105, 580);//105
-            encabezado.showText("INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL");
+            encabezado.newLineAtOffset(inicio+105, 585);//580
+            encabezado.showText("INSTITUTO DE EDUCACIÓN SUPERIOR INTERCULTURAL");
             encabezado.newLineAtOffset(40, n);
-            encabezado.showText("“CAMPINTA GUAZU GLORIA PEREZ”");
+            encabezado.showText("“CAMPINTA GUAZÚ GLORIA PÉREZ”");
             encabezado.newLineAtOffset(-25, n);
-            encabezado.showText("Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15");
+            encabezado.showText("Incorporado a la Enseñanza Oficial – Resol. Nº 2936-E-15");
             encabezado.newLineAtOffset(-15, n);
-            encabezado.showText("Bahia Blanca Nº 235 Bº .Kennedy – Tel. Fax. N°(0388)-3428370");
+            encabezado.showText("Bahía Blanca Nº 235, Bº Kennedy – Tel N° (0388) 3428370");
             encabezado.newLineAtOffset(-40, n);
-            encabezado.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina");
-            encabezado.newLineAtOffset(-20, 0);
-            encabezado.showText("____________________________________________________________________________________");
+            encabezado.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. de Jujuy – República Argentina");
+            encabezado.newLineAtOffset(-40, -3);
+
+            encabezado.showText("_____________________________________________________________________________________");
             encabezado.endText();
             encabezado.close();
             PDPageContentStream PDesc2 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
@@ -132,7 +133,7 @@ public class PermisoServiceImpl implements PermisoService {
             titulo.beginText();
             titulo.setFont(PDType1Font.HELVETICA_BOLD, 10);
             titulo.newLineAtOffset(160+inicio, 530); // titulo/(250,745)
-            titulo.showText("Permiso de examen");
+            titulo.showText("Permiso de Examen");
             titulo.newLineAtOffset(0, 0);
             titulo.showText("_________________");
             titulo.endText();
@@ -150,10 +151,10 @@ public class PermisoServiceImpl implements PermisoService {
             pTexto.setFont(normal, letra);
             pTexto.newLineAtOffset(25+inicio, 515);
             String carrera_nombre = carrera;
-            String t1 = "Permiso N°:" + permiso.get().getId() + "                                              Turno: " + turno;
-            String t2 = "Conste que por la presente " + genero1 + " estudiante: " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre();
-            String t3 = "DNI: " + dni + " Esta habilitado para rendir las siguientes Unidades Curriculares";
-            String t4 = "correspondientes a la carrera: " + carrera_nombre;
+            String t1 = "Permiso N°: " + permiso.get().getId() + "                                              Turno: " + turno;
+            String t2 = "Conste que por la presente, " + genero1 + " estudiante: " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre() + ",";
+            String t3 = "DNI: " + dni + ", está habilitado para rendir las siguientes Unidades Curriculares:";
+            String t4 = "correspondientes a la carrera: " + carrera_nombre + ".";
             pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t1, letra, normal), t1));//espacio entre caracteres
             pTexto.showText(t1);
             pTexto.newLineAtOffset(0, n);
@@ -181,7 +182,7 @@ public class PermisoServiceImpl implements PermisoService {
             float bottomMargin = 70;
             float auxmargin = 25+inicio;
             float yPosition = 300;
-            BaseTable table = new BaseTable(yStart, yStartNewPage, 0, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            BaseTable table = new BaseTable(yStart-5, yStartNewPage, 0, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
             Row<PDPage> headerRow = table.createRow(20);
             Cell<PDPage> cell = headerRow.createCell(5, "N°");
             cell.setAlign(HorizontalAlignment.CENTER);
@@ -220,9 +221,22 @@ public class PermisoServiceImpl implements PermisoService {
                         condicion = "Libre";
                     }
                     Row<PDPage> row = table.createRow(20);
-                    row.createCell(5, String.valueOf(indice)); // Orden
-                    row.createCell(7, condicion); // Condicion
-                    row.createCell(18, materia); // Unidad Curricular
+
+// Celda 1: Número de orden, alineado al centro
+                    Cell<PDPage> cellNumero = row.createCell(5, String.valueOf(indice));
+                    cellNumero.setAlign(HorizontalAlignment.CENTER);
+                    cellNumero.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 2: Condición (sin alineación especial, si querés podés centrarla también)
+                    Cell<PDPage> cellCondicion = row.createCell(7, condicion);
+                    cellCondicion.setAlign(HorizontalAlignment.LEFT); // O podés poner CENTER si lo querés centrado
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 3: Unidad Curricular (Materia)
+                    Cell<PDPage> cellMateria = row.createCell(18, materia);
+                    cellMateria.setAlign(HorizontalAlignment.LEFT); // Generalmente los textos largos van alineados a la izquierda
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
                     String turno_id = turno;
                     String materia_id = (String) inscripcionesActivas.get(row1).getMateriaId();
                     String fecha = inscripcionesActivas.get(row1).getFecha();
@@ -237,9 +251,21 @@ public class PermisoServiceImpl implements PermisoService {
                         }
                     }
                     String hora =  inscripcionesActivas.get(row1).getHora();
-                    row.createCell(8, fecha); // Fecha
-                    row.createCell(5, hora); // hora
-                    row.createCell(9, " "); // Firma
+                    // Celda 4: Fecha
+                    Cell<PDPage> cellFecha = row.createCell(8, fecha);
+                    cellFecha.setAlign(HorizontalAlignment.CENTER);
+                    cellFecha.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 5: Hora
+                    Cell<PDPage> cellHora = row.createCell(5, hora);
+                    cellHora.setAlign(HorizontalAlignment.CENTER);
+                    cellHora.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 6: Firma (espacio vacío)
+                    Cell<PDPage> cellFirma = row.createCell(9, " ");
+                    cellFirma.setAlign(HorizontalAlignment.CENTER);
+                    cellFirma.setValign(VerticalAlignment.MIDDLE);
+
                     yStart = yStart - row.getHeight();
                     // Asignar a strings y hacer algo con ellos (por ejemplo, imprimirlos)
                     System.out.println("Materia: " + materia + ", Condicion: " + condicion);
@@ -253,12 +279,38 @@ public class PermisoServiceImpl implements PermisoService {
                 for (int i = 0; i < rowsToAdd; i++) {
                     indice++;
                     Row<PDPage> row = table.createRow(20);
-                    row.createCell(5, String.valueOf(indice)); // Orden
-                    row.createCell(7, "");  //Condicion
-                    row.createCell(18, ""); //Unidad Curricular
-                    row.createCell(8, " "); //Fecha
-                    row.createCell(5, " "); //Calificacion
-                    row.createCell(9, " "); //Firma
+
+// Celda: Orden
+                    Cell<PDPage> cellOrden = row.createCell(5, String.valueOf(indice));
+                    cellOrden.setAlign(HorizontalAlignment.CENTER);
+                    cellOrden.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Condición
+                    Cell<PDPage> cellCondicion = row.createCell(7, "");
+                    cellCondicion.setAlign(HorizontalAlignment.CENTER);
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Unidad Curricular
+                    Cell<PDPage> cellMateria = row.createCell(18, "");
+                    cellMateria.setAlign(HorizontalAlignment.CENTER);
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Fecha
+                    Cell<PDPage> cellFecha = row.createCell(8, " ");
+                    cellFecha.setAlign(HorizontalAlignment.CENTER);
+                    cellFecha.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Calificación
+                    Cell<PDPage> cellCalificacion = row.createCell(5, " ");
+                    cellCalificacion.setAlign(HorizontalAlignment.CENTER);
+                    cellCalificacion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Firma
+                    Cell<PDPage> cellFirma = row.createCell(9, " ");
+                    cellFirma.setAlign(HorizontalAlignment.CENTER);
+                    cellFirma.setValign(VerticalAlignment.MIDDLE);
+
+
                     yStart = yStart - row.getHeight();
                 }
             }
@@ -272,13 +324,13 @@ public class PermisoServiceImpl implements PermisoService {
             SimpleDateFormat form = new SimpleDateFormat("dd '-' MMMM '-' yyyy", new Locale("ES"));
             Date fechaDatee = new Date();
             String fec = form.format(fechaDatee);
-            String p1 = "San salvador de jujuy " + fec;
+            String p1 = "San Salvador de Jujuy, " + fec;
             String firma = "    ______________________                                  ________________________";
             //String firma1 = "               " + userService.getAuthenticatedUser().get().getUserApellido()+"                                                  Firma Alumno";
             String firma1 = "               Firma del Secretario                                                      Firma Alumno";
 
-            String p2 = "El dia del examen el estudiante debera presentar: Libreta - Permiso de examen - D.N.I";
-            String p6 = "----------------------------------------------------------";
+            String p2 = "El día del examen, el estudiante deberá presentar: libreta, permiso de examen y D.N.I.";
+            String p6 = "------------------------------------------------------------------------";
             fin.showText(firma);
             fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
             fin.showText(firma1);
@@ -293,7 +345,7 @@ public class PermisoServiceImpl implements PermisoService {
             fin.setFont(normal, letra);
             fin.setCharacterSpacing(0);
             String titulop = "                        Constancia de Solicitud de permiso de examen";
-            String subtitulo = "                     _________________________________________";
+            String subtitulo = "                      _________________________________________";
             String p7 = "Permiso N°:" + permiso.get().getId() + "      Turno:" +turno + "-" + carrera_nombre;
             String p8 = "Apellido y Nombre " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre() + ", DNI:" + dni;
             fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
@@ -302,14 +354,14 @@ public class PermisoServiceImpl implements PermisoService {
             fin.newLineAtOffset(0, -1); // Mover cursor hacia abajo para la siguiente línea
             fin.showText(subtitulo);
             fin.setFont(normal, letra);
-            fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
+            fin.newLineAtOffset(0, n-5); // Mover cursor hacia abajo para la siguiente línea
             fin.setCharacterSpacing(charspacing(longitud, tamaño(p7, letra, normal), p7));//espacio entre caracteres
             fin.showText(p7);
             fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
             fin.setCharacterSpacing(charspacing(longitud, tamaño(p8, letra, normal), p8));//espacio entre caracteres
             fin.showText(p8);
             fin.setCharacterSpacing(0);
-            yStart = yStart - 80;//AJUSTE
+            yStart = yStart - 85;//AJUSTE
             float delta = 0;
             BaseTable table1 = new BaseTable(yStart, yStartNewPage, 0, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
             Row<PDPage> headerRow1 = table1.createRow(20);
@@ -317,11 +369,15 @@ public class PermisoServiceImpl implements PermisoService {
             cell1.setAlign(HorizontalAlignment.CENTER);
             cell1.setValign(VerticalAlignment.MIDDLE);
             cell1.setTextRotated(false);
-            cell1 = headerRow1.createCell(10, "Condicion");
+            cell1 = headerRow1.createCell(8, "Condicion");
             cell1.setAlign(HorizontalAlignment.CENTER);
             cell1.setValign(VerticalAlignment.MIDDLE);
             cell1.setTextRotated(false);
-            cell1 = headerRow1.createCell(37, "Unidad Curricular");
+            cell1 = headerRow1.createCell(27, "Unidad Curricular");
+            cell1.setAlign(HorizontalAlignment.CENTER);
+            cell1.setValign(VerticalAlignment.MIDDLE);
+
+            cell1 = headerRow1.createCell(12, "Fecha Hora");
             cell1.setAlign(HorizontalAlignment.CENTER);
             cell1.setValign(VerticalAlignment.MIDDLE);
             delta = headerRow1.getHeight();
@@ -332,13 +388,47 @@ public class PermisoServiceImpl implements PermisoService {
                     indice++;
                     String materia = (String) inscripcionesActivas.get(row1).getMateriaNombre();
                     String condicion = (String) inscripcionesActivas.get(row1).getCondicion();
+                    String fecha = inscripcionesActivas.get(row1).getFecha();
+                    if (fecha != null && !fecha.isEmpty()) {
+                        SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyy-MM-dd"); // Asumiendo que la fecha viene en formato yyyy-MM-dd
+                        SimpleDateFormat formatoSalida = new SimpleDateFormat("dd/MM/yyyy");
+                        try {
+                            Date fechaDate = formatoEntrada.parse(fecha);
+                            fecha = formatoSalida.format(fechaDate);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    String hora =  inscripcionesActivas.get(row1).getHora();
+
+
+
+
                     if (!condicion.equals("Regular")) {
                         condicion = "Libre";
                     }
                     Row<PDPage> row = table1.createRow(20);
-                    row.createCell(5, String.valueOf(indice)); // Orden
-                    row.createCell(10, condicion); // Condicion
-                    row.createCell(37, materia); // Unidad Curricular
+
+// Celda: Orden
+                    Cell<PDPage> cellOrden = row.createCell(5, String.valueOf(indice));
+                    cellOrden.setAlign(HorizontalAlignment.CENTER);
+                    cellOrden.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Condición
+                    Cell<PDPage> cellCondicion = row.createCell(8, condicion);
+                    cellCondicion.setAlign(HorizontalAlignment.CENTER);
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Unidad Curricular (Materia)
+                    Cell<PDPage> cellMateria = row.createCell(27, materia);
+                    cellMateria.setAlign(HorizontalAlignment.CENTER);
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Fecha y Hora
+                    Cell<PDPage> cellFechaHora = row.createCell(12, fecha + " - " + hora);
+                    cellFechaHora.setAlign(HorizontalAlignment.CENTER);
+                    cellFechaHora.setValign(VerticalAlignment.MIDDLE);
+
                     delta = delta + row.getHeight();
                 }
             }
@@ -350,9 +440,31 @@ public class PermisoServiceImpl implements PermisoService {
                 for (int i = 0; i < rowsToAdd; i++) {
                     indice++;
                     Row<PDPage> row = table1.createRow(20);
-                    row.createCell(5, String.valueOf(indice)); // Orden
-                    row.createCell(10, ""); // Condicion
-                    row.createCell(37, ""); // Unidad Curricular
+
+// Celda: Orden
+                    Cell<PDPage> cellOrden = row.createCell(5, String.valueOf(indice));
+                    cellOrden.setAlign(HorizontalAlignment.CENTER);
+                    cellOrden.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Condición (vacía)
+                    Cell<PDPage> cellCondicion = row.createCell(8, "");
+                    cellCondicion.setAlign(HorizontalAlignment.CENTER);
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Unidad Curricular (vacía)
+                    Cell<PDPage> cellMateria = row.createCell(27, "");
+                    cellMateria.setAlign(HorizontalAlignment.CENTER);
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+                    Cell<PDPage> cellFec = row.createCell(12, "");
+                    cellFec.setAlign(HorizontalAlignment.CENTER);
+                    cellFec.setValign(VerticalAlignment.MIDDLE);
+
+
+
+
+
+
                     delta = delta + row.getHeight();
                 }
             }

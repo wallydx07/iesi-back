@@ -103,6 +103,7 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
                                          @RequestParam("entidadId") String entidadId,
                                          @RequestParam("tipoDocumento") String tipoDocumento) {
     String ruta = null;
+    System.out.println("Ejecutando subida");
     try {
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename != null && originalFilename.contains(".")

@@ -33,11 +33,11 @@ public class VerificadorAsistenciaAutomatica {
     @Transactional
     @Scheduled(cron = "0 0 5 * * *", zone = "America/Argentina/Buenos_Aires") // Todos los días a las 5 AM
     public void verificarAusencias() {
-        verificarAusenciasPorFecha(LocalDate.now().minusDays(1));
+        verificarAusenciasPorFechaFunc(LocalDate.now().minusDays(1));
     }
 
 
-    public void verificarAusenciasPorFecha(LocalDate fecha) {
+    public void verificarAusenciasPorFechaFunc(LocalDate fecha) {
         String diaSemana = fecha.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("es")).toUpperCase();
         int anioActual = fecha.getYear();
         System.out.println("📆 Verificando ausencias para: " + fecha + " (" + diaSemana + ")");
@@ -78,6 +78,60 @@ public class VerificadorAsistenciaAutomatica {
                     System.out.println("📧 Correo enviado a " + destinatario);
                 } catch (Exception e) {
                     System.err.println("⚠️ Error al enviar el correo de ausencia: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+
+
+    public void verificarAusenciasPorFecha(LocalDate fechaIgnorada) {
+        LocalDate fechaInicio = LocalDate.of(2025, 5, 19); // Desde el 19 de mayo
+        LocalDate fechaHoy = LocalDate.now();
+
+        // Iterar día por día desde el 19 de mayo hasta hoy
+        for (LocalDate fecha = fechaInicio; !fecha.isAfter(fechaHoy); fecha = fecha.plusDays(1)) {
+            String diaSemana = fecha.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("es")).toUpperCase();
+            int anioActual = fecha.getYear();
+            System.out.println("📆 Verificando ausencias para: " + fecha + " (" + diaSemana + ")");
+
+            List<PersonalHorario> horarios = personalHorariosService.findByDiaYAnio(diaSemana, anioActual);
+
+            for (PersonalHorario horario : horarios) {
+                boolean existe = asistenciaPersonalService.existeAsistenciaParaHoy(Long.valueOf(horario.getId()), fecha);
+                if (!existe) {
+                    AsistenciaPersonal falta = new AsistenciaPersonal();
+                    falta.setDni(horario.getDni().getId());
+                    falta.setHorarioId(horario.getId());
+                    falta.setFecha(fecha);
+                    falta.setHoraEntrada(null);
+                    falta.setHoraSalida(null);
+                    falta.setEstado(4);
+                    falta.setObservaciones("Registrado automáticamente por ausencia");
+                    asistenciaPersonalService.guardar(falta);
+
+                    System.out.println("🚫 Ausencia registrada para DNI " + horario.getDni());
+
+                    try {
+                        Map<String, Object> variables = Map.of(
+                                "Materia", horario.getMateriaCarrera().getMateria().getMateriaNombre(),
+                                "Carrera", horario.getMateriaCarrera().getCarrera().getCarreraNombre(),
+                                "dni", horario.getDni().getId(),
+                                "fecha", fecha.toString(),
+                                "hora", horario.getEntrada().toString()
+                        );
+
+                        String destinatario = "walterxd00@gmail.com";
+//                        emailService.enviarCorreoConPlantilla(
+//                                destinatario,
+//                                "Notificación de Ausencia",
+//                                "notificacion-ausencia",
+//                                variables
+//                        );
+                        System.out.println("📧 Correo enviado a " + destinatario);
+                    } catch (Exception e) {
+                        System.err.println("⚠️ Error al enviar el correo de ausencia: " + e.getMessage());
+                    }
                 }
             }
         }

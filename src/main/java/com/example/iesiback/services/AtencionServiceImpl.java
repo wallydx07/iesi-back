@@ -1,25 +1,35 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.entities.Atencion;
+import com.example.iesiback.entities.User;
 import com.example.iesiback.repositories.AtencionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class AtencionServiceImpl implements AtencionService {
 
     private final AtencionRepository repository;
-
-    public AtencionServiceImpl(AtencionRepository repository) {
+    private final UserService userService;
+    public AtencionServiceImpl(AtencionRepository repository, UserService userService) {
         this.repository = repository;
+        this.userService = userService;
     }
+
+    public String obtenerUser() {
+        Optional<User> optionalUser = userService.getAuthenticatedUser();
+        return optionalUser.map(User::getUserApellido).orElse("Alumno");
+    }
+
 
     @Override
     public List<Atencion> findAll() {
-        return repository.findAll();
+        return repository.findAllByOrderByIdDesc();
+//        return repository.findAll();
     }
 
     @Override
@@ -28,8 +38,32 @@ public class AtencionServiceImpl implements AtencionService {
     }
 
     @Override
+    public Optional<Atencion> findByCodigoSeguimiento(String codigo) {
+        return repository.findByCodigoSeguimiento(codigo);
+    }
+
+    @Override
     public Atencion save(Atencion atencion) {
+
+        atencion.setAtencionUsuario(obtenerUser());
+        atencion.setCodigoSeguimiento(generarCodigoSeguimiento());
         return repository.save(atencion);
+    }
+
+    @Override
+    public Atencion update(Atencion atencion) {
+        atencion.setAtencionUsuario(obtenerUser());
+        return repository.save(atencion);
+    }
+
+    private String generarCodigoSeguimiento() {
+        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder codigo = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 8; i++) { // Por ejemplo: longitud 8
+            codigo.append(caracteres.charAt(random.nextInt(caracteres.length())));
+        }
+        return codigo.toString();
     }
 
     @Override

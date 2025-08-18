@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.AporteDTO;
 import com.example.iesiback.entities.CertificadoEstudiante;
 
 import java.util.List;
@@ -20,4 +21,6 @@ public interface CertificadoEstudianteService {
     List<CertificadoEstudiante> findByLegajoId(String legajoId);
 
     List<CertificadoEstudiante> saveAll(List<CertificadoEstudiante> certificados);
+
+    List<AporteDTO> obtenerCertificadosComoAportes();
 }

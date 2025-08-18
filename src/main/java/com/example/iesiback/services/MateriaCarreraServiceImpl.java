@@ -1,12 +1,16 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.ActaCursadaDTO;
 import com.example.iesiback.dto.CatedraDTO;
-import com.example.iesiback.dto.MateriaCarreraDTO;
+import com.example.iesiback.dto.MateriaDTO;
+import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +19,13 @@ public class MateriaCarreraServiceImpl implements MateriaCarreraService {
 
     @Autowired
     private MateriaCarreraRepository materiaCarreraRepository;
+
+//    private NotaService notaService;
+
+//    public MateriaCarreraServiceImpl(NotaService notaService) {
+//        this.notaService = notaService;
+//    }
+
 
     @Override
     public List<MateriaCarrera> obtenerMateriaCarreras() {
@@ -44,7 +55,7 @@ public int obtenerCantidadMateriasPorNivel(String carreraId, String nivel) {
 
 
     @Override
-    public List<CatedraDTO> obtenerCatedrasPorDocenteYAnio(String dni, String year) {
+    public List<CatedraDTO> obtenerCatedrasPorDocenteYAnio(String dni, Integer year) {
         return materiaCarreraRepository.findCatedrasByDocenteAndYear(dni, year);
     }
 /*
@@ -83,12 +94,52 @@ public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO
 
     @Override
     public MateriaCarrera update(Integer id, MateriaCarrera materiaCarrera) {
-        materiaCarrera.setId(id);
-        return materiaCarreraRepository.save(materiaCarrera);
+        Optional<MateriaCarrera> existing = materiaCarreraRepository.findById(Long.valueOf(id));
+        if (existing.isPresent()) {
+            materiaCarrera.setId(id); // Asegurarse que el id sea Long
+            // Corregir la comparación de la firma con != y paréntesis
+//            if (!materiaCarrera.getFirma().equals(existing.get().getFirma())) {
+//                notaService.permitirEdicionMateria(
+//                        existing.get().getCarrera().getCarreraId(),
+//                        existing.get().getMateria().getMateriaId(),
+//                        materiaCarrera.getFirma()
+//                );
+//            }
+
+            return materiaCarreraRepository.save(materiaCarrera);
+        } else {
+            throw new EntityNotFoundException("MateriaCarrera con id " + id + " no encontrada");
+        }
     }
 
     @Override
     public void deleteById(Long id) {
         materiaCarreraRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Carrera> obtenerCarrerasPorDocente(Long fmcDocente) {
+//        return materiaCarreraRepository.findCarrerasByFmcDocente(fmcDocente);
+        int anioActual = LocalDate.now().getYear();
+        return materiaCarreraRepository.findCarrerasDictadasEsteAnio(fmcDocente, anioActual);
+
+    }
+
+    @Override
+    public List<MateriaDTO> obtenerMateriasPorCarreraYDocente(Long fmcDocente, String carreraId) {
+//        return materiaCarreraRepository.findMateriasByCarreraAndFmcDocente(fmcDocente, carreraId);
+        int anioActual = LocalDate.now().getYear();
+        return materiaCarreraRepository.findMateriasDictadasEsteAnio(fmcDocente, carreraId,anioActual);
+
+    }
+
+    @Override
+    public List<ActaCursadaDTO> obtenerActas() {
+        return materiaCarreraRepository.obtenerActas();
+    }
+
+    @Override
+    public List<ActaCursadaDTO> obtenerActasPorAnio(int anio) {
+        return materiaCarreraRepository.obtenerActasPorAnio(anio);
     }
 }

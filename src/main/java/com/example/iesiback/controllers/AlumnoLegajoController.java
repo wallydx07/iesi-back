@@ -19,16 +19,11 @@ public class AlumnoLegajoController {
             @RequestParam(required = false) String carreraId,
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String busqueda) {
-
         String carreraIdParam = (carreraId == null || carreraId.trim().isEmpty()) ? null : carreraId.trim() + "%";
-
         String busquedaParam = (busqueda == null || busqueda.trim().isEmpty()) ? null : "%" + busqueda.trim() + "%";
-
         return alumnoLegajoService.obtenerAlumnosLegajos(carreraIdParam, estado, busquedaParam);
+//     return alumnoLegajoService.obtenerAlumnosConCursadas(carreraIdParam, estado, busquedaParam);
     }
-
-
-
 
 
     @GetMapping("/alumnos-cursadas")

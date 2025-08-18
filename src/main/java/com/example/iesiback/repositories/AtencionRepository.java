@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AtencionRepository extends JpaRepository<Atencion, Integer> {
@@ -16,4 +17,7 @@ public interface AtencionRepository extends JpaRepository<Atencion, Integer> {
     List<Atencion> findByAtencionUsuario(String usuario);
     List<Atencion> findByAtencionResuelto(Boolean resuelto);
     List<Atencion> findByAtencionFecha(LocalDate fecha);
+    Optional<Atencion> findByCodigoSeguimiento(String codigoSeguimiento);
+    List<Atencion> findAllByOrderByIdDesc();
+
 }

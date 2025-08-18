@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.PersonalHorarioDTO;
 import com.example.iesiback.entities.PersonalHorario;
 import com.example.iesiback.repositories.PersonalHorarioRepository;
 import org.springframework.stereotype.Service;
@@ -34,5 +35,10 @@ public class PersonalHorariosServiceImpl implements PersonalHorariosService {
     @Override
     public List<PersonalHorario> findByDiaYAnio(String dia, Integer anio) {
         return repository.findByDiaYAnio(dia, anio);
+    }
+
+    @Override
+    public List<PersonalHorarioDTO> getPersonalHorarios(Integer year) {
+        return repository.findPersonalHorariosDelAnio(year);
     }
 }

@@ -1,7 +1,11 @@
 package com.example.iesiback.repositories;
 
+import com.example.iesiback.dto.ActaCursadaDTO;
 import com.example.iesiback.dto.CatedraDTO;
 import com.example.iesiback.dto.MateriaCarreraDTO;
+import com.example.iesiback.dto.MateriaDTO;
+import com.example.iesiback.entities.Carrera;
+import com.example.iesiback.entities.Materia;
 import com.example.iesiback.entities.MateriaCarrera;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -71,16 +75,149 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
                                  @Param("inicio") String inicio,
                                  @Param("fin") String fin);
 
-    @Query("SELECT new com.example.iesiback.dto.CatedraDTO(mc.id, m.materiaId, m.materiaNombre, c.carreraId, mc.division, mc.turno, mc.dia, mc.inicio, mc.fin, mc.materia.catedras, c.carreraNombre) " +
+//    @Query("SELECT new com.example.iesiback.dto.CatedraDTO(mc.id, m.materiaId, m.materiaNombre, c.carreraId, mc.division, mc.turno, mc.dia, mc.inicio, mc.fin, mc.materia.catedras, c.carreraNombre) " +
+//            "FROM MateriaCarrera mc " +
+//            "JOIN mc.materia m " +
+//            "JOIN mc.carrera c " +
+//            "WHERE mc.fmcDocente = :dni AND c.carreraYear = :year " +
+//            "ORDER BY m.materiaId ASC")
+//    List<CatedraDTO> findCatedrasByDocenteAndYear(@Param("dni") String dni, @Param("year") String year);
+
+
+//    @Query("SELECT new com.example.iesiback.dto.CatedraDTO(mc.id, m.materiaId, m.materiaNombre, c.carreraId, mc.division, mc.turno, mc.dia, mc.inicio, mc.fin, mc.materia.catedras, c.carreraNombre, c.carreraYear) " +
+//            "FROM MateriaCarrera mc " +
+//            "JOIN mc.materia m " +
+//            "JOIN mc.carrera c " +
+//            "WHERE mc.fmcDocente = :dni AND :year BETWEEN c.carreraYear AND (c.carreraYear + 2) " +
+//            "ORDER BY m.materiaId ASC")
+//    List<CatedraDTO> findCatedrasByDocenteAndYear(@Param("dni") String dni, @Param("year") Integer year);
+
+
+    @Query("SELECT new com.example.iesiback.dto.CatedraDTO(mc.id, m.materiaId, m.materiaNombre, c.carreraId, mc.division, mc.turno, mc.dia, mc.inicio, mc.fin, mc.materia.catedras, c.carreraNombre, c.carreraYear) " +
             "FROM MateriaCarrera mc " +
             "JOIN mc.materia m " +
             "JOIN mc.carrera c " +
-            "WHERE mc.fmcDocente = :dni AND c.carreraYear = :year " +
+            "WHERE mc.fmcDocente = :dni " +
+            "AND (" +
+            "     (m.materiaNivel = '1ro' AND c.carreraYear = :year) " +
+            "  OR (m.materiaNivel = '2do' AND c.carreraYear + 1 = :year) " +
+            "  OR (m.materiaNivel = '3ro' AND c.carreraYear + 2 = :year)" +
+            ") " +
             "ORDER BY m.materiaId ASC")
-    List<CatedraDTO> findCatedrasByDocenteAndYear(@Param("dni") String dni, @Param("year") String year);
+    List<CatedraDTO> findCatedrasByDocenteAndYear(@Param("dni") String dni, @Param("year") Integer year);
 
+
+
+//    @Query("SELECT DISTINCT mc.carrera FROM MateriaCarrera mc WHERE mc.fmcDocente = :fmcDocente")
+//    List<Carrera> findCarrerasByFmcDocente(@Param("fmcDocente") Long fmcDocente);
+
+
+    @Query("""
+    SELECT DISTINCT mc.carrera
+    FROM MateriaCarrera mc
+    JOIN mc.materia m
+    WHERE mc.fmcDocente = :fmcDocente
+      AND :anioActual = (
+        CASE 
+          WHEN m.materiaNivel = '1ro' THEN mc.carrera.carreraYear
+          WHEN m.materiaNivel = '2do' THEN mc.carrera.carreraYear + 1
+          WHEN m.materiaNivel = '3ro' THEN mc.carrera.carreraYear + 2
+          ELSE -1
+        END
+      )
+""")
+    List<Carrera> findCarrerasDictadasEsteAnio(@Param("fmcDocente") Long fmcDocente, @Param("anioActual") Integer anioActual);
+
+//
+//
+//    @Query("SELECT mc.materia FROM MateriaCarrera mc WHERE mc.fmcDocente = :fmcDocente AND mc.carrera.carreraId = :carreraId")
+//    List<MateriaDTO> findMateriasByCarreraAndFmcDocente(@Param("fmcDocente") Long fmcDocente, @Param("carreraId") String carreraId);
+//
+//
+
+//    @Query("""
+//    SELECT m.materiaId AS materiaId,
+//           m.materiaNombre AS materiaNombre,
+//           CAST(m.materiaOrden AS string) AS materiaOrden,
+//           m.materiaNivel AS materiaNivel,
+//           m.materiaRegimen AS materiaRegimen,
+//           m.materiaModalidad AS materiaModalidad,
+//           CAST(m.materiaCursada AS string) AS materiaCursada,
+//           CAST(m.materiaExamen AS string) AS materiaExamen,
+//           '' AS catedras
+//    FROM MateriaCarrera mc
+//    JOIN mc.materia m
+//    WHERE mc.fmcDocente = :fmcDocente AND mc.carrera.carreraId = :carreraId
+//""")
+//    List<MateriaDTO> findMateriasByCarreraAndFmcDocente(@Param("fmcDocente") Long fmcDocente, @Param("carreraId") String carreraId);
+//
+
+
+    @Query("""
+    SELECT m.materiaId AS materiaId,
+           m.materiaNombre AS materiaNombre,
+           CAST(m.materiaOrden AS string) AS materiaOrden,
+           m.materiaNivel AS materiaNivel,
+           m.materiaRegimen AS materiaRegimen,
+           m.materiaModalidad AS materiaModalidad,
+           CAST(m.materiaCursada AS string) AS materiaCursada,
+           CAST(m.materiaExamen AS string) AS materiaExamen,
+           '' AS catedras
+    FROM MateriaCarrera mc
+    JOIN mc.materia m
+    WHERE mc.fmcDocente = :fmcDocente
+      AND mc.carrera.carreraId = :carreraId
+      AND :anioActual = (
+        CASE 
+          WHEN m.materiaNivel = '1ro' THEN mc.carrera.carreraYear
+          WHEN m.materiaNivel = '2do' THEN mc.carrera.carreraYear + 1
+          WHEN m.materiaNivel = '3ro' THEN mc.carrera.carreraYear + 2
+          ELSE -1
+        END
+      )
+""")
+    List<MateriaDTO> findMateriasDictadasEsteAnio(
+            @Param("fmcDocente") Long fmcDocente,
+            @Param("carreraId") String carreraId,
+            @Param("anioActual") Integer anioActual
+    );
+
+
+
+    @Query(value = "SELECT COUNT(*) - 1 FROM materia_carrera mc INNER JOIN materia m ON mc.materia_id = m.materia_id WHERE mc.carrera_id = :carreraId AND m.materia_nivel = :nivel", nativeQuery = true)
+    int contarMateriasPorNivel(@Param("carreraId") String carreraId, @Param("nivel") String nivel);
+
+
+
+    @Query("SELECT new com.example.iesiback.dto.ActaCursadaDTO(" +
+            "mc.id, m.materiaNombre, m.materiaOrden, mc.folio, mc.libro, mc.fecha, mc.firma, " +
+            "mc.fmcDocente, c.carreraId, c.carreraYear, p.personalApellido, p.personalNombre, " +
+            "m.materiaModalidad, m.materiaRegimen) " +
+            "FROM MateriaCarrera mc " +
+            "JOIN mc.materia m " +
+            "JOIN mc.carrera c " +
+            "LEFT JOIN Personal p ON mc.fmcDocente = p.id " +
+            "ORDER BY mc.fecha DESC, c.carreraId, m.materiaOrden")
+    List<ActaCursadaDTO> obtenerActas();
+
+    @Query("SELECT new com.example.iesiback.dto.ActaCursadaDTO(" +
+            "mc.id, m.materiaNombre, m.materiaOrden, mc.folio, mc.libro, mc.fecha, mc.firma, " +
+            "mc.fmcDocente, c.carreraId, c.carreraYear, p.personalApellido, p.personalNombre, " +
+            "m.materiaModalidad, m.materiaRegimen) " +
+            "FROM MateriaCarrera mc " +
+            "JOIN mc.materia m " +
+            "JOIN mc.carrera c " +
+            "LEFT JOIN Personal p ON mc.fmcDocente = p.id " +
+            "WHERE :anio BETWEEN c.carreraYear AND c.carreraYear + 2 " +
+            "AND (" +
+            "  (m.materiaNivel = '1ro' AND c.carreraYear = :anio) " +
+            "  OR (m.materiaNivel = '2do' AND c.carreraYear + 1 = :anio) " +
+            "  OR (m.materiaNivel = '3ro' AND c.carreraYear + 2 = :anio)" +
+            ")")
+    List<ActaCursadaDTO> obtenerActasPorAnio(@Param("anio") int anio);
 
 
 
 }
+
 

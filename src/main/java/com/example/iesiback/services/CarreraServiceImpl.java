@@ -45,6 +45,7 @@ public class CarreraServiceImpl implements CarreraService {
 //    public List<Carrera> obtenerCarreras() {
 //        return carreraRepository.findAll();
 //    }
+
     @Override
     public List<Carrera> obtenerCarreras() {
         return carreraRepository.findAllByOrderByCarreraYearDesc();
@@ -147,5 +148,12 @@ public class CarreraServiceImpl implements CarreraService {
     public List<Carrera> obtenerCarrerasPorTutor(Long tutorDni) {
         return tutorCarreraService.obtenerCarrerasPorTutor(tutorDni);
     }
+
+    @Override
+    public boolean estaInscripto(String dniAlumno, String carreraId) {
+        Carrera carrera=obtenerCarreraPorId(carreraId).get();
+        return carreraRepository.existsByAlumnoDniAndCarreraId(dniAlumno, carrera.getCarreraNombre());
+    }
+
 
 }

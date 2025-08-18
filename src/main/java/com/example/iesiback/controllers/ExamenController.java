@@ -72,7 +72,6 @@ public class ExamenController {
             @RequestParam String turno) {
         List<InscripcionExamenDTO> examenes = examenService.completarCursadas(legajoId, turno);
         System.out.println("Datos devueltos por completarCursadas: " + examenes);
-
         return ResponseEntity.ok(examenes);
     }
 

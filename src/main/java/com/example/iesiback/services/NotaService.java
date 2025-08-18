@@ -1,8 +1,10 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.EvaluacionCorrelativaResponse;
 import com.example.iesiback.dto.NotaExamenDTO;
 import com.example.iesiback.dto.NotaCursadaDTO;
 import com.example.iesiback.dto.NotaMateriaDTO;
+import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ public interface NotaService {
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId);
     List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); // ✅ Corregido, sin implementación en la interfaz
     List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materiaId, boolean cursadaInscripto);
+
+//    List<NotaCursadaDTO> findNotasByCarreraAndMateriaNew(String carreraId, String materaId, boolean cursadaInscripto);
 
     List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, boolean cursadaInscripto);
 
@@ -33,4 +37,30 @@ public interface NotaService {
     void eliminarNota(Long id);
 
     NotaMateriaDTO obtenerUltimaNota(String legajoId);
+
+    Cursada obtenerCursadaPorNotaId(Long notaId);
+
+    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden);
+
+    //            status = "Aceptada";
+    //        } else {
+    //            status = "Aceptada";
+    //        }
+    //
+    //        if (materiasDesaprobadas.isEmpty()) {
+    //            materiasDesaprobadas.add("Ninguna");
+    //        }
+    //        if (materiasConFechaInvalida.isEmpty()) {
+    //            materiasConFechaInvalida.add("Coherente");
+    //        }
+    //
+    //        System.out.println("✅ Resultado final: " + status);
+    //        System.out.println("❌ Materias desaprobadas: " + materiasDesaprobadas);
+    //        System.out.println("📅 Materias con fecha inválida: " + materiasConFechaInvalida);
+    //
+    //        return new EvaluacionCorrelativaResponse(status, materiasDesaprobadas, materiasConFechaInvalida);
+    //    }
+
+
+    void permitirEdicionMateria(String carreraId, String materiaId, boolean editable);
 }

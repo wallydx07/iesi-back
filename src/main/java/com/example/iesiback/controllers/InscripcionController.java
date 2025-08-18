@@ -51,4 +51,7 @@ public class InscripcionController {
     public Inscripcion getInscripcionesByLegajoId(@PathVariable String legajoId) {
         return inscripcionService.findByLegajoId(legajoId);
     }
+
+
+
 }

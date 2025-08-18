@@ -11,7 +11,6 @@ import com.example.iesiback.entities.User;
 import com.example.iesiback.models.UserRequest;
 import org.springframework.stereotype.Service;
 
-@Service
 public interface UserService {
 
     List<User> findAll();
@@ -34,4 +33,5 @@ public interface UserService {
     void sendPasswordResetToken(String email);
     boolean resetPasswordWithToken(String token, String newPassword);
 
+    List<User> getUsuariosPorRoles(List<String> roles);
 }

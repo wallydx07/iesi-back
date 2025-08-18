@@ -19,4 +19,7 @@ public class ObservacionesService {
         return ObservacionesRepository.save(observacion);
     }
 
+    public Optional<Observacione> obtenerUltimaObservacionPorLegajo(String legajoId) {
+        return Optional.ofNullable(ObservacionesRepository.findTopByLegajo_LegajoIdOrderByFechaDesc(legajoId));
+    }
 }

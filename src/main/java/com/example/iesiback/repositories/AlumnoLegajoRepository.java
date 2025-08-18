@@ -48,7 +48,7 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             "a.alumnoDni, " +
             "a.alumnoApellido, " +
             "a.alumnoNombre, " +
-            "car.carreraId, " +
+            "l.inscripcion.carrera.carreraId, " +
             "l.legajoFotocopiaDni, " +
             "l.legajoCertificadoNacimiento, " +
             "l.legajoFotocopiaTitulo, " +

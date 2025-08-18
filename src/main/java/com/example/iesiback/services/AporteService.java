@@ -13,7 +13,13 @@ public interface AporteService {
      Aporte crearAporte(Aporte aporte);
      List<AporteDTO> getAportesConDatos();
      Aporte save(Aporte aporte);
-     Aporte findAporteById(String id);
+     Aporte findAporteById(Integer id);
 
      List<Aporte> obtenerAportesPorLegajoId(String legajoId);
+
+     List<Aporte> obtenerAportesDelAnioActualPorLegajo(String legajoId);
+
+     void deleteById(Integer id);
+
+     List<Aporte> obtenerAportesYearFiltrado(String legajoId);
 }

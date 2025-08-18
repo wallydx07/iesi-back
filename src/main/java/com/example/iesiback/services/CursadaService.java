@@ -29,4 +29,8 @@ public interface CursadaService {
 
     @Transactional
     void eliminarCursada(Integer id);
+
+    Optional<Cursada> buscarPorId(Integer cursadaId);
+
+    Cursada actualizarCursada(Cursada cursada, Cursada cursadaPost);
 }

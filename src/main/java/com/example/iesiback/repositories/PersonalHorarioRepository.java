@@ -1,6 +1,7 @@
 package com.example.iesiback.repositories;
 
 import com.example.iesiback.dto.HorarioDTO;
+import com.example.iesiback.dto.PersonalHorarioDTO;
 import com.example.iesiback.entities.PersonalHorario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,6 +47,24 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
             @Param("dia") String dia,
             @Param("anio") Integer anio);
 
+    @Query("SELECT new com.example.iesiback.dto.PersonalHorarioDTO(" +
+            "ph.id, " +
+            "p.id, " +
+            "p.personalApellido, " +
+            "p.personalNombre, " +
+            "mc.id, " +
+            "mc.carrera.carreraId, " +
+            "m.materiaNombre, " +
+            "ph.dia, " +
+            "ph.entrada, " +
+            "ph.salida) " +
+            "FROM PersonalHorario ph " +
+            "JOIN ph.dni p " +
+            "JOIN ph.materiaCarrera mc " +
+            "JOIN mc.materia m " +
+            "WHERE ph.year = :year " +
+            "ORDER BY p.personalApellido, p.personalNombre ASC")
+    List<PersonalHorarioDTO> findPersonalHorariosDelAnio(@Param("year") Integer year);
 
 
 

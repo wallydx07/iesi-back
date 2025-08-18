@@ -1,9 +1,7 @@
 package com.example.iesiback.services;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -34,6 +32,18 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
+    private JavaMailSender mailSender; // Necesitás configurar esto
+
+
+    @Autowired
+    private EmailService emailService; // Necesitás configurar esto
+
+
+
     public UserServiceImpl(UserRepository repository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
@@ -59,13 +69,37 @@ public class UserServiceImpl implements UserService {
         return repository.findById(id);
     }
 
+//    @Transactional
+//    @Override
+//    public User save(User user) {
+//        user.setRoles(getRolesFromRequest(user)); // Asignar roles desde el JSON
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+//        return repository.save(user);
+//    }
+
     @Transactional
     @Override
     public User save(User user) {
-        user.setRoles(getRolesFromRequest(user)); // Asignar roles desde el JSON
+        user.setRoles(getRolesFromRequest(user));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return repository.save(user);
+        User savedUser = repository.save(user);
+
+        // Enviar correo con plantilla estática
+        try {
+            emailService.enviarCorreoConPlantilla(
+                    savedUser.getUserEmail(),            // destino
+                    "Usuario Habilitado",      // asunto
+                    "nuevoUsuario",                    // nombre del template .html sin extensión
+                    Map.of()                             // no pasamos variables (plantilla estática)
+            );
+        } catch (Exception e) {
+            System.err.println("Error al enviar el correo: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return savedUser;
     }
+
 
     @Override
     @Transactional
@@ -162,35 +196,21 @@ public class UserServiceImpl implements UserService {
         }).orElse(false);
     }
 
-
-
-    @Autowired
-    private PasswordResetTokenRepository tokenRepository;
-
-    @Autowired
-    private JavaMailSender mailSender; // Necesitás configurar esto
-
     @Override
     public void sendPasswordResetToken(String email) {
         System.out.println("🔵 Solicitud de reset recibida para: " + email);
-
         Optional<User> userOpt = repository.findByUserEmail(email);
-
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             System.out.println("✅ Usuario encontrado: " + user.getUsername());
-
             PasswordResetToken token = new PasswordResetToken(user);
             tokenRepository.save(token);
-
             String resetLink = "https://gestionacademica.iesijujuy.edu.ar/reset-password?token=" + token.getToken();
             System.out.println("🔗 Enlace generado: " + resetLink);
-
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(user.getUserEmail());
             message.setSubject("Restablecer tu contraseña");
             message.setText("Hacé clic en el siguiente enlace para restablecer tu contraseña: " + resetLink);
-
             try {
                 mailSender.send(message);
                 System.out.println("📧 Correo enviado correctamente a: " + user.getUserEmail());
@@ -198,51 +218,44 @@ public class UserServiceImpl implements UserService {
                 System.err.println("❌ Error al enviar el correo: " + e.getMessage());
                 e.printStackTrace();
             }
-
         } else {
             System.err.println("⚠️ No se encontró usuario con email: " + email);
         }
     }
 
-
     @Override
     public boolean resetPasswordWithToken(String token, String newPassword) {
         System.out.println("🔐 Intentando restablecer contraseña con token: " + token);
-
         try {
             Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(token);
-
             if (tokenOpt.isPresent()) {
                 PasswordResetToken prt = tokenOpt.get();
                 System.out.println("✅ Token encontrado para el usuario: " + prt.getUser().getUsername());
-
                 if (prt.getExpirationDate().isAfter(LocalDateTime.now())) {
                     User user = prt.getUser();
                     System.out.println("🕒 Token válido. Procediendo a actualizar contraseña...");
                     user.setPassword(newPassword); // 🚨 Asegurate de cifrarla en producción
-
                     user.setPassword(passwordEncoder.encode(newPassword));
                     repository.save(user);
                     tokenRepository.delete(prt);
                     System.out.println("✅ Contraseña actualizada correctamente y token eliminado.");
                     return true;
-
                 } else {
                     System.err.println("⛔ Token expirado: " + prt.getExpirationDate());
                 }
-
             } else {
                 System.err.println("❌ Token no encontrado en la base de datos.");
             }
-
         } catch (Exception e) {
             System.err.println("🚨 Error al restablecer la contraseña: " + e.getMessage());
             e.printStackTrace();
         }
-
         return false;
     }
 
-
+    @Override
+    public List<User> getUsuariosPorRoles(List<String> roles) {
+        return repository.findByRolesNombreIn(roles);
+    }
 
 }

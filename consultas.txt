@@ -1,0 +1,118 @@
+UPDATE nota n
+SET nota_fecha_nota = DATE '2025-07-11'
+FROM cursada c
+INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+INNER JOIN materia m ON mc.materia_id = m.materia_id
+INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+WHERE n.nota_cursada_id = c.cursada_id
+  AND EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(ca.carrera_year AS INTEGER) AND CAST(ca.carrera_year AS INTEGER) + 2
+  AND (
+    (m.materia_nivel = '1ro' AND CAST(ca.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+AND materia_regimen = '1ER CUATRIMESTRE';
+
+
+UPDATE nota n
+SET nota_fecha_nota = DATE '2025-12-05'
+FROM cursada c
+INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+INNER JOIN materia m ON mc.materia_id = m.materia_id
+INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+WHERE n.nota_cursada_id = c.cursada_id
+  AND EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(ca.carrera_year AS INTEGER) AND CAST(ca.carrera_year AS INTEGER) + 2
+  AND (
+    (m.materia_nivel = '1ro' AND CAST(ca.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+AND materia_regimen = '2DO CUATRIMESTRE';
+
+UPDATE nota n
+SET nota_fecha_nota = DATE '2025-12-05'
+FROM cursada c
+INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+INNER JOIN materia m ON mc.materia_id = m.materia_id
+INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+WHERE n.nota_cursada_id = c.cursada_id
+  AND EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(ca.carrera_year AS INTEGER) AND CAST(ca.carrera_year AS INTEGER) + 2
+  AND (
+    (m.materia_nivel = '1ro' AND CAST(ca.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+AND materia_regimen = 'ANUAL';
+
+
+
+UPDATE materia_carrera
+SET fecha = DATE '2025-07-11'
+FROM materia, carrera
+WHERE materia_carrera.materia_id = materia.materia_id
+  AND materia_carrera.carrera_id = carrera.carrera_id
+  AND EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(carrera.carrera_year AS INTEGER) AND CAST(carrera.carrera_year AS INTEGER) + 2
+  AND (
+    (materia.materia_nivel = '1ro' AND CAST(carrera.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (materia.materia_nivel = '2do' AND CAST(carrera.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (materia.materia_nivel = '3ro' AND CAST(carrera.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+AND materia.materia_regimen = '1ER CUATRIMESTRE';
+
+
+
+
+UPDATE materia_carrera
+SET fecha = DATE '2025-12-05'
+FROM materia, carrera
+WHERE materia_carrera.materia_id = materia.materia_id
+  AND materia_carrera.carrera_id = carrera.carrera_id
+  AND EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(carrera.carrera_year AS INTEGER) AND CAST(carrera.carrera_year AS INTEGER) + 2
+  AND (
+    (materia.materia_nivel = '1ro' AND CAST(carrera.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (materia.materia_nivel = '2do' AND CAST(carrera.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (materia.materia_nivel = '3ro' AND CAST(carrera.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+  AND materia.materia_regimen = '2DO CUATRIMESTRE';
+
+
+  UPDATE materia_carrera
+SET fecha = DATE '2025-12-05'
+FROM materia, carrera
+WHERE materia_carrera.materia_id = materia.materia_id
+  AND materia_carrera.carrera_id = carrera.carrera_id
+  AND EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(carrera.carrera_year AS INTEGER) AND CAST(carrera.carrera_year AS INTEGER) + 2
+  AND (
+    (materia.materia_nivel = '1ro' AND CAST(carrera.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (materia.materia_nivel = '2do' AND CAST(carrera.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (materia.materia_nivel = '3ro' AND CAST(carrera.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+  AND materia.materia_regimen = 'ANUAL';
+
+
+SELECT *
+FROM nota n
+INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
+INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+INNER JOIN materia m ON mc.materia_id = m.materia_id
+INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+WHERE EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(ca.carrera_year AS INTEGER) AND CAST(ca.carrera_year AS INTEGER) + 2
+  AND (
+    (m.materia_nivel = '1ro' AND CAST(ca.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+  and materia_regimen='1ER CUATRIMESTRE'
+
+
+SELECT *
+FROM materia_carrera mc
+INNER JOIN materia m ON mc.materia_id = m.materia_id
+INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+WHERE EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(ca.carrera_year AS INTEGER) AND CAST(ca.carrera_year AS INTEGER) + 2
+  AND (
+    (m.materia_nivel = '1ro' AND CAST(ca.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+    OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+  )
+ and materia_regimen='1ER CUATRIMESTRE'

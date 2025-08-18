@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.AporteDTO;
 import com.example.iesiback.entities.CertificadoEstudiante;
 import com.example.iesiback.repositories.CertificadoEstudianteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ import java.util.List;
 
         @Override
         public List<CertificadoEstudiante> findByLegajoId(String legajoId) {
-            return repository.findByLegajo_LegajoId(legajoId);
+            return repository.findByAtencion_Legajo_LegajoId(legajoId);
         }
 
     @Override
@@ -78,4 +79,8 @@ import java.util.List;
         return repository.saveAll(certificados);
     }
 
+    @Override
+    public List<AporteDTO> obtenerCertificadosComoAportes() {
+        return repository.findCertificadosComoAportes();
+    }
 }

@@ -8,8 +8,15 @@ import java.util.Optional;
 
 public interface AtencionService {
     List<Atencion> findAll();
+
     Optional<Atencion> findById(Integer id);
+
+    Optional<Atencion> findByCodigoSeguimiento(String codigo);
+
     Atencion save(Atencion atencion);
+
+    Atencion update(Atencion atencion);
+
     void deleteById(Integer id);
 
     // Búsquedas específicas

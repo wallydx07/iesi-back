@@ -26,4 +26,6 @@ public interface CarreraService {
     Integer obtenerDuracionCarrera(String libretaEstudiantil) throws Exception;
 
     List<Carrera> obtenerCarrerasPorTutor(Long id);
+
+    boolean estaInscripto(String dniAlumno, String carreraId);
 }

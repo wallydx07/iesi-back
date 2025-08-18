@@ -7,6 +7,8 @@ import com.example.iesiback.repositories.CursadaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -95,18 +97,59 @@ public class CursadaServiceImpl implements CursadaService {
 
     @Override
     public Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear) {
-        return cursadaRepository.findEstadoByLegajoAndMateria(legajoId, materiaId, materiaYear);
+        return cursadaRepository.findEstadoByLegajoAndMateria(legajoId, materiaId, Integer.parseInt(materiaYear));
     }
+
+//    @Override
+//    public List<Cursada> getCursadasNoAprobadas(String legajoId) {
+//        List<Cursada> cursadas = cursadaRepository.findByLegajoId(legajoId);
+//
+//        return cursadas.stream()
+//                .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty()) // Asegura que tenga notas
+//                .filter(cursada -> cursada.getNotas().stream()
+//                        .noneMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()) ||
+//                                "Cursando".equalsIgnoreCase(nota.getNotaEstado()))) // Ninguna está aprobada ni cursando
+//                .collect(Collectors.toList());
+//        //para la fecha es: nota.getNotaFechaNota()
+//    }
+
+
     @Override
     public List<Cursada> getCursadasNoAprobadas(String legajoId) {
         List<Cursada> cursadas = cursadaRepository.findByLegajoId(legajoId);
 
-        return cursadas.stream()
-                .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty()) // Asegura que tenga notas
+        // Filtrar cursadas con notas, y que no tengan ninguna "Aprobado" ni "Cursando"
+        List<Cursada> filtradas = cursadas.stream()
+                .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty())
                 .filter(cursada -> cursada.getNotas().stream()
                         .noneMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()) ||
-                                "Cursando".equalsIgnoreCase(nota.getNotaEstado()))) // Ninguna está aprobada ni cursando
+                                "Cursando".equalsIgnoreCase(nota.getNotaEstado())))
                 .collect(Collectors.toList());
+
+        // Quedarse con la cursada más reciente por materia
+        Map<String, Cursada> cursadaMasRecientePorMateria = filtradas.stream()
+                .collect(Collectors.toMap(
+                        Cursada::getMateriaId, // Agrupar por materia
+                        cursada -> cursada,    // Valor inicial
+                        (c1, c2) -> {          // Resolver duplicados: quedarse con la más reciente
+                            LocalDate fecha1 = c1.getNotas().stream()
+                                    .map(nota -> nota.getNotaFechaNota())
+                                    .filter(Objects::nonNull) // ✅ Ignorar fechas nulas
+                                    .max(LocalDate::compareTo)
+                                    .orElse(LocalDate.MIN);
+
+                            LocalDate fecha2 = c2.getNotas().stream()
+                                    .map(nota -> nota.getNotaFechaNota())
+                                    .filter(Objects::nonNull) // ✅ Ignorar fechas nulas
+                                    .max(LocalDate::compareTo)
+                                    .orElse(LocalDate.MIN);
+
+
+                            return fecha1.isAfter(fecha2) ? c1 : c2;
+                        }
+                ));
+
+        return new ArrayList<>(cursadaMasRecientePorMateria.values());
     }
 
 
@@ -214,4 +257,30 @@ public void eliminarCursada(Integer id) {
 
         cursadaRepository.delete(cursada);
     }
+
+    @Override
+    public Optional<Cursada> buscarPorId(Integer cursadaId) {
+        return cursadaRepository.findById(cursadaId);
+    }
+    @Override
+    public Cursada actualizarCursada(Cursada cursada, Cursada cursadaPost) {
+        cursada.setPrimerParcial(cursadaPost.getPrimerParcial());
+        cursada.setRecuperatorio1(cursadaPost.getRecuperatorio1());
+        cursada.setSegundoParcial(cursadaPost.getSegundoParcial());
+        cursada.setRecuperatorio2(cursadaPost.getRecuperatorio2());
+        cursada.setTrabajosPracticos(cursadaPost.getTrabajosPracticos());
+        cursada.setAsistencia(cursadaPost.getAsistencia());
+        cursada.setColoquio(cursadaPost.getColoquio());
+        cursada.setTrabajoInstitucional(cursadaPost.getTrabajoInstitucional());
+        cursada.setCursadaInscripto(cursadaPost.getCursadaInscripto());
+        cursada.setStatus(cursadaPost.getStatus());
+
+//        cursada.setMateriaCarrera(cursadaPost.getMateriaCarrera());
+
+//        // Actualizar notas sin reemplazar la colección
+//        actualizarNotas(cursada, cursadaPost.getNotas());
+
+        return cursadaRepository.save(cursada);
+    }
+
 }

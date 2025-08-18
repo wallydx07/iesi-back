@@ -102,15 +102,15 @@ public class AsistenciaPersonalController {
 
     @PostMapping("/desde-dispositivo")
     public ResponseEntity<?> recibirDesdeDispositivo(@RequestBody RegistroAsistenciaDTO dto) {
-        System.out.println("DNI recibido: " + dto.getDni());
-        System.out.println("FechaHora: " + dto.getFechaHora());
-        System.out.println("Dispositivo: " + dto.getDispositivo());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime fechaHoraCompleta = LocalDateTime.parse(dto.getFechaHora(), formatter);
-        LocalDate fecha = fechaHoraCompleta.toLocalDate();
-        LocalTime hora = fechaHoraCompleta.toLocalTime();
-        System.out.println("Fecha: " + fecha);
-        System.out.println("Hora: " + hora);
+//        System.out.println("DNI recibido: " + dto.getDni());
+//        System.out.println("FechaHora: " + dto.getFechaHora());
+//        System.out.println("Dispositivo: " + dto.getDispositivo());
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//        LocalDateTime fechaHoraCompleta = LocalDateTime.parse(dto.getFechaHora(), formatter);
+//        LocalDate fecha = fechaHoraCompleta.toLocalDate();
+//        LocalTime hora = fechaHoraCompleta.toLocalTime();
+//        System.out.println("Fecha: " + fecha);
+//        System.out.println("Hora: " + hora);
 
         RespuestaAsistenciaDTO asistencia = service.AsistenciaDahua(dto);
 

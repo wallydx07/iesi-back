@@ -17,6 +17,9 @@ public interface AsistenciaPersonalService {
     boolean verificarSiYaEstaRegistrado(LocalDate fecha, Long dni, Integer horarioId);
     void registrarEntrada(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario);
     RespuestaAsistenciaDTO AsistenciaDahua(RegistroAsistenciaDTO dto);
+
+    void registrarEntradaIntermedia(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario);
+
     boolean marcarHoraSalida(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario);
     List<DetalleAsistenciaPersonalDTO> obtenerDetallePorFecha(LocalDate fecha);
     boolean existeAsistenciaParaHoy(Long horarioId, LocalDate fecha);

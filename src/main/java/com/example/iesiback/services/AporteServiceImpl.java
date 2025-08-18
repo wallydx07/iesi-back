@@ -16,6 +16,11 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public class AporteServiceImpl implements AporteService {
@@ -187,7 +192,7 @@ public class AporteServiceImpl implements AporteService {
 
 
     @Override
-    public Aporte findAporteById(String id) {
+    public Aporte findAporteById(Integer id) {
         return aporteRepository.findById(Integer.valueOf(id)).orElse(null);
     }
 
@@ -201,5 +206,33 @@ public class AporteServiceImpl implements AporteService {
     public List<Aporte> obtenerAportesPorLegajoId(String legajoId) {
         Optional<Legajo> legajo = this.legajoService.findById(legajoId);
         return legajo.map(aporteRepository::findByAporteLegajo).orElseThrow(() -> new RuntimeException("Legajo no encontrado"));
+    }
+
+    @Override
+    public List<Aporte> obtenerAportesDelAnioActualPorLegajo(String legajoId) {
+        return aporteRepository.findAportesDelAnioActualPorLegajo(legajoId);
+    }
+
+    @Override
+    public void deleteById(Integer id) {
+        aporteRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Aporte> obtenerAportesYearFiltrado(String legajoId) {
+        List<Aporte> aportes = aporteRepository.findAportesDelAnioActualPorLegajo(legajoId)
+                .stream()
+                .filter(distinctByKeys(a -> Arrays.asList(
+//                        a.getAporteFecha(), a.getAporteTalonarioRecibo(), a.getAporteNroRecibo(), a.getAporteMonto()
+                       a.getAporteFecha(),  a.getAporteMonto()
+                )))
+                .collect(Collectors.toList());
+
+        return aportes;
+    }
+
+    public static <T> Predicate<T> distinctByKeys(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
     }
 }

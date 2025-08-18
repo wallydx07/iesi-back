@@ -1,5 +1,6 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.AporteDTO;
 import com.example.iesiback.dto.CertificadoEstudianteDTO;
 import com.example.iesiback.entities.Atencion;
 import com.example.iesiback.entities.CertificadoEstudiante;
@@ -136,19 +137,45 @@ public class ConstanciaController {
     @PostMapping("/certificado")
     public ResponseEntity<CertificadoEstudiante> saveOrUpdate(
             @RequestBody CertificadoEstudiante certificado) {
-            System.out.println("Certificado ID: " + certificado.getId());
-            System.out.println("Tipo: " + certificado.getTipo());
-            System.out.println("Autoridad: " + certificado.getAutoridad());
-            System.out.println("Fecha: " + certificado.getFecha());
-            System.out.println("Estado: " + certificado.getEstado());
-            System.out.println("Observaciones: " + certificado.getObservaciones());
-            System.out.println("Usuario: " + certificado.getUsuario());
-            System.out.println("Validado: " + certificado.getValidado());
-            System.out.println("Monto: " + certificado.getMonto());
-            System.out.println("Legajo ID: " + certificado.getLegajo().getLegajoId());
-            System.out.println("Atencion ID: " + certificado.getAtencion().getId());
-            System.out.println("--------------------------------------");
-        CertificadoEstudiante saved = certificadoEstudianteService.save(certificado);
+        // Traemos el certificado actual desde la base
+        CertificadoEstudiante updateCertificado = this.certificadoEstudianteService.findById(certificado.getId());
+        // Actualizamos los campos del certificado existente
+        updateCertificado.setTipo(certificado.getTipo());
+        updateCertificado.setAutoridad(certificado.getAutoridad());
+        updateCertificado.setFecha(certificado.getFecha());
+        updateCertificado.setEstado(certificado.getEstado());
+        updateCertificado.setObservaciones(certificado.getObservaciones());
+        updateCertificado.setUsuario(certificado.getUsuario());
+        updateCertificado.setValidado(certificado.getValidado());
+        updateCertificado.setMonto(certificado.getMonto());
+        // Logs de verificación
+        System.out.println("Certificado ID: " + updateCertificado.getId());
+        System.out.println("Tipo: " + updateCertificado.getTipo());
+        System.out.println("Autoridad: " + updateCertificado.getAutoridad());
+        System.out.println("Fecha: " + updateCertificado.getFecha());
+        System.out.println("Estado: " + updateCertificado.getEstado());
+        System.out.println("Observaciones: " + updateCertificado.getObservaciones());
+        System.out.println("Usuario: " + updateCertificado.getUsuario());
+        System.out.println("Validado: " + updateCertificado.getValidado());
+        System.out.println("Monto: " + updateCertificado.getMonto());
+        System.out.println("Legajo ID: " + updateCertificado.getAtencion().getLegajo().getLegajoId());
+        System.out.println("Atencion ID: " + updateCertificado.getAtencion().getId());
+        System.out.println("--------------------------------------");
+
+        // Guardamos el certificado actualizado
+        CertificadoEstudiante saved = certificadoEstudianteService.save(updateCertificado);
         return ResponseEntity.ok(saved);
     }
+
+
+    @GetMapping("/aportados")
+    public ResponseEntity<List<AporteDTO>> getCertificadosComoAportes() {
+        List<AporteDTO> certificados = certificadoEstudianteService.obtenerCertificadosComoAportes();
+        if (certificados.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(certificados);
+    }
+
+
 }

@@ -8,11 +8,16 @@ import java.util.Optional;
 
 public interface EquivalenciaService {
 
-    List<EquivalenciaDTO> obtenerTodas();
 
-    Optional<Equivalencia> obtenerPorId(Long id);
+    List<Equivalencia> findAll();
 
-    Equivalencia registrarEquivalencia(EquivalenciaDTO dto);
+    Optional<Equivalencia> findById(Long id);
 
-    boolean eliminarEquivalencia(Long id);
+    Equivalencia save(Equivalencia equivalencia);
+
+    void deleteById(Long id);
+
+    List<Equivalencia> findByLegajoId(Integer legajoId);
+
+    List<Equivalencia> findByMateriaId(Integer materiaId);
 }

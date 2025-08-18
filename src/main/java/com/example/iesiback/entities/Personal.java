@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -12,6 +13,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "personal")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Personal {
     @Id
     @Column(name = "personal_dni", nullable = false)
@@ -66,5 +68,4 @@ public class Personal {
 
     @Column(name = "curriculum")
     private Boolean curriculum;
-
 }

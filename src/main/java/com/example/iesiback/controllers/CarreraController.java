@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.services.CarreraService;
+import com.example.iesiback.services.MateriaCarreraService;
 import com.example.iesiback.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,10 +14,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/carreras")
 public class CarreraController {
+
     private final UserService userService;
 
     @Autowired
     private CarreraService carreraService;
+
+    @Autowired
+    private MateriaCarreraService materiaCarreraService;
 
     public CarreraController(UserService userService) {
         this.userService = userService;
@@ -33,18 +38,27 @@ public class CarreraController {
         return ResponseEntity.ok(carreras);
     }
 
+
+    @GetMapping("/legajo/{legajoId}")
+    public Carrera obtenerCarreraPorLegajo(@PathVariable String legajoId) {
+        return carreraService.obtenerCarreraPorLegajoId(legajoId);
+    }
+
+
     @GetMapping("/ordenadas/por-usuario/")
     public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario() {
         List<Carrera> carreras;
         String userRol= String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
         Long userId= Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
-        if ("ROLE_ADMIN".equalsIgnoreCase(userRol)) {
+        if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_PERSONAL".equalsIgnoreCase(userRol)) {
             carreras = carreraService.obtenerCarrerasOrdenadas();
         } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
             carreras = carreraService.obtenerCarrerasPorTutor(userId);
-        } else {
+        } else if("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
+            carreras = materiaCarreraService.obtenerCarrerasPorDocente(userId);
+        }else {
             return ResponseEntity.status(
-                     HttpStatus.FORBIDDEN).build();
+                    HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(carreras);
     }
@@ -63,5 +77,13 @@ public class CarreraController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/verificar")
+    public ResponseEntity<Boolean> verificarInscripcion(
+            @RequestParam String dniAlumno,
+            @RequestParam String carreraId) {
+        boolean existe = carreraService.estaInscripto(dniAlumno, carreraId);
+        return ResponseEntity.ok(existe);
     }
 }

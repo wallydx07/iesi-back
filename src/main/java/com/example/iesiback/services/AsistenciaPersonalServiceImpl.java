@@ -48,42 +48,35 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         repository.deleteById(id);
     }
 
-
-//    @Override
-//    public boolean AsistenciaDahua(String dni) {
-//        System.out.println("\n🔍 Iniciando verificación de asistencia para DNI: " + dni);
-//        Long dniLong;
-//        try {
-//            dniLong = Long.parseLong(dni);
-//        } catch (NumberFormatException e) {
-//            System.out.println("❌ DNI inválido: " + dni);
-//            return false;
-//        }
-//        LocalDate hoy = LocalDate.now();
-//        LocalTime ahora = LocalTime.now(); // Para pruebas puede usarse fijo
-//        List<HorarioDTO> horariosHoy = obtenerHorariosDelDia(dni, hoy);
-
-
-
-    /// ============================================================000
-    /// ASISTENCIA!!!!!!
+    private void verificarHorariosNoMarcados(LocalDate fecha, Long dni, List<HorarioDTO> horariosHoy, LocalTime ahora) {
+        System.out.println("1-verificarHorariosNoMarcados");
+        for (HorarioDTO horario : horariosHoy) {
+            boolean yaRegistrado = verificarSiYaEstaRegistrado(fecha, dni, horario.getId());
+            if (!yaRegistrado && horario.getEntrada().isBefore(ahora)) {
+                // Registrar ausencia
+                AsistenciaPersonal asistencia = new AsistenciaPersonal();
+                asistencia.setDni(dni);
+                asistencia.setHorarioId(horario.getId());
+                asistencia.setFecha(fecha);
+                asistencia.setObservaciones("Automarcado, intermedio");
+                asistencia.setHoraEntrada(horario.getEntrada());
+                asistencia.setHoraSalida(horario.getSalida());
+                asistencia.setEstado(0); // 3 = Ausente
+                repository.save(asistencia);
+            }
+        }
+    }
 
     @Override
     public RespuestaAsistenciaDTO AsistenciaDahua(RegistroAsistenciaDTO asistencia) {
+        System.out.println("2-AsistenciaDahua");
         String dni = asistencia.getDni();
         String fechaHoraStr = asistencia.getFechaHora();
         String dispositivo = asistencia.getDispositivo();
-
-        System.out.println("\n🔍 Iniciando verificación de asistencia:");
-        System.out.println("📄 DNI: " + dni);
-        System.out.println("🕓 Fecha y hora recibida: " + fechaHoraStr);
-        System.out.println("🖥 Dispositivo: " + dispositivo);
-
         Long dniLong;
         try {
             dniLong = Long.parseLong(dni);
         } catch (NumberFormatException e) {
-            System.out.println("❌ DNI inválido: " + dni);
             return new RespuestaAsistenciaDTO(false, "❌ DNI inválido.");
         }
 
@@ -92,36 +85,26 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             fechaHoraCompleta = LocalDateTime.parse(fechaHoraStr, formatter);
         } catch (Exception e) {
-            System.out.println("❌ Error al parsear fechaHora: " + fechaHoraStr);
             return new RespuestaAsistenciaDTO(false, "❌ Fecha y hora con formato incorrecto.");
         }
 
         LocalDate hoy = fechaHoraCompleta.toLocalDate();
         LocalTime ahora = fechaHoraCompleta.toLocalTime();
 
-        // 🧱 Validar duplicado en últimos 60 segundos
-//        Optional<AsistenciaPersonal> ultima = repository.findUltimoRegistroPorDni(dniLong);
-
         Optional<AsistenciaPersonal> ultima = repository.findTopByDniAndFechaOrderByHoraEntradaDesc(dniLong,hoy);
         if (ultima.isPresent()) {
             Duration diff = Duration.between(ultima.get().getHoraEntrada(), fechaHoraCompleta.toLocalTime());
             if (diff.getSeconds() < 60) {
-                System.out.println("⚠️ Registro ignorado: diferencia menor a 60 segundos con el anterior.");
                 return new RespuestaAsistenciaDTO(false, "⚠️ Registro duplicado muy reciente (menos de 60 segundos).");
             }
         }
-
         List<HorarioDTO> horariosHoy = obtenerHorariosDelDia(dni, hoy);
-
         if (horariosHoy.isEmpty()) {
-            System.out.println("⚠ No hay horarios para hoy.");
             registrarAsistenciaSinHorario(dniLong, hoy, ahora, "Asignar manualmente por día incorrecto");
             return new RespuestaAsistenciaDTO(true, "⚠ Registrado sin horario. Día incorrecto.");
         }
-
         HorarioDTO horarioActual = buscarHorarioActual(horariosHoy, ahora);
         if (horarioActual == null) {
-            System.out.println("⛔ No se encontró ningún horario activo ahora para este DNI.");
             registrarAsistenciaSinHorario(dniLong, hoy, ahora, "Asignar manualmente por hora incorrecta");
             return new RespuestaAsistenciaDTO(true, "⛔ Registrado sin horario. Hora fuera de tramo.");
         }
@@ -136,11 +119,13 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
 
     @Override
     public boolean verificarSiYaEstaRegistrado(LocalDate fecha, Long dni, Integer horarioId) {
+        System.out.println("3-verificarSiYaEstaRegistrado");
         return repository.existsByFechaAndDniAndHorarioId(fecha, dni, horarioId);
     }
 
     @Override
     public void registrarEntrada(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario) {
+        System.out.println("4-registrarEntrada");
 //        LocalTime ahora = LocalTime.now();
         LocalTime entradaEsperada = horario.getEntrada();
         int estado = ahora.isBefore(entradaEsperada.plusMinutes(15)) ? 0 : 1; // 0 = Presente, 1 = Tardanza
@@ -151,11 +136,26 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         asistencia.setHoraEntrada(ahora);
         asistencia.setEstado(estado);
         repository.save(asistencia);
-        System.out.println("✅ Entrada registrada con estado: " + estado);
+    }
+
+    @Override
+    public void registrarEntradaIntermedia(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario) {
+        System.out.println("5-registrarEntradaIntermedia");
+//        LocalTime ahora = LocalTime.now();
+        LocalTime entradaEsperada = horario.getEntrada();
+        int estado = 0;
+        AsistenciaPersonal asistencia = new AsistenciaPersonal();
+        asistencia.setDni(dni);
+        asistencia.setHorarioId(horario.getId());
+        asistencia.setFecha(fecha);
+        asistencia.setHoraEntrada(ahora);
+        asistencia.setEstado(estado);
+        repository.save(asistencia);
     }
 
     @Override
     public boolean marcarHoraSalida(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario) {
+        System.out.println("6-marcarHoraSalida");
         Optional<AsistenciaPersonal> asistenciaOpt = repository.findByFechaAndDniAndHorarioId(fecha, dni, horario.getId());
         if (asistenciaOpt.isEmpty()) return false;
         AsistenciaPersonal asistencia = asistenciaOpt.get();
@@ -163,16 +163,13 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         if (asistencia.getHoraSalida() != null) {
             if (ahora.isAfter(asistencia.getHoraSalida())) {
                 asistencia.setHoraSalida(ahora);
-                System.out.println("🔁 Hora de salida actualizada a una más tardía: " + ahora);
             } else {
-                System.out.println("⚠️ Ya hay una hora de salida registrada más tardía o igual: " + asistencia.getHoraSalida());
                 return false;
             }
         } else {
             asistencia.setHoraSalida(ahora);
-            System.out.println("✅ Salida registrada: " + ahora);
         }
-        if (ahora.isBefore(salidaEsperada.minusMinutes(5))) {
+        if (ahora.isBefore(salidaEsperada.minusMinutes(15))) {
             asistencia.setEstado(2); // 2 = Salida Temprana
         }
         repository.save(asistencia);
@@ -180,6 +177,7 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
     }
 
     private List<HorarioDTO> obtenerHorariosDelDia(String dni, LocalDate fecha) {
+        System.out.println("7-obtenerHorariosDelDia");
         List<HorarioDTO> horarios = horarioService.obtenerPorDni(dni);
         if (horarios == null) return Collections.emptyList();
         String diaActual = traducirDia(fecha.getDayOfWeek());
@@ -190,11 +188,12 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
     }
 
     private HorarioDTO buscarHorarioActual(List<HorarioDTO> horarios, LocalTime ahora) {
+        System.out.println("8-buscarHorarioActual");
         for (HorarioDTO h : horarios) {
             LocalTime entrada = h.getEntrada();
             LocalTime salida = h.getSalida();
-            LocalTime rangoInicio = entrada.minusMinutes(15);
-            LocalTime rangoFin = salida.plusMinutes(15);
+            LocalTime rangoInicio = entrada.minusMinutes(30);
+            LocalTime rangoFin = salida.plusMinutes(30);
             if (ahora.isAfter(rangoInicio) && ahora.isBefore(rangoFin)) {
                 return h;
             }
@@ -203,62 +202,53 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
     }
 
     private boolean procesarRegistro(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horarioActual, List<HorarioDTO> horariosHoy) {
+        System.out.println("9-procesarRegistro");
         Integer horarioId = horarioActual.getId();
-        System.out.println("✅ Horario actual detectado: ID " + horarioId +
-                " (" + horarioActual.getEntrada() + " - " + horarioActual.getSalida() + ")");
         repository.findByFechaAndDniAndHorarioId(fecha, dni, horarioId)
                 .ifPresentOrElse(asistencia -> {
                     manejarAsistenciaExistente(fecha, ahora, dni, horarioActual, asistencia, horariosHoy);
                 }, () -> {
+                    // Registro de entrada
                     registrarEntrada(fecha, ahora, dni, horarioActual);
                     verificarYRegistrarTramosIntermedios(fecha, dni, horarioActual, horariosHoy, ahora);
                 });
+        verificarHorariosNoMarcados(fecha, dni, horariosHoy, ahora);
         return true;
     }
 
+
     private void manejarAsistenciaExistente(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horarioActual, AsistenciaPersonal asistencia, List<HorarioDTO> horariosHoy) {
+        System.out.println("10-manejarAsistenciaExistente");
         Integer horarioId = horarioActual.getId();
         if (asistencia.getHoraEntrada() == null) {
             this.actualizarAsistencia(horarioId, asistencia);
         } else {
             boolean salidaRegistrada = marcarHoraSalida(fecha, ahora, dni, horarioActual);
             if (!salidaRegistrada) {
-                System.out.println("⚠️ Salida ya estaba registrada.");
             }
         }
         verificarYRegistrarTramosIntermedios(fecha, dni, horarioActual, horariosHoy, ahora);
     }
     private void verificarYRegistrarTramosIntermedios(LocalDate fecha, Long dni, HorarioDTO horarioActual, List<HorarioDTO> horariosHoy, LocalTime ahora) {
+        System.out.println("11-verificarYRegistrarTramosIntermedios");
         try {
-            System.out.println("Inicio - verificarYRegistrarTramosIntermedios");
-            System.out.println("Fecha: " + fecha + ", DNI: " + dni);
 
             if (horarioActual == null) {
-                System.out.println("Horario actual es null. Abortando.");
                 return;
             }
             if (horarioActual.getId() == null) {
-                System.out.println("Horario actual ID es null. Abortando.");
                 return;
             }
             var lista = repository.findByFechaAndDniOrderByHoraEntradaAsc(fecha, dni);
             if (lista == null) {
-                System.out.println("La lista devuelta por repository.findByFechaAndDni es null. Abortando.");
                 return;
             }
-            System.out.println("Registros encontrados: " + lista.size());
-
             boolean hayOtraFranjaMarcada = lista.stream()
                     .filter(Objects::nonNull)
-                    .peek(a -> System.out.println("Registro: horarioId=" + a.getHorarioId() + ", horaEntrada=" + a.getHoraEntrada()))
+                    .peek(a -> System.out.println(""))
                     .anyMatch(a -> {
                         Integer idRegistro = a.getHorarioId();
                         if (idRegistro == null) {
-                            System.out.println("HorarioId en registro es null, se omite");
-                            System.out.println("DEBUG lista.get(1): horarioId=" + lista.get(1).getHorarioId() +
-                                    ", horaEntrada=" + lista.get(1).getHoraEntrada() +
-                                    ", asitenciaid=" + lista.get(1).getId() +
-                                    ", fecha=" + lista.get(1).getFecha());
 //                            H asistenciaPersonal = this.repository.findByHorarioIdAndFecha(lista.get(1).getHorarioId(), fecha);
                             PersonalHorario horario=this.horarioService.findById(lista.get(1).getHorarioId()).get();
                             a.setHoraSalida(horario.getEntrada());
@@ -267,20 +257,15 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
                             PersonalHorario horariolast=this.horarioService.findById(asitenciaLast.getHorarioId()).get();
                             asitenciaLast.setHoraSalida(asitenciaLast.getHoraEntrada());
                             asitenciaLast.setHoraEntrada(horario.getEntrada());
+                            asitenciaLast.setEstado(0);
                             this.actualizarAsistencia(asitenciaLast.getId(), asitenciaLast);
                             return false;
                         }
                         return !idRegistro.equals(horarioActual.getId()) && a.getHoraEntrada() != null;
                     });
-            System.out.println("hayOtraFranjaMarcada = " + hayOtraFranjaMarcada);
             if (hayOtraFranjaMarcada) {
-                System.out.println("Llamando a registrarTramosIntermedios...");
                 registrarTramosIntermedios(fecha, dni, horarioActual, horariosHoy, ahora);
-                System.out.println("registrarTramosIntermedios finalizó correctamente.");
             }
-
-            System.out.println("Fin - verificarYRegistrarTramosIntermedios");
-
         } catch (Exception e) {
             System.err.println("Excepción en verificarYRegistrarTramosIntermedios: " + e.getMessage());
             e.printStackTrace();
@@ -290,12 +275,11 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
 
 
     private void registrarTramosIntermedios(LocalDate fecha, Long dni, HorarioDTO horarioFinal, List<HorarioDTO> horariosHoy,LocalTime ahora) {
+        System.out.println("12-registrarTramosIntermedios");
         List<HorarioDTO> horariosOrdenados = horariosHoy.stream()
                 .sorted(Comparator.comparing(HorarioDTO::getEntrada))
                 .collect(Collectors.toList());
-
         Integer idFinal = horarioFinal.getId();
-
         // Busca el primer horario registrado distinto del final
         HorarioDTO inicial = horariosOrdenados.stream()
                 .filter(h -> !h.getId().equals(idFinal) && verificarSiYaEstaRegistrado(fecha, dni, h.getId()))
@@ -314,12 +298,9 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         LocalTime entradaInicial = inicial.getEntrada();
         LocalTime entradaFinal = horarioFinal.getEntrada();
 
-        System.out.println("🗓️ Horarios del día:");
         horariosOrdenados.forEach(h ->
                 System.out.println("ID " + h.getId() + " (" + h.getEntrada() + " - " + h.getSalida() + ")"));
 
-        System.out.println("📦 Detectado tramo desde horario ID " + inicial.getId() +
-                " hasta horario ID " + horarioFinal.getId());
 
         final LocalDate fechaFinal = fecha;
         final Long dniFinal = dni;
@@ -333,12 +314,10 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
     }
 
     private void procesarHorarioEnTramo(LocalDate fecha, Long dni, HorarioDTO inicial, HorarioDTO finalHorario, HorarioDTO h,LocalTime ahora) {
+        System.out.println("13-procesarHorarioEnTramo");
         boolean yaRegistrado = verificarSiYaEstaRegistrado(fecha, dni, h.getId());
         boolean esInicial = h.getId().equals(inicial.getId());
         boolean esFinal = h.getId().equals(finalHorario.getId());
-
-        System.out.println("⏳ Evaluando horario ID " + h.getId() + " con entrada " + h.getEntrada() +
-                " - ¿Ya registrado?: " + yaRegistrado + " - ¿Inicial?: " + esInicial + " - ¿Final?: " + esFinal);
 
         if (esInicial) {
             this.marcarHoraSalida(fecha, h.getSalida(), dni, h);
@@ -352,23 +331,19 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         }
         if (!esInicial && !esFinal && !yaRegistrado) {
             // Para horarios intermedios, registrar entrada y salida
-            registrarEntrada(fecha, h.getEntrada(), dni, h);
+            registrarEntradaIntermedia(fecha, h.getEntrada(), dni, h);
             marcarHoraSalida(fecha, h.getSalida(), dni, h);
-            System.out.println("✅ Horario intermedio ID " + h.getId() +
-                    " (" + h.getEntrada() + " - " + h.getSalida() + ") marcado automáticamente como Presente.");
         }
     }
 
 
-
-
     private void registrarAsistenciaSinHorario(Long dni, LocalDate fecha, LocalTime hora, String observacion) {
+        System.out.println("14-registrarAsistenciaSinHorario");
         Optional<AsistenciaPersonal> asistenciaPendiente = repository.findFirstByDniAndFechaAndHoraSalidaIsNullOrderByHoraEntradaAsc(dni, fecha);
         if (asistenciaPendiente.isPresent()) {
             AsistenciaPersonal asistencia = asistenciaPendiente.get();
             asistencia.setHoraSalida(hora);
             repository.save(asistencia);
-            System.out.println("✅ Hora de salida registrada automáticamente para el DNI: " + dni);
         } else {
             AsistenciaPersonal nueva = new AsistenciaPersonal();
             nueva.setDni(dni);
@@ -379,12 +354,28 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
             nueva.setObservaciones(observacion);
             nueva.setEstado(5); // Estado personalizado para ausencia o registro manual
             repository.save(nueva);
-            System.out.println("✅ Entrada registrada manualmente (sin horario) para el DNI: " + dni);
         }
     }
 
 
+    @Override
+    public void actualizarAsistencia(Integer id, AsistenciaPersonal update) {
+        System.out.println("15-actualizarAsistencia");
+        AsistenciaPersonal asistencia = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Asistencia no encontrada"));
+        asistencia.setFecha(update.getFecha());
+        asistencia.setHoraEntrada(update.getHoraEntrada());
+        asistencia.setHoraSalida(update.getHoraSalida());
+        asistencia.setObservaciones(update.getObservaciones());
+        asistencia.setEstado(update.getEstado());
+        asistencia.setHorarioId(update.getHorarioId());
+        repository.save(asistencia);
+    }
+
+
+
     private String traducirDia(DayOfWeek dia) {
+        System.out.println("16-traducirDia");
         switch (dia) {
             case MONDAY: return "LUNES";
             case TUESDAY: return "MARTES";
@@ -397,12 +388,9 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         }
     }
 
-
-
-
-
     @Override
     public List<DetalleAsistenciaPersonalDTO> obtenerDetallePorFecha(LocalDate fecha) {
+        System.out.println("17-obtenerDetallePorFecha");
         String dia = traducirDia(fecha.getDayOfWeek());
         List<Object[]> resultados = repository.obtenerDetallePorDia(fecha, dia);
         List<DetalleAsistenciaPersonalDTO> lista = new ArrayList<>();
@@ -458,18 +446,7 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         return lista;
     }
 
-    @Override
-    public void actualizarAsistencia(Integer id, AsistenciaPersonal update) {
-        AsistenciaPersonal asistencia = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Asistencia no encontrada"));
-        asistencia.setFecha(update.getFecha());
-        asistencia.setHoraEntrada(update.getHoraEntrada());
-        asistencia.setHoraSalida(update.getHoraSalida());
-        asistencia.setObservaciones(update.getObservaciones());
-        asistencia.setEstado(update.getEstado());
-        asistencia.setHorarioId(update.getHorarioId());
-        repository.save(asistencia);
-    }
+
 
     @Override
     public List<DetalleAsistenciaPersonalDTO> obtenerDetallePorDNI(Long dni) {

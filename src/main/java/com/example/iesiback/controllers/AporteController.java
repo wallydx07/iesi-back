@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -37,9 +38,15 @@ public class AporteController {
 
     @GetMapping
     public ResponseEntity<List<AporteDTO>> getAportes() {
+        System.out.println("Llamada a getAportes() iniciada");
+
         List<AporteDTO> aportes = aporteService.getAportesConDatos();
+
+        System.out.println("Cantidad de aportes obtenidos: " + aportes.size());
+
         return ResponseEntity.ok(aportes);
     }
+
 
     @PostMapping("/recibo")
     public ResponseEntity<byte[]> generarRecibo(@RequestBody Map<String, String> datos) {
@@ -92,6 +99,46 @@ public class AporteController {
     public List<Aporte> obtenerAportesPorLegajo(@PathVariable String legajoId) {
         return aporteService.obtenerAportesPorLegajoId(legajoId);
     }
+
+    @GetMapping("/{id}")
+    public Aporte findAporteById(@PathVariable("id") Integer aporteId) {
+        return aporteService.findAporteById(aporteId);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Aporte> actualizarAporte(@PathVariable Integer id, @RequestBody Aporte aporte) {
+        Aporte aporteExistenteOpt = aporteService.findAporteById(id);
+        // Actualizá solo los campos que pueden cambiar
+        aporteExistenteOpt.setAporteNroRecibo(aporte.getAporteNroRecibo());
+        aporteExistenteOpt.setAporteTalonarioRecibo(aporte.getAporteTalonarioRecibo());
+        aporteExistenteOpt.setAporteMonto(aporte.getAporteMonto());
+        aporteExistenteOpt.setAporteObs(aporte.getAporteObs());
+        aporteExistenteOpt.setValidado(aporte.getValidado());
+        aporteExistenteOpt.setAporteFecha(aporte.getAporteFecha());
+        aporteExistenteOpt.setUsuario(userService.getAuthenticatedUser().get().getUserApellido());
+        Aporte actualizado = aporteService.save(aporteExistenteOpt);
+        return ResponseEntity.ok(actualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAporte(@PathVariable Integer id) {
+        Aporte aporteExistente = aporteService.findAporteById(id);
+
+        if (aporteExistente == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        aporteService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/anio-actual/{legajoId}")
+    public ResponseEntity<List<Aporte>> obtenerAportesDelAnioActual(@PathVariable String legajoId) {
+        List<Aporte> aportes = aporteService.obtenerAportesYearFiltrado(legajoId);
+        return ResponseEntity.ok(aportes);
+    }
+
+
 
 
 

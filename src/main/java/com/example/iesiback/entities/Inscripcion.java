@@ -11,9 +11,14 @@ public class Inscripcion {
     @Column(name = "inscripcion_id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "legajo_id")
-    @JsonBackReference // Evita la recursión infinita con Legajo
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "legajo_id")
+//    @JsonBackReference // Evita la recursión infinita con Legajo
+//    private Legajo legajo;
+
+    @OneToOne
+    @JoinColumn(name = "legajo_id", unique = true)
+    @JsonBackReference
     private Legajo legajo;
 
     @ManyToOne(fetch = FetchType.LAZY)

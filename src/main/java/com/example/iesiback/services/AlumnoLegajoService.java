@@ -22,7 +22,7 @@ public class AlumnoLegajoService {
     }
 
 
-    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(String dato, String estado, String termino) {
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(String dato, String estado, String termino) {//incluyterecurssantes
         return alumnoLegajoRepository.obtenerAlumnosConCursadas(dato, estado, termino);
     }
 

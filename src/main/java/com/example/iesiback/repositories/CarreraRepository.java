@@ -26,7 +26,6 @@ public interface CarreraRepository extends JpaRepository<Carrera, String> {
             "WHERE l.legajo_alumno_dni = :alumnoDni", nativeQuery = true)
     List<Carrera> findCarreraIdByAlumnoDni(@Param("alumnoDni") String alumnoDni);
 
-
     List<Carrera> findAllByOrderByCarreraYearDesc();
 
     @Query(value = "SELECT c.carrera_year FROM carrera c " +
@@ -34,6 +33,14 @@ public interface CarreraRepository extends JpaRepository<Carrera, String> {
             "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +
             "WHERE l.legajo_id = :libretaEstudiantil", nativeQuery = true)
     Integer findCarreraYearByLibreta(@Param("libretaEstudiantil") String libretaEstudiantil);
+
+
+    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
+            "FROM Inscripcion i " +
+            "WHERE i.legajo.legajoAlumnoDni.alumnoDni = :dniAlumno " +
+            "AND i.carrera.carreraNombre = :carreraNombre")
+    boolean existsByAlumnoDniAndCarreraId(@Param("dniAlumno") String dniAlumno,
+                                          @Param("carreraNombre") String carreraNombre);
 
 }
 

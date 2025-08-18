@@ -28,7 +28,7 @@ public class Carrera {
 
     @NotBlank
     @Column(name = "carrera_year")  // Mapea el atributo
-    private String carreraYear;
+    private Integer carreraYear;
 
     @OneToMany(mappedBy = "carrera")
     @JsonIgnore
@@ -90,11 +90,11 @@ public class Carrera {
         this.carreraNombre = carreraNombre;
     }
 
-    public String getCarreraYear() {
+    public Integer getCarreraYear() {
         return carreraYear;
     }
 
-    public void setCarreraYear(String carreraYear) {
+    public void setCarreraYear(Integer carreraYear) {
         this.carreraYear = carreraYear;
     }
 

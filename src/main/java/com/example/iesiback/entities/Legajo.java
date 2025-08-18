@@ -16,12 +16,6 @@ public class Legajo {
     @Column(name = "legajo_id", nullable = false, length = 50)
     private String legajoId;
 
-   // @ManyToOne(fetch = FetchType.LAZY)
-   // @JoinColumn(name = "legajo_alumno_dni")
-    //@JsonIgnore
-   // private Alumno legajoAlumnoDni;
-
-
    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "legajo_alumno_dni", nullable = false)
     @JsonProperty(value = "alumno", access = JsonProperty.Access.WRITE_ONLY)
@@ -90,11 +84,11 @@ public class Legajo {
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private Set<CertificadoEstudiante> certificadoEstudiantes = new LinkedHashSet<>();
+    private Set<Atencion> atenciones = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @JsonManagedReference
-    private Set<Inscripcion> inscripcions = new LinkedHashSet<>();
+    private Inscripcion inscripcion;
 
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -104,6 +98,16 @@ public class Legajo {
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Cursada> cursadas = new LinkedHashSet<>();
 
+
+
+    public Set<Atencion> getAtenciones() {
+        return atenciones;
+    }
+
+    public void setAtenciones(Set<Atencion> atenciones) {
+        this.atenciones = atenciones;
+    }
+
     public Set<Cursada> getCursadas() {
         return cursadas;
     }
@@ -111,9 +115,6 @@ public class Legajo {
     public void setCursadas(Set<Cursada> cursadas) {
         this.cursadas = cursadas;
     }
-
-
-    // Getters y Setters
 
     public String getLegajoId() {
         return legajoId;
@@ -155,22 +156,14 @@ public class Legajo {
         this.aportes = aportes;
     }
 
-    public Set<CertificadoEstudiante> getConstancias() {
-        return certificadoEstudiantes;
+
+    public Inscripcion getInscripcion() {
+        return inscripcion;
     }
 
-    public void setConstancias(Set<CertificadoEstudiante> certificadoEstudiantes) {
-        this.certificadoEstudiantes = certificadoEstudiantes;
+    public void setInscripcion(Inscripcion inscripcion) {
+        this.inscripcion = inscripcion;
     }
-
-    public Set<Inscripcion> getInscripcions() {
-        return inscripcions;
-    }
-
-    public void setInscripcions(Set<Inscripcion> inscripcions) {
-        this.inscripcions = inscripcions;
-    }
-
 
     public Set<Observacione> getObservaciones() {
         return observaciones;

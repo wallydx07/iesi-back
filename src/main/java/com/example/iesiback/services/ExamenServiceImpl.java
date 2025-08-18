@@ -1,11 +1,10 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.entities.ExamenHorario;
 import com.example.iesiback.dto.InscripcionExamenDTO;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.repositories.CursadaExamenRepository;
-import com.example.iesiback.repositories.CursadaRepository;
 import com.example.iesiback.repositories.ExamenRepository;
-import com.example.iesiback.repositories.NotaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,32 +16,24 @@ import java.util.Optional;
 @Service
 public class ExamenServiceImpl implements ExamenService {
     private final NotaService notaService;
-    private PermisoService permisoService; // ✅ Inyectamos PermisoService
+    private final PermisoService permisoService; // ✅ Inyectamos PermisoService
     private final ExamenRepository examenRepository;
-    private final CursadaExamenService cursadaExamenService;
-    private final NotaRepository notaRepository;
-    private final CursadaRepository cursadaRepository;
     private final CursadaService cursadaService;
     private final CursadaExamenRepository cursadaExamenRepository;
-
+    private final ExamenHorarioService examenHorarioService;
 
     @Autowired
     public ExamenServiceImpl(
             ExamenRepository examenRepository,
-            CursadaExamenService cursadaExamenService,
-            NotaRepository notaRepository,
-            CursadaRepository cursadaRepository,
             CursadaService cursadaService,
             CursadaExamenRepository cursadaExamenRepository,
-            PermisoService permisoService, NotaService notaService) {
+            PermisoService permisoService, NotaService notaService, ExamenHorarioService examenHorarioService) {
         this.examenRepository = examenRepository;
-        this.cursadaExamenService = cursadaExamenService; // ✅ Ahora está correctamente inyectado
-        this.notaRepository = notaRepository;
-        this.cursadaRepository = cursadaRepository;
         this.cursadaService = cursadaService;
         this.cursadaExamenRepository = cursadaExamenRepository;
         this.permisoService = permisoService;
         this.notaService = notaService;
+        this.examenHorarioService = examenHorarioService;
     }
 
     @Override
@@ -80,7 +71,6 @@ public class ExamenServiceImpl implements ExamenService {
     public List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno) {
         List<Cursada> cursadas = cursadaService.getCursadasNoAprobadas(legajoId);
         List<InscripcionExamenDTO> inscripciones = new ArrayList<>();
-
         cursadas.forEach(cursada -> {
             System.out.println("Cursada ID: " + cursada.getId() + " - Estado: " + cursada.getStatus());
             InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
@@ -92,7 +82,6 @@ public class ExamenServiceImpl implements ExamenService {
             inscripcion.setMateriaNombre(cursada.getMateriaCarrera().getMateria().getMateriaNombre());
             List<Nota> notas = new ArrayList<>(cursada.getNotas());
             for (Nota nota : notas) {
-                //    if (nota.getNotaCondicion().equals("Cursada")||nota.getNotaCondicion().equals("Cursando")) {
                 if (nota.getNotaCondicion().equals("Cursada")) {
                     if (nota.getNotaEstado().equals("Regular")) {
                         inscripcion.setCondicion("Regular");
@@ -101,17 +90,27 @@ public class ExamenServiceImpl implements ExamenService {
                     }
                 }
             }
-//            inscripcion.setFecha(
-//                    cursada.getMateriaCarrera().getFecha() != null
-//                            ? cursada.getMateriaCarrera().getFecha().toString()
-//                            : "Fecha no disponible"
-//            );
-
             Boolean estado = examenRepository.getEstadoExamen(turno, cursada.getMateriaId(), legajoId);
             boolean inscripto = estado != null && estado;  // ✅ Si es null, devuelve false
             inscripcion.setInscripto(inscripto);
-            String fecha = cursadaExamenService.obtenerFechaPorMateriaYTurno(cursada.getMateriaId(), turno);
-            String hora=cursadaExamenService.obtenerHoraPorMateriaYTurno(cursada.getMateriaId(), turno);
+//            String fecha = cursadaExamenService.obtenerFechaPorMateriaYTurno(cursada.getMateriaId(), turno);
+//            String hora=cursadaExamenService.obtenerHoraPorMateriaYTurno(cursada.getMateriaId(), turno);
+
+
+
+            String fecha="-";
+            String hora="-";
+            ExamenHorario examenHorario = examenHorarioService.findByMateriaIdAndTurnoId(cursada.getMateriaId(), turno)
+                    .orElse(null);
+            if (examenHorario != null) {
+                fecha = examenHorario.getFecha().toString();
+                hora = examenHorario.getHora().toString();
+                // Continuás la lógica
+            } else {
+                // Manejás el caso cuando no se encuentra
+                System.out.println("No se encontró el horario.");
+            }
+
             inscripcion.setHora(hora);
             inscripcion.setFecha(fecha);
             inscripcion.setCorrelativas(cursadaService.obtenerCorrelativasPendientesMateriaId(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getMateria()));

@@ -38,6 +38,7 @@ public class LegajoServiceImpl implements LegajoService {
 
     @Override
     public Legajo guardarLegajo(Legajo legajo, Carrera carrera) {
+        System.out.println("--------------------carrera id:"+carrera.getCarreraId());
         String prefijo = carrera.getCarreraId().split("-")[0];
         legajo.setLegajoId(this.generaLegajo(prefijo));
         return legajoRepository.save(legajo);
@@ -54,6 +55,7 @@ public class LegajoServiceImpl implements LegajoService {
 
     @Override
     public String generaLegajo(String prefijo) {
+        System.out.println("---------------------------------------------"+prefijo);
         String maxLegajo = legajoRepository.findMaxLegajoId(prefijo);
         String numeroStr = maxLegajo.replaceAll("\\D+", ""); // Solo deja los dígitos
         int numero = Integer.parseInt(numeroStr) + 1; // Incrementa el número

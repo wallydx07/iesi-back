@@ -13,10 +13,11 @@ public class CatedraDTO {
     private String inicio;
     private String fin;
     private Integer catedras;
+    private Integer year;
 
     // Constructor
     public CatedraDTO(Integer id, String materiaId, String materiaNombre, String carreraId, String division,
-                      String turno, String dia, String inicio, String fin, Integer catedras, String carreraNombre) {
+                      String turno, String dia, String inicio, String fin, Integer catedras, String carreraNombre, Integer year) {
         this.id = id;
         this.materiaId = materiaId;
         this.materiaNombre = materiaNombre;
@@ -28,6 +29,15 @@ public class CatedraDTO {
         this.fin = fin;
         this.catedras = catedras;
         this.carreraNombre = carreraNombre;
+        this.year = year;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
     public String getCarreraNombre() {

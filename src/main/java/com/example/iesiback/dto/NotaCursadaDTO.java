@@ -6,6 +6,7 @@ import java.util.Date;
 public interface NotaCursadaDTO {
     Long getNotaId();
     String getAlumnoDni();
+    String getAlumnoLegajoId();
     String getAlumnoApellido();
     String getAlumnoNombre();
     LocalDate getNotaFechaNota();
@@ -19,14 +20,14 @@ public interface NotaCursadaDTO {
     String getNotaUsuario();
 
     // Nuevas columnas
-    Double getCursadaPrimerParcial();
-    Double getCursadaRecuperatorio1();
-    Double getCursadaSegundoParcial();
-    Double getCursadaRecuperatorio2();
-    Double getCursadaTrabajosPracticos();
-    Double getCursadaAsistencia();
-    Double getCursadaColoquio();
-    Double getCursadaTrabajoInstitucional();
+    Double getPrimerParcial();
+    Double getRecuperatorio1();
+    Double getSegundoParcial();
+    Double getRecuperatorio2();
+    Double getTrabajosPracticos();
+    Double getAsistencia();
+    Double getColoquio();
+    Double getTrabajoInstitucional();
 }
 
 

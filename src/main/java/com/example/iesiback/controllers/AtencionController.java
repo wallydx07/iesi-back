@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.Atencion;
 import com.example.iesiback.services.AtencionService;
+import com.example.iesiback.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,9 +40,22 @@ public class AtencionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Atencion> update(@PathVariable Integer id, @RequestBody Atencion atencion) {
-        return service.findById(id).map(a -> {
-            atencion.setId(id);
-            return ResponseEntity.ok(service.save(atencion));
+        return service.findById(id).map(existing -> {
+            // Actualizar solo campos simples (no relaciones)
+            existing.setAtencionResuelto(atencion.getAtencionResuelto());
+            existing.setAtencionDni(atencion.getAtencionDni());
+            existing.setAtencionApellidoNombre(atencion.getAtencionApellidoNombre());
+            existing.setAtencionCorreo(atencion.getAtencionCorreo());
+            existing.setAtencionCelular(atencion.getAtencionCelular());
+            existing.setAtencionConsulta(atencion.getAtencionConsulta());
+            existing.setAtencionProblema(atencion.getAtencionProblema());
+            existing.setAtencionFecha(atencion.getAtencionFecha());
+            existing.setAtencionRespuesta(atencion.getAtencionRespuesta());
+            existing.setAtencionObservaciones(atencion.getAtencionObservaciones());
+            existing.setAtencionDestino(atencion.getAtencionDestino());
+            existing.setAtencionUsuario(atencion.getAtencionUsuario());
+            existing.setCodigoSeguimiento(atencion.getCodigoSeguimiento());
+            return ResponseEntity.ok(service.update(existing));
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -88,4 +102,13 @@ public class AtencionController {
     public List<Atencion> getByFecha(@PathVariable String fecha) {
         return service.findByFecha(LocalDate.parse(fecha));
     }
+
+    @GetMapping("/seguimiento/{codigo}")
+    public ResponseEntity<Atencion> obtenerPorCodigoSeguimiento(@PathVariable String codigo) {
+        return service.findByCodigoSeguimiento(codigo)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
 }

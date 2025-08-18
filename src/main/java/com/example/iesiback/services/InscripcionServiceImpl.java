@@ -1,4 +1,5 @@
 package com.example.iesiback.services;
+import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Inscripcion;
 import com.example.iesiback.repositories.InscripcionRepository;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class InscripcionServiceImpl implements InscripcionService {
     public Inscripcion crearInscripcion(Inscripcion inscripcion) {
         return inscripcionRepository.save(inscripcion);
     }
+
     @Override
     public Inscripcion findByLegajoId(String legajoId) {
         return inscripcionRepository.findByLegajo_LegajoId(legajoId);
@@ -36,7 +38,7 @@ public List<String> rellenarAnyo(String legajoId) {
         // Obtener la inscripción del estudiante
         Inscripcion inscripcionOpt = inscripcionRepository.findInscripcionByLegajoId(legajoId);
         int fin = Calendar.getInstance().get(Calendar.YEAR);
-        int ini = Integer.parseInt(inscripcionOpt.getCarrera().getCarreraYear());
+        int ini = inscripcionOpt.getCarrera().getCarreraYear();
         System.out.println("ini: " + ini + " fin: " + fin);
 
         int anio = fin - ini;
@@ -62,5 +64,7 @@ public List<String> rellenarAnyo(String legajoId) {
             opciones.add("curso la carrera: ");
         return opciones;
     }
+
+
 
 }
