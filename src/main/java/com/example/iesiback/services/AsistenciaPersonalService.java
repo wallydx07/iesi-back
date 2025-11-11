@@ -2,6 +2,7 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.AsistenciaPersonal;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,9 +24,17 @@ public interface AsistenciaPersonalService {
     boolean marcarHoraSalida(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horario);
     List<DetalleAsistenciaPersonalDTO> obtenerDetallePorFecha(LocalDate fecha);
     boolean existeAsistenciaParaHoy(Long horarioId, LocalDate fecha);
+
+    List<AsistenciaPersonal> obtenerPorDniYFecha(Long dni, LocalDate fecha);
+
     List<DetalleAsistenciaPersonalDTO> obtenerDetallePorYear(Integer year);
     void actualizarAsistencia(Integer id, AsistenciaPersonal update);
     List<DetalleAsistenciaPersonalDTO> obtenerDetallePorDNI(Long dni);
-    List<ReporteFaltasDTO> cargarAsistenciasDelMes(int mes);
+
+    List<ReporteFaltasDTO> cargarAsistenciasDelMesRango(LocalDate fechaInicio, LocalDate fechaFin);
+
     List<AsistenciaDetalleDTO> obtenerAsistenciasPorFecha(LocalDate fecha);
+
+    @Transactional
+    int actualizarObservacionesYEstadoPorFecha(String observaciones, String estado, LocalDate fecha);
 }

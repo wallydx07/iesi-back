@@ -1,11 +1,13 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.repositories.LegajoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,4 +64,15 @@ public class LegajoServiceImpl implements LegajoService {
 
         return prefijo + numero;
     }
+
+    @Transactional
+    public void actualizarAlumnoDNI(Alumno alumnoViejo, Alumno nuevoAlumno) {
+        List<Legajo> legajos = legajoRepository.findByLegajoAlumnoDni(alumnoViejo);
+        for (Legajo l : legajos) {
+            l.setLegajoAlumnoDni(nuevoAlumno);
+        }
+        legajoRepository.saveAll(legajos);
+    }
+
+
 }

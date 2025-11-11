@@ -22,6 +22,8 @@ import java.util.Optional;
 @Repository
 public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, Long> {
     List<MateriaCarrera> findByCarrera_CarreraId(String carreraId);
+
+
     Optional<MateriaCarrera> findByCarrera_CarreraIdAndMateria_MateriaId(String carreraId, String materiaId);
 
 

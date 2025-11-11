@@ -52,14 +52,13 @@ public class CursadaController {
     }
 
 
-
-    // Endpoint para obtener la cursada por legajoId y materiaId
     @GetMapping("/buscar")
     public List<Cursada> obtenerCursadaPorLegajoYMateria(
             @RequestParam("legajoId") String legajoId,
             @RequestParam("materiaId") String materiaId) {
         return cursadaService.findByLegajoAndMateria(legajoId, materiaId);
     }
+
     @GetMapping("/{id}")
     public Optional<Cursada> getCursadaById(@PathVariable Integer id) {
         return cursadaService.getCursadaById(id);

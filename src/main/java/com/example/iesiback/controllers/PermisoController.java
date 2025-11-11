@@ -20,14 +20,10 @@ import java.nio.file.Files;
 public class PermisoController {
 
     private final PermisoService permisoService;
-
-
-
     @Autowired
     public PermisoController(PermisoService permisoService) {
         this.permisoService = permisoService;
     }
-
 
 
     @PostMapping("/enviar")

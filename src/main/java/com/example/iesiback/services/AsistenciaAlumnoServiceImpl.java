@@ -10,7 +10,6 @@ import com.example.iesiback.repositories.InformeAsistenciaAlumnoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +19,6 @@ public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
     private final AsistenciaAlumnoRepository repository;
     @Autowired
     private InformeAsistenciaAlumnoRepository informeAsistenciaAlumnoRepository;
-
 
     public AsistenciaAlumnoServiceImpl(
             AsistenciaAlumnoRepository repository,
@@ -59,20 +57,16 @@ public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
 //        repository.saveAll(asistencias);
 //    }
 
-
     @Override
     @Transactional
     public void guardarTodas(List<AsistenciaAlumno> asistencias) {
         for (AsistenciaAlumno asistencia : asistencias) {
-
             System.out.println("Recibido id: " + asistencia.getId());
             System.out.println("Recibido idInforme: " + asistencia.getIdInforme().getIdInforme());
             System.out.println("Recibido legajoId: " + asistencia.getLegajoId());
             System.out.println("Recibido estado: " + asistencia.getEstado());
-
             if (asistencia.getIdInforme() != null && asistencia.getIdInforme().getIdInforme() != null) {
                 Integer idInforme = asistencia.getIdInforme().getIdInforme();
-
                 InformeAsistenciaAlumno informe = informeAsistenciaAlumnoRepository.findById(idInforme)
                         .orElseThrow(() -> new RuntimeException("Informe no encontrado con ID: " + idInforme));
                 asistencia.setIdInforme(informe);
@@ -87,7 +81,6 @@ public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
     public List<AsistenciaAlumnoDTO> obtenerAsistencias(String materiaCarreraId) {
         return repository.obtenerAsistenciaPorMateriaCarrera(materiaCarreraId);
     }
-
 
     @Override
     public List<InformeAsistenciaDTO> obtenerFechasAsistencia(String materiaCarreraId) {

@@ -16,10 +16,7 @@ public interface AsistenciaAlumnoService {
     void deleteById(Integer id);
     List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(Integer idInforme);
     void guardarTodas(List<AsistenciaAlumno> asistencias);
-
     List<AsistenciaAlumnoDTO> obtenerAsistencias(String materiaCarreraId);
-
     List<InformeAsistenciaDTO> obtenerFechasAsistencia(String materiaCarreraId);
-
     List<AsistenciaResumenDTO> obtenerResumenAsistencia(String legajoId, int anioActual);
 }

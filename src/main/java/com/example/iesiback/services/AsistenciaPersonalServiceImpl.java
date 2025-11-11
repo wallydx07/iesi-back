@@ -6,6 +6,7 @@ import com.example.iesiback.entities.PersonalHorario;
 import com.example.iesiback.repositories.AsistenciaPersonalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -74,12 +75,16 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         String fechaHoraStr = asistencia.getFechaHora();
         String dispositivo = asistencia.getDispositivo();
         Long dniLong;
+        System.out.println("=== SOLICITUD RECIBIDA ===");
+        System.out.println("DNI       : " + dni);
+        System.out.println("Fecha/Hora: " + fechaHoraStr);
+        System.out.println("===========================");
+
         try {
             dniLong = Long.parseLong(dni);
         } catch (NumberFormatException e) {
             return new RespuestaAsistenciaDTO(false, "❌ DNI inválido.");
         }
-
         LocalDateTime fechaHoraCompleta;
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -92,18 +97,22 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         LocalTime ahora = fechaHoraCompleta.toLocalTime();
 
         Optional<AsistenciaPersonal> ultima = repository.findTopByDniAndFechaOrderByHoraEntradaDesc(dniLong,hoy);
-        if (ultima.isPresent()) {
+        if (ultima.isPresent() && ultima.get().getHoraEntrada() != null) {
             Duration diff = Duration.between(ultima.get().getHoraEntrada(), fechaHoraCompleta.toLocalTime());
-            if (diff.getSeconds() < 60) {
+            if (diff.getSeconds() < 180) {
                 return new RespuestaAsistenciaDTO(false, "⚠️ Registro duplicado muy reciente (menos de 60 segundos).");
             }
         }
+
         List<HorarioDTO> horariosHoy = obtenerHorariosDelDia(dni, hoy);
+
         if (horariosHoy.isEmpty()) {
             registrarAsistenciaSinHorario(dniLong, hoy, ahora, "Asignar manualmente por día incorrecto");
             return new RespuestaAsistenciaDTO(true, "⚠ Registrado sin horario. Día incorrecto.");
         }
+
         HorarioDTO horarioActual = buscarHorarioActual(horariosHoy, ahora);
+
         if (horarioActual == null) {
             registrarAsistenciaSinHorario(dniLong, hoy, ahora, "Asignar manualmente por hora incorrecta");
             return new RespuestaAsistenciaDTO(true, "⛔ Registrado sin horario. Hora fuera de tramo.");
@@ -116,6 +125,9 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
             return new RespuestaAsistenciaDTO(false, "❌ Error al procesar el registro.");
         }
     }
+
+
+
 
     @Override
     public boolean verificarSiYaEstaRegistrado(LocalDate fecha, Long dni, Integer horarioId) {
@@ -198,7 +210,10 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
                 return h;
             }
         }
-        return null;
+        return horarios.stream()
+                .filter(h -> h.getSalida().isBefore(ahora))
+                .max(Comparator.comparing(HorarioDTO::getSalida))
+                .orElse(null);
     }
 
     private boolean procesarRegistro(LocalDate fecha, LocalTime ahora, Long dni, HorarioDTO horarioActual, List<HorarioDTO> horariosHoy) {
@@ -229,49 +244,67 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         }
         verificarYRegistrarTramosIntermedios(fecha, dni, horarioActual, horariosHoy, ahora);
     }
-    private void verificarYRegistrarTramosIntermedios(LocalDate fecha, Long dni, HorarioDTO horarioActual, List<HorarioDTO> horariosHoy, LocalTime ahora) {
-        System.out.println("11-verificarYRegistrarTramosIntermedios");
-        try {
 
-            if (horarioActual == null) {
-                return;
-            }
-            if (horarioActual.getId() == null) {
-                return;
-            }
-            var lista = repository.findByFechaAndDniOrderByHoraEntradaAsc(fecha, dni);
-            if (lista == null) {
-                return;
-            }
-            boolean hayOtraFranjaMarcada = lista.stream()
-                    .filter(Objects::nonNull)
-                    .peek(a -> System.out.println(""))
-                    .anyMatch(a -> {
-                        Integer idRegistro = a.getHorarioId();
-                        if (idRegistro == null) {
-//                            H asistenciaPersonal = this.repository.findByHorarioIdAndFecha(lista.get(1).getHorarioId(), fecha);
-                            PersonalHorario horario=this.horarioService.findById(lista.get(1).getHorarioId()).get();
+
+private void verificarYRegistrarTramosIntermedios(LocalDate fecha, Long dni, HorarioDTO horarioActual, List<HorarioDTO> horariosHoy, LocalTime ahora) {
+    System.out.println("11-verificarYRegistrarTramosIntermedios");
+    try {
+        if (horarioActual == null) {
+            return;
+        }
+        if (horarioActual.getId() == null) {
+            return;
+        }
+
+        var lista = repository.findByFechaAndDniOrderByHoraEntradaAsc(fecha, dni);
+        if (lista == null) {
+            return;
+        }
+
+        boolean hayOtraFranjaMarcada = lista.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(a -> {
+                    Integer idRegistro = a.getHorarioId();
+                    if (idRegistro == null) {
+                        try {
+                            System.out.println("➡️ Buscando horario con id=" + lista.get(1).getHorarioId());
+                            PersonalHorario horario = this.horarioService.findById(lista.get(1).getHorarioId()).get();
+
                             a.setHoraSalida(horario.getEntrada());
+                            System.out.println("➡️ Actualizando asistencia id=" + a.getId());
                             this.actualizarAsistencia(a.getId(), a);
-                            AsistenciaPersonal asitenciaLast=repository.findById(lista.get(lista.size() - 1).getId()).get();
-                            PersonalHorario horariolast=this.horarioService.findById(asitenciaLast.getHorarioId()).get();
+
+                            System.out.println("➡️ Buscando última asistencia id=" + lista.get(lista.size() - 1).getId());
+                            AsistenciaPersonal asitenciaLast = repository.findById(lista.get(lista.size() - 1).getId()).get();
+
+                            System.out.println("➡️ Buscando horario de última asistencia con id=" + asitenciaLast.getHorarioId());
+                            PersonalHorario horariolast = this.horarioService.findById(asitenciaLast.getHorarioId()).get();
+
                             asitenciaLast.setHoraSalida(asitenciaLast.getHoraEntrada());
                             asitenciaLast.setHoraEntrada(horario.getEntrada());
                             asitenciaLast.setEstado(0);
+                            System.out.println("➡️ Actualizando última asistencia id=" + asitenciaLast.getId());
                             this.actualizarAsistencia(asitenciaLast.getId(), asitenciaLast);
-                            return false;
+
+                        } catch (Exception ex) {
+                            System.err.println("❌ ERROR dentro de anyMatch: " + ex.getMessage());
+                            ex.printStackTrace();
                         }
-                        return !idRegistro.equals(horarioActual.getId()) && a.getHoraEntrada() != null;
-                    });
-            if (hayOtraFranjaMarcada) {
-                registrarTramosIntermedios(fecha, dni, horarioActual, horariosHoy, ahora);
-            }
-        } catch (Exception e) {
-            System.err.println("Excepción en verificarYRegistrarTramosIntermedios: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
+                        return false;
+                    }
+                    return !idRegistro.equals(horarioActual.getId()) && a.getHoraEntrada() != null;
+                });
+
+        if (hayOtraFranjaMarcada) {
+            registrarTramosIntermedios(fecha, dni, horarioActual, horariosHoy, ahora);
         }
+    } catch (Exception e) {
+        System.err.println("Excepción en verificarYRegistrarTramosIntermedios: " + e.getMessage());
+        e.printStackTrace();
+        throw e; // <- por eso el stacktrace apunta a la última línea
     }
+}
+
 
 
     private void registrarTramosIntermedios(LocalDate fecha, Long dni, HorarioDTO horarioFinal, List<HorarioDTO> horariosHoy,LocalTime ahora) {
@@ -313,7 +346,7 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
 
     }
 
-    private void procesarHorarioEnTramo(LocalDate fecha, Long dni, HorarioDTO inicial, HorarioDTO finalHorario, HorarioDTO h,LocalTime ahora) {
+    private void procesarHorarioEnTramo(LocalDate fecha, Long dni, HorarioDTO inicial, HorarioDTO finalHorario, HorarioDTO h, LocalTime ahora) {
         System.out.println("13-procesarHorarioEnTramo");
         boolean yaRegistrado = verificarSiYaEstaRegistrado(fecha, dni, h.getId());
         boolean esInicial = h.getId().equals(inicial.getId());
@@ -322,13 +355,25 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         if (esInicial) {
             this.marcarHoraSalida(fecha, h.getSalida(), dni, h);
         }
+
         if (esFinal) {
-            AsistenciaPersonal asistenciaPersonal = this.repository.findByHorarioIdAndFecha(h.getId(), fecha);
-            asistenciaPersonal.setHoraEntrada(h.getEntrada());
-            asistenciaPersonal.setHoraSalida(ahora);
-            asistenciaPersonal.setEstado(0);
-            this.actualizarAsistencia(asistenciaPersonal.getId(), asistenciaPersonal);
+            // Buscar todos los registros que coincidan
+            List<AsistenciaPersonal> asistencias = this.repository.findByHorarioIdAndFecha(h.getId(), fecha);
+
+            if (asistencias != null && !asistencias.isEmpty()) {
+                // Tomamos el último (el más reciente) para actualizar
+                AsistenciaPersonal asistenciaPersonal = asistencias.get(asistencias.size() - 1);
+
+                asistenciaPersonal.setHoraEntrada(h.getEntrada());
+                asistenciaPersonal.setHoraSalida(ahora);
+                asistenciaPersonal.setEstado(0);
+
+                this.actualizarAsistencia(asistenciaPersonal.getId(), asistenciaPersonal);
+            } else {
+                System.out.println("⚠️ No se encontró asistencia para horarioId=" + h.getId() + " en fecha=" + fecha);
+            }
         }
+
         if (!esInicial && !esFinal && !yaRegistrado) {
             // Para horarios intermedios, registrar entrada y salida
             registrarEntradaIntermedia(fecha, h.getEntrada(), dni, h);
@@ -371,7 +416,6 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         asistencia.setHorarioId(update.getHorarioId());
         repository.save(asistencia);
     }
-
 
 
     private String traducirDia(DayOfWeek dia) {
@@ -418,6 +462,11 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
     @Override
     public boolean existeAsistenciaParaHoy(Long horarioId, LocalDate fecha) {
         return repository.existsByHorarioIdAndFecha(horarioId, fecha);
+    }
+
+@Override
+public List<AsistenciaPersonal> obtenerPorDniYFecha(Long dni, LocalDate fecha) {
+        return repository.findByDniAndFecha(dni, fecha);
     }
 
     @Override
@@ -474,9 +523,12 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
         return lista;
     }
 
+
     @Override
-    public List<ReporteFaltasDTO> cargarAsistenciasDelMes(int mes) {
-        List<Object[]> resultados = repository.obtenerReporteFaltasPorMes(mes);
+    public List<ReporteFaltasDTO> cargarAsistenciasDelMesRango(LocalDate fechaInicio, LocalDate fechaFin) {
+//    public List<ReporteFaltasDTO> cargarAsistenciasDelMes(int mes) {
+//        List<Object[]> resultados = repository.obtenerReporteFaltasPorMes(mes);
+        List<Object[]> resultados = repository.obtenerReporteFaltasPorRango(fechaInicio, fechaFin);
         List<ReporteFaltasDTO> asistencias = resultados.stream().map(obj -> {
             String nombreCompleto = obj[0] != null ? (String) obj[0] : "";
             String materiaNombre = obj[1] != null ? (String) obj[1] : "";
@@ -485,7 +537,8 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
             Integer estado1 = obj[4] != null ? ((Number) obj[4]).intValue() : 0;
             Integer estado2 = obj[5] != null ? ((Number) obj[5]).intValue() : 0;
             Integer estado3 = obj[6] != null ? ((Number) obj[6]).intValue() : 0;
-            Integer totalCount = obj[7] != null ? ((Number) obj[7]).intValue() : 0;
+            Integer estado4 = obj[7] != null ? ((Number) obj[7]).intValue() : 0;
+            Integer totalCount = obj[8] != null ? ((Number) obj[8]).intValue() : 0;
             return new ReporteFaltasDTO(
                     nombreCompleto,
                     materiaNombre,
@@ -494,15 +547,88 @@ public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService 
                     estado1,
                     estado2,
                     estado3,
+                    estado4,
                     totalCount
             );
         }).toList();
         return asistencias;
     }
 
+
     @Override
     public List<AsistenciaDetalleDTO> obtenerAsistenciasPorFecha(LocalDate fecha) {
-        List<AsistenciaDetalleDTO> asistencias = repository.buscarAsistenciasPorFechaYDía(fecha);
+        List<Object[]> result = repository.buscarAsistenciasPorFechaYDía(fecha);
+
+        List<AsistenciaDetalleDTO> asistencias = new ArrayList<>();
+
+        for (Object[] r : result) {
+            try {
+                String horaEntrada = r[7] != null ? r[7].toString() : null;
+                String horaSalida  = r[8] != null ? r[8].toString() : null;
+                Integer estado = r[10] != null ? (Integer) r[10] : null;
+                String estadoTexto = estado != null ? getEstadoTexto(estado) : "Desconocido";
+                AsistenciaDetalleDTO dto = new AsistenciaDetalleDTO(
+                        r[0] != null ? ((Integer) r[0]).longValue() : null,  // asistenciaId
+                        r[1] != null ? ((Integer) r[1]).longValue() : null,  // horarioId
+                        (String) r[2],                                       // carreraId
+                        (String) r[3],                                       // materiaNombre
+                        r[4] != null ? String.valueOf(r[4]) : null,          // dni
+                        (String) r[5],                                       // apellido
+                        (String) r[6],                                       // nombre
+                        horaEntrada,                                         // horaEntrada
+                        horaSalida,                                          // horaSalida
+                        (String) r[9],                                        // observaciones
+                        estadoTexto                                          // estado como texto                                    // observaciones
+                );
+                asistencias.add(dto);
+            } catch (ClassCastException e) {
+                System.err.println("❌ Error de casteo en fila: " + Arrays.toString(r));
+                for (int i = 0; i < r.length; i++) {
+                    System.err.println("  -> r[" + i + "] = " + r[i] + " (tipo: " + (r[i] != null ? r[i].getClass() : "null") + ")");
+                }
+                throw e;
+            }
+        }
+
         return asistencias;
     }
+
+    public String getEstadoTexto(Integer estado) {
+        if (estado == null) {
+            return "Desconocido";
+        }
+
+        switch (estado) {
+            case 0:
+                return "Presente";
+            case 1:
+                return "Tardanza";
+            case 2:
+                return "Salida Temprana";
+            case 3:
+                return "Falta Justificada";
+            case 4:
+                return "Falta Injustificada";
+            case 5:
+                return "Requiere Informacion";
+            case 6:
+                return "MESA DE EXAMEN";
+            case 7:
+                return "JORNADA INSTITUCIONAL";
+            case 8:
+                return "FERIADO";
+            case 9:
+                return "SUSPENSION DE ACTIVIDADES";
+            default:
+                return "Desconocido";
+        }
+    }
+
+    @Transactional
+    @Override
+    public int actualizarObservacionesYEstadoPorFecha(String observaciones, String estado, LocalDate fecha) {
+        return repository.actualizarPorFecha(observaciones, estado, fecha);
+    }
+
 }
+

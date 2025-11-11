@@ -77,6 +77,10 @@ public class Legajo {
     @Column(name = "folio", length = 10)
     private String folio;
 
+    @Column(name = "notas_corregidas", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean notasCorregidas;
+
+
     // Relaciones corregidas con @JsonManagedReference y mappedBy
     @OneToMany(mappedBy = "aporteLegajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -267,5 +271,13 @@ public class Legajo {
 
     public void setUsuario(String usuario) {
         this.usuario = usuario;
+    }
+
+    public boolean isNotasCorregidas() {
+        return notasCorregidas;
+    }
+
+    public void setNotasCorregidas(boolean notasCorregidas) {
+        this.notasCorregidas = notasCorregidas;
     }
 }

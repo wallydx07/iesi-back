@@ -14,10 +14,11 @@ public class PersonalHorarioDTO {
     private String dia;
     private LocalTime entrada; // 🔸 LocalTime
     private LocalTime salida;  // 🔸 LocalTime
+    private String materiaRegimen;
 
     public PersonalHorarioDTO(Integer id, Long personalDni, String personalApellido, String personalNombre,
                               Integer mcId, String carreraId, String materiaNombre, String dia,
-                              LocalTime entrada, LocalTime salida) {
+                              LocalTime entrada, LocalTime salida, String materiaRegimen) {
         this.id = id;
         this.personalDni = personalDni;
         this.personalApellido = personalApellido;
@@ -28,6 +29,15 @@ public class PersonalHorarioDTO {
         this.dia = dia;
         this.entrada = entrada;
         this.salida = salida;
+        this.materiaRegimen = materiaRegimen;
+    }
+
+    public String getMateriaRegimen() {
+        return materiaRegimen;
+    }
+
+    public void setMateriaRegimen(String materiaRegimen) {
+        this.materiaRegimen = materiaRegimen;
     }
 
     public Integer getId() {

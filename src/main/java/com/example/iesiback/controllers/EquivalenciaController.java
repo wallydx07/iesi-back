@@ -1,5 +1,6 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.EquivalenciaDetalleDTO;
 import com.example.iesiback.entities.Equivalencia;
 import com.example.iesiback.services.EquivalenciaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,12 +58,26 @@ public class EquivalenciaController {
     }
 
     @GetMapping("/legajo/{legajoId}")
-    public List<Equivalencia> getByLegajo(@PathVariable Integer legajoId) {
+    public List<Equivalencia> getByLegajo(@PathVariable String legajoId) {
         return equivalenciaService.findByLegajoId(legajoId);
     }
 
     @GetMapping("/materia/{materiaId}")
-    public List<Equivalencia> getByMateria(@PathVariable Integer materiaId) {
+    public List<Equivalencia> getByMateria(@PathVariable String materiaId) {
         return equivalenciaService.findByMateriaId(materiaId);
+    }
+
+    @PostMapping("/crear-con-nota")
+    public ResponseEntity<Equivalencia> crearEquivalencia(
+            @RequestBody Equivalencia equivalencia,
+            @RequestParam Integer cursadaId) {
+
+        Equivalencia creada = equivalenciaService.crearEquivalenciaConNota(equivalencia, cursadaId);
+        return ResponseEntity.ok(creada);
+    }
+    @GetMapping("/detalle")
+    public ResponseEntity<List<EquivalenciaDetalleDTO>> obtenerEquivalenciasConDetalle() {
+        List<EquivalenciaDetalleDTO> lista = equivalenciaService.obtenerEquivalenciasConDetalle();
+        return ResponseEntity.ok(lista);
     }
 }

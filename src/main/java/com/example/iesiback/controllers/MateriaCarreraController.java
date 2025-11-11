@@ -43,6 +43,11 @@ public class MateriaCarreraController {
         return ResponseEntity.ok(materiaCarrera);
     }
 
+    @GetMapping("carreraId/{carreraId}")
+    public ResponseEntity<List<MateriaCarrera>> obtenerMateriasPorCarrera(@PathVariable String carreraId) {
+        List<MateriaCarrera> materias = materiaCarreraService.obtenerMateriasPorCarrera(carreraId);
+        return ResponseEntity.ok(materias);
+    }
 
 //    @GetMapping("/{id}")
 //    public ResponseEntity<MateriaCarrera> obtenerMateriaCarreraPorId(@PathVariable Long id) {

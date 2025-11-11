@@ -9,20 +9,23 @@ import java.time.Instant;
 @Entity
 @Table(name = "equivalencia")
 public class Equivalencia {
+
+
     @Id
-    @ColumnDefault("nextval('equivalencia_equivalencia_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "equivalencia_id", nullable = false)
     private Integer id;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nota_id")
     private Nota nota;
 
     @Column(name = "legajo_id")
-    private Integer legajoId;
+    private String legajoId;
 
     @Column(name = "materia_id")
-    private Integer materiaId;
+    private String materiaId;
 
     @Size(max = 255)
     @Column(name = "institucion_origen")
@@ -48,6 +51,22 @@ public class Equivalencia {
     @Column(name = "usuario", length = 100)
     private String usuario;
 
+    public String getLegajoId() {
+        return legajoId;
+    }
+
+    public void setLegajoId(String legajoId) {
+        this.legajoId = legajoId;
+    }
+
+    public String getMateriaId() {
+        return materiaId;
+    }
+
+    public void setMateriaId(String materiaId) {
+        this.materiaId = materiaId;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -64,21 +83,6 @@ public class Equivalencia {
         this.nota = nota;
     }
 
-    public Integer getLegajoId() {
-        return legajoId;
-    }
-
-    public void setLegajoId(Integer legajoId) {
-        this.legajoId = legajoId;
-    }
-
-    public Integer getMateriaId() {
-        return materiaId;
-    }
-
-    public void setMateriaId(Integer materiaId) {
-        this.materiaId = materiaId;
-    }
 
     public String getInstitucionOrigen() {
         return institucionOrigen;

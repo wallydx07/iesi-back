@@ -13,4 +13,5 @@ public interface NotaCursandoProjection {
     String getMateriaExamen();
     Integer getCursadaId();
     LocalDate getNotaFechaNota();
+    String getNotaCondicion();
 }

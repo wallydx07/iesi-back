@@ -2,16 +2,26 @@ package com.example.iesiback.dto;
 
 public class AsistenciaResumenDTO {
 
+    private String materiaId;
     private String materia;
     private Long totalSesiones;
     private Long presentes;
-    private Integer   porcentaje;
+    private Integer porcentaje;
 
-    public AsistenciaResumenDTO(String materia, Long totalSesiones, Long presentes, Integer porcentaje) {
+    public AsistenciaResumenDTO(String materia, Long totalSesiones, Long presentes, Integer porcentaje, String materiaId) {
         this.materia = materia;
         this.totalSesiones = totalSesiones;
         this.presentes = presentes;
         this.porcentaje = porcentaje;
+        this.materiaId = materiaId;
+    }
+
+    public String getMateriaId() {
+        return materiaId;
+    }
+
+    public void setMateriaId(String materiaId) {
+        this.materiaId = materiaId;
     }
 
     public String getMateria() {

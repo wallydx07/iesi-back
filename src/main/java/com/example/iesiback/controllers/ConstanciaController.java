@@ -5,18 +5,23 @@ import com.example.iesiback.dto.CertificadoEstudianteDTO;
 import com.example.iesiback.entities.Atencion;
 import com.example.iesiback.entities.CertificadoEstudiante;
 import com.example.iesiback.entities.Legajo;
+import com.example.iesiback.entities.User;
 import com.example.iesiback.services.AtencionService;
 import com.example.iesiback.services.CertificadoEstudianteService;
 import com.example.iesiback.services.LegajoService;
+import com.example.iesiback.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/constancias")
 @CrossOrigin(origins = "*")
 public class ConstanciaController {
+
+    private final UserService userService;
 
     @Autowired
     private CertificadoEstudianteService certificadoEstudianteService;
@@ -26,6 +31,10 @@ public class ConstanciaController {
 
     @Autowired
     private AtencionService atencionService;
+
+    public ConstanciaController(UserService userService) {
+        this.userService = userService;
+    }
 
 
     @GetMapping
@@ -94,13 +103,37 @@ public class ConstanciaController {
         return certificadoEstudianteService.findByLegajoId(legajoId);
     }
 
+//    @PostMapping("/batch")
+//    public ResponseEntity<List<CertificadoEstudiante>> guardarVarios(@RequestBody List<CertificadoEstudiante> certificados,
+//                                                                     @RequestParam(required = false) String legajoId) {
+//        List<CertificadoEstudiante> guardados = certificadoEstudianteService.saveAll(certificados);
+//        return ResponseEntity.ok(guardados);
+//    }
+
+
+
     @PostMapping("/batch")
-    public ResponseEntity<List<CertificadoEstudiante>> guardarVarios(@RequestBody List<CertificadoEstudiante> certificados,
-                                                                     @RequestParam(required = false) String legajoId) {
+    public ResponseEntity<List<CertificadoEstudiante>> guardarVarios(
+            @RequestBody List<CertificadoEstudiante> certificados,
+            @RequestParam(required = false) String legajoId) {
+
+        Optional<User> usuarioOpt = userService.getAuthenticatedUser();
+
+        for (CertificadoEstudiante certificado : certificados) {
+            usuarioOpt.ifPresent(usuario -> certificado.setUsuario(usuario.getUserApellido()));
+        }
+
         List<CertificadoEstudiante> guardados = certificadoEstudianteService.saveAll(certificados);
         return ResponseEntity.ok(guardados);
     }
+
 //
+
+
+
+
+
+
 //    @PostMapping("/batch")
 //    public ResponseEntity<List<CertificadoEstudiante>> guardarVarios(
 //            @RequestBody List<CertificadoEstudiante> certificados,

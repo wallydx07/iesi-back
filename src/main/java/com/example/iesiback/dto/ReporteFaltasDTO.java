@@ -4,14 +4,16 @@ public class ReporteFaltasDTO {
     private String nombreCompleto;
     private String materiaNombre;
     private String dni;
-    private Integer estado0;
-    private Integer estado1;
-    private Integer estado2;
-    private Integer estado3;
+    private Integer estado0; //Asistio
+    private Integer estado1;// Tardanzoa
+    private Integer estado2;//asistencia injustificada
+    private Integer estado3;// asistencia just
+    private Integer estado4;// retirada temprano
+
     private Integer totalCount;
 
     public ReporteFaltasDTO(String nombreCompleto, String materiaNombre, String dni,
-                            Integer estado0, Integer estado1, Integer estado2, Integer estado3, Integer totalCount) {
+                            Integer estado0, Integer estado1, Integer estado2, Integer estado3, Integer estado4, Integer totalCount) {
         this.nombreCompleto = nombreCompleto;
         this.materiaNombre = materiaNombre;
         this.dni = dni;
@@ -20,6 +22,15 @@ public class ReporteFaltasDTO {
         this.estado2 = estado2;
         this.estado3 = estado3;
         this.totalCount = totalCount;
+        this.estado4=estado4;
+    }
+
+    public Integer getEstado4() {
+        return estado4;
+    }
+
+    public void setEstado4(Integer estado4) {
+        this.estado4 = estado4;
     }
 
     public String getNombreCompleto() {

@@ -16,13 +16,15 @@ import java.util.List;
 public interface NotaService {
     List<Nota> obtenerNotas();
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId);
-    List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); // ✅ Corregido, sin implementación en la interfaz
+
+    List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId);
+
+    List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); //
     List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materiaId, boolean cursadaInscripto);
 
 //    List<NotaCursadaDTO> findNotasByCarreraAndMateriaNew(String carreraId, String materaId, boolean cursadaInscripto);
 
     List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, boolean cursadaInscripto);
-
     List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(Long  cursadaExamenId, Boolean soloInscritos);
     boolean isMateriaAprobada(String legajoId, String materiaId);
     Nota guardarNota(Nota nota);
@@ -35,6 +37,9 @@ public interface NotaService {
 
     @Transactional
     void eliminarNota(Long id);
+
+    @Transactional
+    void eliminarNotaIndividual(Long id);
 
     NotaMateriaDTO obtenerUltimaNota(String legajoId);
 
@@ -63,4 +68,6 @@ public interface NotaService {
 
 
     void permitirEdicionMateria(String carreraId, String materiaId, boolean editable);
+
+    Nota saveNotaWithCursadsa(Nota nota, Integer cursadaId);
 }

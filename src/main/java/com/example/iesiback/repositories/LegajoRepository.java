@@ -1,10 +1,15 @@
 package com.example.iesiback.repositories;
 
+import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.entities.Legajo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Repository
 public interface LegajoRepository extends JpaRepository<Legajo, String> {
@@ -22,6 +27,11 @@ public interface LegajoRepository extends JpaRepository<Legajo, String> {
 //""", nativeQuery = true)
 //    String findMaxLegajoId(@Param("prefijo") String prefijo);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE Legajo l SET l.legajoAlumnoDni = :nuevoDni WHERE l.legajoAlumnoDni = :dniActual")
+    int actualizarAlumnoDni(@Param("dniActual") Long dniActual, @Param("nuevoDni") Long nuevoDni);
 
+    List<Legajo> findByLegajoAlumnoDni(Alumno alumno);
 
 }

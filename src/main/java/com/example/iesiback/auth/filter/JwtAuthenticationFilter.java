@@ -101,7 +101,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             AuthenticationException failed) throws IOException, ServletException {
 
         Map<String, String> body = new HashMap<>();
-       body.put("message", "Se ha producido un error F :(");
+       body.put("message", "Se ha producido un error");
         body.put("error", failed.getMessage());
         // Incluir las credenciales enviadas para depuración
         body.put("attemptedUsername", this.attemptedUsername);

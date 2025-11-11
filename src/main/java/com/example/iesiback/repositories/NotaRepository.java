@@ -31,7 +31,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
         n.nota_cursada_id,
         mc.materia_id,
         m.materia_nivel,
-        c.cursada_legajo_id
+        c.cursada_legajo_id,
+        mc.firma
     FROM nota n
     INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
     INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
@@ -320,7 +321,8 @@ JOIN mc.carrera c
         n.notaUsuario,
         mc.materia.materiaId,
         m.materiaNivel,
-        c.materiaCarrera.id
+        c.materiaCarrera.id,
+        mc.firma
     )
     FROM Nota n
     JOIN n.cursada c
@@ -368,7 +370,8 @@ JOIN mc.carrera c
             "nota.nota_estado AS notaEstado, " +
             "materia.materia_cursada AS materiaCursada, " +
             "materia.materia_examen AS materiaExamen, " +
-            "cursada.cursada_id AS cursadaId " +
+            "cursada.cursada_id AS cursadaId, " +
+            "nota.nota_condicion AS notaCondicion " +
             "FROM nota " +
             "INNER JOIN cursada ON nota.nota_cursada_id = cursada.cursada_id " +
             "INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id " +
@@ -388,7 +391,8 @@ JOIN mc.carrera c
             "nota.nota_estado AS notaEstado, " +
             "materia.materia_cursada AS materiaCursada, " +
             "materia.materia_examen AS materiaExamen, " +
-            "cursada.cursada_id AS cursadaId " +
+            "cursada.cursada_id AS cursadaId, " +
+            "nota.nota_condicion AS notaCondicion " +
             "FROM nota " +
             "INNER JOIN cursada ON nota.nota_cursada_id = cursada.cursada_id " +
             "INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id " +

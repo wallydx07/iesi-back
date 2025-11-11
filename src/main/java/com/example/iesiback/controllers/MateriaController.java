@@ -84,7 +84,7 @@ public ResponseEntity<List<MateriaDTO>> getMateriasPorCarrerasyUsuario(@PathVari
     String userRol = String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
     Long userId = Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
     System.out.println("Usuario autenticado: ID=" + userId + ", Rol=" + userRol);
-    if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_PERSONAL".equalsIgnoreCase(userRol)) {
+    if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_PERSONAL".equalsIgnoreCase(userRol) || "ROLE_TITULACION".equalsIgnoreCase(userRol) || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
         materias = materiaService.obtenerMateriasPorCarrera(carreraId);
     } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
         materias = materiaService.obtenerMateriasPorCarrera(carreraId);

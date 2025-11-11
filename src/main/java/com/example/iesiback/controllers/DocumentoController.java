@@ -257,25 +257,39 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
         List<Documento> archivos = documentoRepository.findByEntidadId(legajoId);  // Lógica para obtener los archivos
         return ResponseEntity.ok(archivos);
     }
-
     @GetMapping("/descargar")
     public ResponseEntity<Resource> downloadFile(@RequestParam String filePath) {
         try {
+            System.out.println("Solicitud de descarga recibida para filePath: " + filePath);
+
+            // Decodificar la URL
             filePath = URLDecoder.decode(filePath, StandardCharsets.UTF_8);
+            System.out.println("filePath decodificado: " + filePath);
+
+            // Normalizar la ruta
             Path path = Paths.get(filePath).normalize();
+            System.out.println("Ruta normalizada: " + path.toString());
             Resource resource = new UrlResource(path.toUri());
+
             if (!resource.exists() || !resource.isReadable()) {
                 System.err.println("Error: El archivo no existe o no es accesible: " + path.toString());
                 return ResponseEntity.notFound().build();
             }
+
+            // Detectar tipo de contenido
             String contentType = Files.probeContentType(path);
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
+            System.out.println("Tipo de contenido detectado: " + contentType);
+            System.out.println("Archivo listo para descargar: " + path.getFileName());
+
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + path.getFileName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + path.getFileName() + "\"")
                     .body(resource);
+
         } catch (IOException e) {
             System.err.println("Error al procesar la descarga del archivo: " + filePath);
             e.printStackTrace();
@@ -312,8 +326,6 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-
 
 
 }

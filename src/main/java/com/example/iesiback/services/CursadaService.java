@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.NotaCursadaDTO;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.Materia;
@@ -19,6 +20,7 @@ public interface CursadaService {
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, int materiaCarreraId);
     void deleteCursada(Integer id);
     List<Cursada> findByLegajoId(String legajoId);
+
     List<Cursada> getCursadasNoAprobadas(String legajoId);
     List<Cursada> findByLegajoAndMateria(String legajo, String materia);
     Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear);

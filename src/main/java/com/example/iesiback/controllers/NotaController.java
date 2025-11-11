@@ -85,6 +85,15 @@ public class NotaController {
         }
     }
 
+    @GetMapping("/obtenerNotasNoAprobadasPorLegajo")
+    public ResponseEntity<List<NotaMateriaDTO>> obtenerNotasNoAprobadasPorLegajo(
+            @RequestParam String legajoId
+    ) {
+        List<NotaMateriaDTO> examenes = notaService.obtenerNotasNoAprobadasCursadas(legajoId);
+        return ResponseEntity.ok(examenes);
+    }
+
+
     @GetMapping("/obtenerTodasNotasPorExamen")
     public ResponseEntity<List<NotaExamenDTO>> obtenerTodasNotasPorExamen(
             @RequestParam Long  cursadaExamenId,
@@ -120,6 +129,28 @@ public class NotaController {
         Nota nuevaNota = notaService.guardarNota(nota);
         return ResponseEntity.ok(nuevaNota);
     }
+
+    @DeleteMapping("/eliminarNotaIndividual/{id}")
+    public ResponseEntity<String> eliminarNotaIndividual(@PathVariable Long id) {
+        try {
+            // Llamamos al servicio que solo elimina la nota
+            notaService.eliminarNotaIndividual(id);
+            String msg = "Nota eliminada correctamente.";
+
+            // Imprimir en consola
+            System.out.println("Respuesta API: " + msg);
+
+            return ResponseEntity.ok(msg);
+        } catch (RuntimeException e) {
+            String errorMsg = e.getMessage();
+
+            // Imprimir en consola
+            System.out.println("Error al eliminar nota: " + errorMsg);
+
+            return ResponseEntity.badRequest().body(errorMsg);
+        }
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminarNota(@PathVariable Long id) {
@@ -157,7 +188,7 @@ public class NotaController {
     public ResponseEntity<EvaluacionCorrelativaResponse> evaluarMateriaIndividual(
             @PathVariable String legajoId,
             @PathVariable Integer materiaOrden) {
-        EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId, materiaOrden);
+        EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId,materiaOrden);
         return ResponseEntity.ok(response);
     }
 

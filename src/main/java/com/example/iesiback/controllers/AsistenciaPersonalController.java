@@ -102,21 +102,8 @@ public class AsistenciaPersonalController {
 
     @PostMapping("/desde-dispositivo")
     public ResponseEntity<?> recibirDesdeDispositivo(@RequestBody RegistroAsistenciaDTO dto) {
-//        System.out.println("DNI recibido: " + dto.getDni());
-//        System.out.println("FechaHora: " + dto.getFechaHora());
-//        System.out.println("Dispositivo: " + dto.getDispositivo());
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//        LocalDateTime fechaHoraCompleta = LocalDateTime.parse(dto.getFechaHora(), formatter);
-//        LocalDate fecha = fechaHoraCompleta.toLocalDate();
-//        LocalTime hora = fechaHoraCompleta.toLocalTime();
-//        System.out.println("Fecha: " + fecha);
-//        System.out.println("Hora: " + hora);
-
         RespuestaAsistenciaDTO asistencia = service.AsistenciaDahua(dto);
-
-        // Imprimir mensaje antes de devolverlo
         System.out.println("Respuesta enviada: " + asistencia.getMensaje());
-
         if (asistencia.isExito()) {
             return ResponseEntity.ok(asistencia.getMensaje());
         } else {
@@ -164,5 +151,23 @@ public class AsistenciaPersonalController {
             @PathVariable("dni") Long dni) {
         List<DetalleAsistenciaPersonalDTO> detalle = service.obtenerDetallePorDNI(dni);
         return ResponseEntity.ok(detalle);
+    }
+
+    // 🔹 Endpoint para actualizar observaciones y estado por fecha
+    @PutMapping("/actualizar-por-fecha")
+    public ResponseEntity<String> actualizarPorFecha(
+            @RequestParam String fecha,        // fecha en formato "yyyy-MM-dd"
+            @RequestParam(required = false, defaultValue = "") String observaciones,
+            @RequestParam(required = false, defaultValue = "") String estado
+    ) {
+        try {
+            LocalDate fechaLocal = LocalDate.parse(fecha, DateTimeFormatter.ISO_DATE);
+            int registrosActualizados = service
+                    .actualizarObservacionesYEstadoPorFecha(observaciones, estado, fechaLocal);
+
+            return ResponseEntity.ok("Registros actualizados: " + registrosActualizados);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 }

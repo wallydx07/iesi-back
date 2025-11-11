@@ -39,7 +39,8 @@ public interface CertificadoService {
     PDDocument generaAsistenciaExamenFinal(String legajoId, String autoridades, String curso,
                                            String fechaSeleccionada, String accion, String materia);
 
-    PDDocument crearPDFPorMes(String mes);
+
+    PDDocument crearPDFPorMes(LocalDate fechaInicio, LocalDate fechaFin);
 
     PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin);
 

@@ -81,4 +81,10 @@ public class AsistenciaAlumnoController {
         int anioActual = Year.now().getValue(); // java.time.Year
         return asistenciaAlumnoService.obtenerResumenAsistencia(legajoId, anioActual);
     }
+
+    @GetMapping("/resumenMaterias/{legajoId}")
+    public List<AsistenciaResumenDTO> obtenerResumenMaterias(@PathVariable String legajoId) {
+        int anioActual = Year.now().getValue(); // java.time.Year
+        return asistenciaAlumnoService.obtenerResumenAsistencia(legajoId, anioActual);
+    }
 }

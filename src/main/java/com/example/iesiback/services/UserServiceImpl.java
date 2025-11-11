@@ -257,5 +257,4 @@ public class UserServiceImpl implements UserService {
     public List<User> getUsuariosPorRoles(List<String> roles) {
         return repository.findByRolesNombreIn(roles);
     }
-
 }

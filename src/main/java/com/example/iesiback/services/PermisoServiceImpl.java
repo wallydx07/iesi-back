@@ -108,7 +108,7 @@ public class PermisoServiceImpl implements PermisoService {
             int inicio=421;//desde le borde o desde el centro como esta hoja es horizontal
             encabezado.beginText();
             encabezado.setFont(PDType1Font.HELVETICA, 8);
-            encabezado.newLineAtOffset(inicio+105, 585);//580
+            encabezado.newLineAtOffset(inicio+105, 580);//580
             encabezado.showText("INSTITUTO DE EDUCACIÓN SUPERIOR INTERCULTURAL");
             encabezado.newLineAtOffset(40, n);
             encabezado.showText("“CAMPINTA GUAZÚ GLORIA PÉREZ”");

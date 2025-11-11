@@ -450,11 +450,12 @@ public class CertificadoController {
     }
 
 
-
-
     @GetMapping("/reporte-mensual")
-    public ResponseEntity<ByteArrayResource> descargarReportePorMes(@RequestParam String mes) {
-        try (PDDocument document = certificadoService.crearPDFPorMes(mes);
+    public ResponseEntity<ByteArrayResource> descargarReportePorMes(
+            @RequestParam("desde") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam("hasta") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta) {
+
+        try (PDDocument document = certificadoService.crearPDFPorMes(fechaDesde, fechaHasta);
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
             document.save(baos);
@@ -467,10 +468,11 @@ public class CertificadoController {
                     .contentLength(pdfBytes.length)
                     .body(resource);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @GetMapping("/reporte-rango")
     public ResponseEntity<ByteArrayResource> descargarReportePorFechas(
@@ -479,11 +481,9 @@ public class CertificadoController {
 
         try (PDDocument document = certificadoService.crearPDFPorFecha(fechaDesde, fechaHasta);
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-
             document.save(baos);
             byte[] pdfBytes = baos.toByteArray();
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);
-
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=generaCertificadoAsistencia.pdf")
                     .contentType(MediaType.APPLICATION_PDF)

@@ -30,7 +30,7 @@ public interface AporteRepository extends JpaRepository<Aporte, Integer> {
             "join a.aporteLegajo l " +
             "join l.legajoAlumnoDni al " +
             "where a.aporteMonto <> 0 " +
-            "order by a.aporteFecha desc")
+            "order by a.id desc")
     List<AporteDTO> findAportesConDatos();
 
     List<Aporte> findByAporteLegajo(Legajo aporteLegajo);

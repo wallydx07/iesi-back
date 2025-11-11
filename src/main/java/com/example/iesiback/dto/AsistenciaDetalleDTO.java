@@ -5,7 +5,7 @@ import java.time.LocalTime;
 public class AsistenciaDetalleDTO {
     private Long asistenciaId;
     private Long horarioId;
-    private Long carreraId;
+    private String carreraId;
     private String materiaNombre;
     private String dni;
     private String apellido;
@@ -13,11 +13,12 @@ public class AsistenciaDetalleDTO {
     private String horaEntrada;
     private String horaSalida;
     private String observaciones;
+    private String estado;
 
     // Constructor
-    public AsistenciaDetalleDTO(Long asistenciaId, Long horarioId, Long carreraId, String materiaNombre,
+    public AsistenciaDetalleDTO(Long asistenciaId, Long horarioId, String carreraId, String materiaNombre,
                                 String dni, String apellido, String nombre,
-                                String horaEntrada, String horaSalida, String observaciones) {
+                                String horaEntrada, String horaSalida, String observaciones, String estado) {
         this.asistenciaId = asistenciaId;
         this.horarioId = horarioId;
         this.carreraId = carreraId;
@@ -28,6 +29,15 @@ public class AsistenciaDetalleDTO {
         this.horaEntrada = horaEntrada;
         this.horaSalida = horaSalida;
         this.observaciones = observaciones;
+        this.estado = estado;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public Long getAsistenciaId() {
@@ -46,11 +56,11 @@ public class AsistenciaDetalleDTO {
         this.horarioId = horarioId;
     }
 
-    public Long getCarreraId() {
+    public String getCarreraId() {
         return carreraId;
     }
 
-    public void setCarreraId(Long carreraId) {
+    public void setCarreraId(String carreraId) {
         this.carreraId = carreraId;
     }
 

@@ -51,6 +51,7 @@ public class LegajoController {
         UpdateLegajo.setLegajoAval(legajo.getLegajoAval());
         UpdateLegajo.setLegajoEstado(legajo.getLegajoEstado());
         UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
+        UpdateLegajo.setNotasCorregidas(legajo.isNotasCorregidas());
         //UpdateLegajo.setLegajoCarpetaColgante(legajo.getLegajoCarpetaColgante());
         Legajo updatedLegajo = LegajoService.updateLegajo(UpdateLegajo);
         return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);

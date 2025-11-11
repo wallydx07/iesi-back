@@ -117,7 +117,6 @@ public class CursadaServiceImpl implements CursadaService {
     @Override
     public List<Cursada> getCursadasNoAprobadas(String legajoId) {
         List<Cursada> cursadas = cursadaRepository.findByLegajoId(legajoId);
-
         // Filtrar cursadas con notas, y que no tengan ninguna "Aprobado" ni "Cursando"
         List<Cursada> filtradas = cursadas.stream()
                 .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty())
@@ -151,7 +150,6 @@ public class CursadaServiceImpl implements CursadaService {
 
         return new ArrayList<>(cursadaMasRecientePorMateria.values());
     }
-
 
     @Override
     public String obtenerCorrelativasPendientes(String materiaId, String legajoId) {
@@ -217,9 +215,6 @@ public class CursadaServiceImpl implements CursadaService {
     }
 
 
-
-
-
     @Override
     public List<String> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia) {
        String correlativas = materia.getMateriaCursada();
@@ -242,7 +237,6 @@ public class CursadaServiceImpl implements CursadaService {
 
 
     private boolean tieneNotaAprobadaORegular(Cursada cursada) {
-        System.out.println("Revisando notas para cursada: " + cursada);
         return cursada.getNotas().stream()
                 .peek(nota -> System.out.println("Estado de la nota: " + nota.getNotaEstado()))  // Imprime el estado de cada nota
                 .anyMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()));

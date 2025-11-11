@@ -150,7 +150,14 @@ public class AlumnoController {
 
 
 
+    @PutMapping("/cambio-dni")
+    public ResponseEntity<String> cambioDni(
+            @RequestParam String dniActual,
+            @RequestParam Long dniNuevo) {
 
+        alumnoService.cambioDNI(dniActual, dniNuevo);
+        return ResponseEntity.ok("DNI actualizado correctamente");
+    }
 
 
 

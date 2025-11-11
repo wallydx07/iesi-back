@@ -90,7 +90,7 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
         m.materiaNombre,
         COUNT(a.id),
         SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END),
-        CAST(ROUND(SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END) * 100.0 / COUNT(a.id)) AS int)
+        CAST(ROUND(SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END) * 100.0 / COUNT(a.id)) AS int),m.materiaId
     )
     FROM AsistenciaAlumno a
     JOIN a.idInforme i
@@ -98,7 +98,7 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
     JOIN mc.materia m
     WHERE a.legajoId = :legajoId
       AND FUNCTION('date_part', 'year', i.fecha) = :anioActual
-    GROUP BY m.materiaNombre, m.materiaOrden
+    GROUP BY m.materiaNombre, m.materiaOrden, m.materiaId
     ORDER BY m.materiaOrden
 """)
     List<AsistenciaResumenDTO> obtenerResumenAsistencia(@Param("legajoId") String legajoId, @Param("anioActual") int anioActual);

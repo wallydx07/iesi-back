@@ -17,7 +17,7 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
     @Query("""
     SELECT new com.example.iesiback.dto.HorarioDTO(
         ph.id, ph.dia, ph.entrada, ph.salida,
-        m.materiaNombre, mc.carrera.carreraId, mc.id
+        m.materiaNombre, mc.carrera.carreraId, mc.id, m.materiaRegimen
     )
     FROM PersonalHorario ph
     JOIN ph.materiaCarrera mc
@@ -57,7 +57,7 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
             "m.materiaNombre, " +
             "ph.dia, " +
             "ph.entrada, " +
-            "ph.salida) " +
+            "ph.salida, m.materiaRegimen) " +
             "FROM PersonalHorario ph " +
             "JOIN ph.dni p " +
             "JOIN ph.materiaCarrera mc " +

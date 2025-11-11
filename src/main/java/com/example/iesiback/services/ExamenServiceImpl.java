@@ -72,7 +72,6 @@ public class ExamenServiceImpl implements ExamenService {
         List<Cursada> cursadas = cursadaService.getCursadasNoAprobadas(legajoId);
         List<InscripcionExamenDTO> inscripciones = new ArrayList<>();
         cursadas.forEach(cursada -> {
-            System.out.println("Cursada ID: " + cursada.getId() + " - Estado: " + cursada.getStatus());
             InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
             inscripcion.setCursadaId(cursada.getId());
             inscripcion.setMateriaCarreraId(cursada.getMateriaCarrera().getId());

@@ -2,10 +2,11 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.entities.Alumno;
 import com.example.iesiback.repositories.AlumnoRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +15,8 @@ public class AlumnoServiceImpl implements AlumnoService {
 
     @Autowired
     private AlumnoRepository alumnoRepository;
+    @Autowired
+    private LegajoService legajoService;
     @Override
     public Alumno createAlumno(Alumno alumno) {
         return alumnoRepository.save(alumno);
@@ -88,7 +91,25 @@ public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
         );
     }
 
+    @Transactional
+    public void cambioDNI(String dniActual, Long dniCorrecto) {
+        Alumno alumnoViejo = buscarPorDni(dniActual)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
 
+        // Crear nuevo alumno
+        Alumno nuevoAlumno = new Alumno();
+        BeanUtils.copyProperties(alumnoViejo, nuevoAlumno, "alumnoDni", "id");
+        nuevoAlumno.setAlumnoDni(dniCorrecto);
+        alumnoRepository.save(nuevoAlumno);
+
+        // Actualizar legajos
+        legajoService.actualizarAlumnoDNI(alumnoViejo, nuevoAlumno);
+
+        // Eliminar alumno viejo
+        alumnoRepository.delete(alumnoViejo);
+    }
 
 
 //@Override
