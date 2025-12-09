@@ -20,13 +20,13 @@ public interface EquivalenciaRepository extends JpaRepository<Equivalencia, Long
 
 
     @Query("SELECT new com.example.iesiback.dto.EquivalenciaDetalleDTO(" +
-            "n.notaId, a.alumnoDni, a.alumnoApellido, a.alumnoNombre, n.notaCalificacionNotaNumero, n.notaCalificacionNotaLetra," +
+            "n.notaId, a.personaDni, a.personaApellido, a.personaNombre, n.notaCalificacionNotaNumero, n.notaCalificacionNotaLetra," +
             "n.notaLibroNota, n.notaFolioNota, e.materiaOrigen, e.institucionOrigen, m.materiaNombre, c.carreraNombre, n.notaUsuario, n.notaFechaNota, e.status, e.resolucion) " +
             "FROM Equivalencia e " +
             "JOIN e.nota n " +
             "JOIN n.cursada cu " +
             "JOIN cu.legajo l " +
-            "JOIN l.legajoAlumnoDni a " +
+            "JOIN l.legajoPersonaDni a " +
             "JOIN cu.materiaCarrera mc " +
             "JOIN mc.carrera c " +
             "JOIN mc.materia m")

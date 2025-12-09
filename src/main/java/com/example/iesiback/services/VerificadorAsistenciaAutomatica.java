@@ -51,6 +51,8 @@ public class VerificadorAsistenciaAutomatica {
         Map<Long, List<PersonalHorario>> horariosPorDni = horarios.stream()
                 .collect(Collectors.groupingBy(h -> h.getDni().getId()));
 
+
+
         for (Map.Entry<Long, List<PersonalHorario>> entry : horariosPorDni.entrySet()) {
             Long dni = entry.getKey();
             List<PersonalHorario> horariosDni = entry.getValue().stream()

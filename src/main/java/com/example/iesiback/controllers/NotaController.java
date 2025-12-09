@@ -75,7 +75,7 @@ public class NotaController {
     ) {
         try {
             List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(
-                    carreraId, materiaId, cursadaInscripto != null ? cursadaInscripto : false
+                    carreraId, materiaId, cursadaInscripto != null ? cursadaInscripto : true
             );
             return ResponseEntity.ok(notas);
         } catch (Exception e) {

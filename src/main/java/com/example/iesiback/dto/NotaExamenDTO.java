@@ -5,9 +5,9 @@ import java.time.LocalDate;
 public interface NotaExamenDTO {
 
     // Datos del alumno
-    String getAlumnoDni();
-    String getAlumnoNombre();
-    String getAlumnoApellido();
+    String getPersonaDni();
+    String getPersonaNombre();
+    String getPersonaApellido();
     String getLegajoId();
     Long getNotaId();
     Integer getNotaCalificacionNotaNumero();

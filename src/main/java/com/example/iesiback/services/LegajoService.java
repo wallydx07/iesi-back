@@ -1,9 +1,8 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -18,5 +17,5 @@ public interface LegajoService {
 
 
     @Transactional
-    void actualizarAlumnoDNI(Alumno alumnoViejo, Alumno nuevoAlumno);
+    void actualizarAlumnoDNI(Persona personaViejo, Persona nuevoPersona);
 }

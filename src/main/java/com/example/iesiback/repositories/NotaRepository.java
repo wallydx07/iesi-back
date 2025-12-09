@@ -44,8 +44,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 
 
 //    @Query(value = """
-//    SELECT nota.nota_id , alumno.alumno_dni,
-//           alumno.alumno_apellido , alumno.alumno_nombre ,
+//    SELECT nota.nota_id , persona.alumno_dni,
+//           persona.alumno_apellido , persona.alumno_nombre ,
 //           nota.nota_fecha_nota ,
 //           nota.nota_calificacion_nota_numero ,
 //           nota.nota_calificacion_nota_letra ,
@@ -53,8 +53,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 //           nota.nota_libro_nota , nota.nota_folio_nota ,
 //           cursada.status , nota.nota_observaciones ,
 //           nota.nota_usuario
-//    FROM alumno
-//    INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
+//    FROM persona
+//    INNER JOIN legajo ON persona.alumno_dni = legajo.legajo_alumno_dni
 //    INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
 //    INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id
 //    INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id
@@ -64,7 +64,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 //      AND materia.materia_id = :materiaId
 //      AND (cursada.cursada_inscripto = TRUE OR (:cursadaInscripto = FALSE))
 //      AND nota.nota_condicion = :notaCondicion
-//    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+//    ORDER BY persona.alumno_apellido, persona.alumno_nombre ASC
 //   """, nativeQuery = true)
 //    List<NotaCursadaDTO> findNotasByCarreraAndMateria(
 //            @Param("carreraId") String carreraId,
@@ -77,10 +77,10 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 
     @Query(value = """
     SELECT nota.nota_id AS notaId,
-           alumno.alumno_dni AS alumnoDni,
-           legajo.legajo_id AS alumnoLegajoId,
-           alumno.alumno_apellido AS alumnoApellido,
-           alumno.alumno_nombre AS alumnoNombre,
+           persona.persona_dni AS personaDni,
+           legajo.legajo_id AS personaLegajoId,
+           persona.persona_apellido AS personaApellido,
+           persona.persona_nombre AS personaNombre,
            nota.nota_fecha_nota AS notaFechaNota,
            nota.nota_calificacion_nota_numero AS notaCalificacionNotaNumero,
            nota.nota_calificacion_nota_letra AS notaCalificacionNotaLetra,
@@ -98,8 +98,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
            cursada.asistencia AS asistencia,
            cursada.coloquio AS coloquio,
            cursada.trabajo_institucional AS trabajoInstitucional
-    FROM alumno
-    INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
+    FROM persona
+    INNER JOIN legajo ON persona.persona_dni = legajo.legajo_alumno_dni
     INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
     INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id
     INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id
@@ -109,7 +109,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
       AND materia.materia_id = :materiaId
       AND (cursada.cursada_inscripto = TRUE OR (:cursadaInscripto = FALSE))
       AND nota.nota_condicion = :notaCondicion
-    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+    ORDER BY persona.persona_apellido, persona.persona_nombre ASC
    """, nativeQuery = true)
     List<NotaCursadaDTO> findNotasByCarreraAndMateria(
             @Param("carreraId") String carreraId,
@@ -120,10 +120,10 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
 
     @Query(value = """
     SELECT nota.nota_id AS notaId,
-           alumno.alumno_dni AS alumnoDni,
-           legajo.legajo_id AS alumnoLegajoId,
-           alumno.alumno_apellido AS alumnoApellido,
-           alumno.alumno_nombre AS alumnoNombre,
+           persona.persona_dni AS personaDni,
+           legajo.legajo_id AS personaLegajoId,
+           persona.persona_apellido AS personaApellido,
+           persona.persona_nombre AS personaNombre,
            nota.nota_fecha_nota AS notaFechaNota,
            nota.nota_calificacion_nota_numero AS notaCalificacionNotaNumero,
            nota.nota_calificacion_nota_letra AS notaCalificacionNotaLetra,
@@ -142,8 +142,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
            cursada.coloquio AS coloquio,
            cursada.trabajo_institucional AS trabajoInstitucional
 
-    FROM alumno
-    INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
+    FROM persona
+    INNER JOIN legajo ON persona.persona_dni = legajo.legajo_alumno_dni
     INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
     INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id
     INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id
@@ -152,7 +152,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     WHERE carrera.carrera_id = :carreraId
       AND materia.materia_id = :materiaId
       AND nota.nota_condicion = :notaCondicion
-    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+    ORDER BY persona.persona_apellido, persona.persona_nombre ASC
 """, nativeQuery = true)
     List<NotaCursadaDTO> findNotasByCarreraAndMateriaNew(
             @Param("carreraId") String carreraId,
@@ -161,8 +161,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     );
 
     @Query(value = """
-    SELECT nota.nota_id , alumno.alumno_dni,
-           alumno.alumno_apellido , alumno.alumno_nombre ,
+    SELECT nota.nota_id , persona.persona_dni,
+           persona.persona_apellido , persona.persona_nombre ,
            nota.nota_fecha_nota ,
            nota.nota_calificacion_nota_numero ,
            nota.nota_calificacion_nota_letra ,
@@ -178,8 +178,8 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
            cursada.asistencia,
            cursada.coloquio,
            cursada.trabajo_institucional
-    FROM alumno
-    INNER JOIN legajo ON alumno.alumno_dni = legajo.legajo_alumno_dni
+    FROM persona
+    INNER JOIN legajo ON persona.persona_dni = legajo.legajo_alumno_dni
     INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id
     INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id
     INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id
@@ -188,7 +188,7 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     WHERE carrera.carrera_id = :carreraId
       AND materia.materia_id = :materiaId
       AND nota.nota_condicion = :notaCondicion
-    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+    ORDER BY persona.persona_apellido, persona.persona_nombre ASC
    """, nativeQuery = true)
     List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(
             @Param("carreraId") String carreraId,
@@ -202,9 +202,9 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
         SELECT DISTINCT nota.nota_id,
                         permiso.permiso_id,
                         legajo.legajo_id,
-                        alumno.alumno_dni, 
-                        alumno.alumno_apellido ,
-                        alumno.alumno_nombre,
+                        persona.persona_dni, 
+                        persona.persona_apellido ,
+                        persona.persona_nombre,
                         nota.nota_calificacion_nota_numero, 
                         nota.nota_calificacion_nota_letra,
                         nota.nota_condicion, 
@@ -224,10 +224,10 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
         INNER JOIN materia ON cursada_examen.materia_id = materia.materia_id
         INNER JOIN materia_carrera ON materia.materia_id = materia_carrera.materia_id
         INNER JOIN carrera ON materia_carrera.carrera_id = carrera.carrera_id
-        INNER JOIN alumno ON legajo.legajo_alumno_dni = alumno.alumno_dni
+        INNER JOIN persona ON legajo.legajo_alumno_dni = persona.persona_dni
         WHERE cursada_examen.cursada_examen_id = :cursadaExamenId
         AND examen.examen_inscripto = :examenInscripto      
-        ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+        ORDER BY persona.persona_apellido, persona.persona_nombre ASC
         """, nativeQuery = true)
     List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
             @Param("cursadaExamenId") Long cursadaExamenId,
@@ -239,9 +239,9 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     SELECT DISTINCT nota.nota_id,
                     permiso.permiso_id,
                     legajo.legajo_id,
-                    alumno.alumno_dni, 
-                    alumno.alumno_apellido,
-                    alumno.alumno_nombre,
+                    persona.persona_dni, 
+                    persona.persona_apellido,
+                    persona.persona_nombre,
                     nota.nota_calificacion_nota_numero, 
                     nota.nota_calificacion_nota_letra,
                     nota.nota_condicion, 
@@ -261,11 +261,11 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     INNER JOIN materia ON cursada_examen.materia_id = materia.materia_id
     INNER JOIN materia_carrera ON materia.materia_id = materia_carrera.materia_id
     INNER JOIN carrera ON materia_carrera.carrera_id = carrera.carrera_id
-    INNER JOIN alumno ON legajo.legajo_alumno_dni = alumno.alumno_dni
+    INNER JOIN persona ON legajo.legajo_alumno_dni = persona.persona_dni
     WHERE cursada_examen.cursada_examen_id = :cursadaExamenId
     AND examen.examen_inscripto = :examenInscripto  
     AND nota.nota_condicion = :notaCondicion    
-    ORDER BY alumno.alumno_apellido, alumno.alumno_nombre ASC
+    ORDER BY persona.persona_apellido, persona.persona_nombre ASC
 """, nativeQuery = true)
     List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
             @Param("cursadaExamenId") Long cursadaExamenId,
@@ -278,9 +278,9 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     @Query("""
 SELECT new com.example.iesiback.dto.EquivalenciaDTO(
     e.id,
-    a.alumnoDni,
-    a.alumnoApellido,
-    a.alumnoNombre,
+    a.personaDni,
+    a.personaApellido,
+    a.personaNombre,
     e.materiaOrigen,
     e.institucionOrigen,
     e.resolucion,
@@ -297,7 +297,7 @@ FROM Equivalencia e
 JOIN e.nota n
 JOIN n.cursada cu
 JOIN cu.legajo l
-JOIN l.legajoAlumnoDni a
+JOIN l.legajoPersonaDni a
 JOIN cu.materiaCarrera mc
 JOIN mc.materia m
 JOIN mc.carrera c

@@ -2,7 +2,7 @@ package com.example.iesiback.services;
 
 import be.quodlibet.boxable.*;
 import com.example.iesiback.dto.InscripcionExamenDTO;
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.Permiso;
 import com.example.iesiback.repositories.PermisoRepository;
@@ -31,7 +31,7 @@ public class PermisoServiceImpl implements PermisoService {
     private PermisoRepository permisoRepository;
     private final ExamenService examenService;
     @Autowired
-    private AlumnoService alumnoService;
+    private PersonaService alumnoService;
     @Autowired
     private LegajoService legajoService;
     @Autowired
@@ -80,7 +80,7 @@ public class PermisoServiceImpl implements PermisoService {
             Legajo legajo = legajoService.findById(libreta)
                     .orElseThrow(() -> new RuntimeException("No se encontró el legajo con ID: " + libreta));
 
-            Alumno alumno = legajo.getLegajoAlumnoDni();
+            Persona persona = legajo.getLegajoPersonaDni();
 
             String carrera = permisoRepository.obtenerCarreraPorLibreta(libreta);
             Optional<Permiso> permiso = permisoRepository.findPermisoByLegajoAndTurnoOrdered(libreta, turno);
@@ -140,7 +140,7 @@ public class PermisoServiceImpl implements PermisoService {
             titulo.close();
             PDPageContentStream pTexto = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
             String genero1 = "";
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             if (genero.equals("Masculino")) {
                 genero1 = "el ";
             } else {
@@ -152,7 +152,7 @@ public class PermisoServiceImpl implements PermisoService {
             pTexto.newLineAtOffset(25+inicio, 515);
             String carrera_nombre = carrera;
             String t1 = "Permiso N°: " + permiso.get().getId() + "                                              Turno: " + turno;
-            String t2 = "Conste que por la presente, " + genero1 + " estudiante: " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre() + ",";
+            String t2 = "Conste que por la presente, " + genero1 + " estudiante: " + persona.getPersonaApellido() + " " + persona.getPersonaNombre() + ",";
             String t3 = "DNI: " + dni + ", está habilitado para rendir las siguientes Unidades Curriculares:";
             String t4 = "correspondientes a la carrera: " + carrera_nombre + ".";
             pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t1, letra, normal), t1));//espacio entre caracteres
@@ -347,7 +347,7 @@ public class PermisoServiceImpl implements PermisoService {
             String titulop = "                        Constancia de Solicitud de permiso de examen";
             String subtitulo = "                      _________________________________________";
             String p7 = "Permiso N°:" + permiso.get().getId() + "      Turno:" +turno + "-" + carrera_nombre;
-            String p8 = "Apellido y Nombre " + alumno.getAlumnoApellido() + " " + alumno.getAlumnoNombre() + ", DNI:" + dni;
+            String p8 = "Apellido y Nombre " + persona.getPersonaApellido() + " " + persona.getPersonaNombre() + ", DNI:" + dni;
             fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
             fin.setFont(negrita, letra);
             fin.showText(titulop);

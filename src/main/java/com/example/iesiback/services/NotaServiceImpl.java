@@ -690,7 +690,7 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
     public EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden) {
         List<NotaCursandoProjection> notas = notaRepository.findNotaCursandoByLegajoAndMateria(legajoId, materiaOrden);
         if (notas == null || notas.isEmpty()) {
-            System.out.println("❌ No se encontró la materia para este alumno.");
+            System.out.println("❌ No se encontró la materia para este alumno.-"+legajoId+"-"+materiaOrden);
             List<String> correlativas = new ArrayList<>();
             correlativas.add("Ninguna");
             List<String> fechas = new ArrayList<>();

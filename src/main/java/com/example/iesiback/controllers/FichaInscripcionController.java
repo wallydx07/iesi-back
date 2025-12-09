@@ -1,11 +1,10 @@
 package com.example.iesiback.controllers;
 
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Aporte;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.services.*;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
@@ -22,13 +20,13 @@ import java.io.IOException;
 public class FichaInscripcionController {
 
     private final FichaInscripcionService fichaInscripcionService;
-    private final AlumnoService alumnoService;
+    private final PersonaService alumnoService;
     private final LegajoService legajoService;
     private final AporteService aporteService;
     private final CarreraService carreraService;
 
     public FichaInscripcionController(FichaInscripcionService fichaInscripcionService,
-                                      AlumnoService alumnoService,
+                                      PersonaService alumnoService,
                                       LegajoService legajoService,
                                       AporteService aporteService,
                                       CarreraService carreraService) {
@@ -46,14 +44,14 @@ public class FichaInscripcionController {
             @RequestParam Integer aporteId,
             @RequestParam String carreraId) {
         try {
-            Alumno alumno=this.alumnoService.findAlumnoById(alumnoId);
+            Persona persona =this.alumnoService.findAlumnoById(alumnoId);
             Legajo legajo=this.legajoService.findLegajoById(legajoId);
             Aporte aporte=this.aporteService.findAporteById(aporteId);
             Carrera carrera=this.carreraService.findCarreraById(carreraId);
 
 
 
-            byte[] pdfBytes = fichaInscripcionService.generarFichaInscripcion(alumno, legajo,aporte,carrera);
+            byte[] pdfBytes = fichaInscripcionService.generarFichaInscripcion(persona, legajo,aporte,carrera);
 
             // Crear recurso a partir del byte[]
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);

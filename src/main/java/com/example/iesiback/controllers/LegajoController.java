@@ -1,18 +1,16 @@
 package com.example.iesiback.controllers;
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
-import com.example.iesiback.services.AlumnoService;
+import com.example.iesiback.services.PersonaService;
 import com.example.iesiback.services.LegajoService;
 import com.example.iesiback.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -28,9 +26,9 @@ public class LegajoController {
     @Autowired
     private LegajoService LegajoService;
 
-    private final AlumnoService alumnoService;
+    private final PersonaService alumnoService;
     @Autowired
-    public LegajoController(AlumnoService alumnoService, UserService userService) {
+    public LegajoController(PersonaService alumnoService, UserService userService) {
         this.userService = userService;
         this.alumnoService = alumnoService;
     }
@@ -95,9 +93,9 @@ public class LegajoController {
             System.out.println("📌 Carrera: " + carrera);
             System.out.println("📌 Legajo: " + legajo);
 
-            Optional<Alumno> alumnoOpt = alumnoService.findById(alumnoDni);
+            Optional<Persona> alumnoOpt = alumnoService.findById(alumnoDni);
             if (alumnoOpt.isPresent()) {
-                legajo.setLegajoAlumnoDni(alumnoOpt.get());
+                legajo.setLegajoPersonaDni(alumnoOpt.get());
                 legajo.setUsuario(userService.getAuthenticatedUser().get().getUserApellido());
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)

@@ -2,7 +2,6 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.Atencion;
 import com.example.iesiback.services.AtencionService;
-import com.example.iesiback.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +23,13 @@ public class AtencionController {
     public List<Atencion> getAll() {
         return service.findAll();
     }
+
+    @GetMapping("/findAllByOrderByAtencionFechaDesc")
+    public List<Atencion> findAllOrderByFecha() {
+        return service.findAllByOrderByAtencionFechaDesc();
+    }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Atencion> getById(@PathVariable Integer id) {
@@ -47,7 +53,7 @@ public class AtencionController {
             existing.setAtencionApellidoNombre(atencion.getAtencionApellidoNombre());
             existing.setAtencionCorreo(atencion.getAtencionCorreo());
             existing.setAtencionCelular(atencion.getAtencionCelular());
-            existing.setAtencionConsulta(atencion.getAtencionConsulta());
+            existing.setAtencionTipo(atencion.getAtencionTipo());
             existing.setAtencionProblema(atencion.getAtencionProblema());
             existing.setAtencionFecha(atencion.getAtencionFecha());
             existing.setAtencionRespuesta(atencion.getAtencionRespuesta());
@@ -55,6 +61,11 @@ public class AtencionController {
             existing.setAtencionDestino(atencion.getAtencionDestino());
             existing.setAtencionUsuario(atencion.getAtencionUsuario());
             existing.setCodigoSeguimiento(atencion.getCodigoSeguimiento());
+            existing.setGestorDni(atencion.getGestorDni());
+            existing.setAtencionCanal(atencion.getAtencionCanal());
+            existing.setAtencionAsunto(atencion.getAtencionAsunto());
+            existing.setAtencionSubTipo(atencion.getAtencionSubTipo());
+
             return ResponseEntity.ok(service.update(existing));
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -94,7 +105,7 @@ public class AtencionController {
     }
 
     @GetMapping("/resuelto/{resuelto}")
-    public List<Atencion> getByResuelto(@PathVariable Boolean resuelto) {
+    public List<Atencion> getByResuelto(@PathVariable String resuelto) {
         return service.findByResuelto(resuelto);
     }
 
@@ -109,6 +120,19 @@ public class AtencionController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/gestor/{dni}")
+    public ResponseEntity<List<Atencion>> obtenerPorGestor(@PathVariable Long dni) {
+        List<Atencion> lista = service.obtenerPorGestor(dni);
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/referencia/{id}")
+    public ResponseEntity<List<Atencion>> obtenerPorReferencia(@PathVariable Integer id) {
+        List<Atencion> lista = service.findByAtencionReferencia(id);
+        return ResponseEntity.ok(lista);
+    }
+
 
 
 }

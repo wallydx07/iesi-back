@@ -44,4 +44,70 @@ public class PersonalHorario {
     @Column(name = "year")
     private Integer year;
 
+    @Column(name = "activo")
+    private Boolean activo;
+
+    public String getDia() {
+        return dia;
+    }
+
+    public void setDia(String dia) {
+        this.dia = dia;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public LocalTime getEntrada() {
+        return entrada;
+    }
+
+    public void setEntrada(LocalTime entrada) {
+        this.entrada = entrada;
+    }
+
+    public LocalTime getSalida() {
+        return salida;
+    }
+
+    public void setSalida(LocalTime salida) {
+        this.salida = salida;
+    }
+
+    public MateriaCarrera getMateriaCarrera() {
+        return materiaCarrera;
+    }
+
+    public void setMateriaCarrera(MateriaCarrera materiaCarrera) {
+        this.materiaCarrera = materiaCarrera;
+    }
+
+    public Personal getDni() {
+        return dni;
+    }
+
+    public void setDni(Personal dni) {
+        this.dni = dni;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import be.quodlibet.boxable.*;
+import be.quodlibet.boxable.line.LineStyle;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.repositories.HtmlService;
@@ -55,7 +56,7 @@ import static java.util.Arrays.stream;
 
 @Service
 public class CertificadoServiceImpl implements CertificadoService {
-    private final AlumnoService alumnoService;
+    private final PersonaService alumnoService;
     private final CarreraService carreraService;
     private final NotaService notaService;
     private final MateriaCarreraRepository materiaCarreraRepository;
@@ -70,15 +71,16 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final ObservacionesService observacionesService;
     private final AtencionService atencionService;
     private final PagoService pagoService;
+    private final PasesService paseService;
 
     @Autowired
-    public CertificadoServiceImpl(@Lazy AlumnoService alumnoService,
+    public CertificadoServiceImpl(@Lazy PersonaService alumnoService,
                                   CarreraService carreraService,
                                   NotaService notaService,
                                   MateriaCarreraRepository materiaCarreraRepository, DocumentoService documentoService,
                                   LegajoService legajoService,
                                   AlumnoLegajoService alumnoLegajoService,
-                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, AtencionService atencionService, PagoService pagoService) {
+                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, AtencionService atencionService, PagoService pagoService, PasesService paseService) {
         this.alumnoService = alumnoService;
         this.carreraService = carreraService;
         this.notaService = notaService;
@@ -94,11 +96,12 @@ public class CertificadoServiceImpl implements CertificadoService {
         this.observacionesService = observacionesService;
         this.atencionService = atencionService;
         this.pagoService = pagoService;
+        this.paseService = paseService;
     }
 
     @Override
     public PDDocument generaRegular(String dniId, String legajoId, String autoridades, String curso) {
-        Alumno alumno = this.alumnoService.findAlumnoById(dniId);//agregar el id
+        Persona persona = this.alumnoService.findAlumnoById(dniId);//agregar el id
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);//agregar el id
         PDImageXObject Iesc2;
         PDDocument Documento = new PDDocument();
@@ -189,7 +192,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             PDType1Font normal = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -229,9 +232,9 @@ public class CertificadoServiceImpl implements CertificadoService {
             regular.newLineAtOffset(tamaño(t41, letra, normal) + t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), 0);
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            Long dni = alumno.getAlumnoDni();
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            Long dni = persona.getPersonaDni();
             String t6 = (apellido + " " + nombre + " D.N.I: " + dni + " ");
             String t7 = (", es estudiante regular de la carrera:");
             regular.setFont(negrita, letra);
@@ -451,7 +454,7 @@ public class CertificadoServiceImpl implements CertificadoService {
 
     @Override
     public PDDocument generaAnalitico(String legajoId, String accion, String autoridades) {
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
         double nuevoProm = 0;
         int contProm = 0;
@@ -491,9 +494,9 @@ public class CertificadoServiceImpl implements CertificadoService {
             int materiasTercero = this.materiaCarreraRepository.countMateriasPorNivel(carrera_id, "3ro");
             int n = -10;//distancia entre lineas
             int letra = 11;//Tamaño de letras
-            Long dni = alumno.getAlumnoDni();
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
+            Long dni = persona.getPersonaDni();
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
             String resolucion = carrera.getCarreraResolucion();
             PDType1Font normal = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
@@ -592,7 +595,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             //===================================================================
             //Justificar texto
             String genero1 = "";
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             if (genero.equals("Masculino")) {
                 genero1 = "el SR";
             } else {
@@ -1088,8 +1091,8 @@ public class CertificadoServiceImpl implements CertificadoService {
                 if (i < al) {
                     NotaExamenDTO fResultado = listaResultados.get(i);
                     permiso_id = fResultado.getPermisoId().toString(); // Ajusta al método correcto
-                    dni = fResultado.getAlumnoDni();
-                    apellido = fResultado.getAlumnoApellido() + ", " + fResultado.getAlumnoNombre();
+                    dni = fResultado.getPersonaDni();
+                    apellido = fResultado.getPersonaApellido() + ", " + fResultado.getPersonaNombre();
                     //   nota_c = fResultado.;
                 }
                 Row<PDPage> rew = Cursoaño.createRow(10);
@@ -1188,7 +1191,7 @@ public class CertificadoServiceImpl implements CertificadoService {
         String calificacion = "";
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.findCarreraById(carreraId);
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Legajo legajo = legajoSerevice.findLegajoById(legajoId);
         NotaMateriaDTO ultimaNota = notaService.obtenerUltimaNota(legajoId);
         PDDocument Documento = new PDDocument();
@@ -1298,7 +1301,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             //consulta
 
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String resolucion = carreraObj.getCarreraResolucion();
             String genero2 = "";
             String genero1 = "";
@@ -1339,9 +1342,9 @@ public class CertificadoServiceImpl implements CertificadoService {
             regular.newLineAtOffset(tamaño(t41, letra, normal) + t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), 0);
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            String t6 = (apellido + " " + nombre + " D.N.I: " + alumno.getAlumnoDni() + " ");
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String t6 = (apellido + " " + nombre + " D.N.I: " + persona.getPersonaDni() + " ");
             String t7 = (", ha acreditado la totalidad de los espacios ");
             regular.setFont(negrita, letra);
             regular.setCharacterSpacing(charspacing(longitud, +tamaño(t6, letra, negrita) + tamaño(t7, letra, normal), t6 + t7));//espacio entre caracteres
@@ -1459,7 +1462,7 @@ public class CertificadoServiceImpl implements CertificadoService {
     public PDDocument generaCertificadoAsistencia(String alumnoDNI, String legajoId, String autoridades, String curso, String entrada, String salida, String fecT, String accion) {
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.findAlumnoById(alumnoDNI);
+        Persona persona = this.alumnoService.findAlumnoById(alumnoDNI);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -1547,7 +1550,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
 
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -1589,10 +1592,10 @@ public class CertificadoServiceImpl implements CertificadoService {
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
 
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
 
-            String t6 = (apellido + " " + nombre + " D.N.I: " + alumno.getAlumnoDni() + " ");
+            String t6 = (apellido + " " + nombre + " D.N.I: " + persona.getPersonaDni() + " ");
 
             String t7 = (", estudiante del " + curso + " de la carrera:");
             regular.setFont(negrita, letra);
@@ -1694,7 +1697,7 @@ public class CertificadoServiceImpl implements CertificadoService {
 
     @Override
     public PDDocument generaFichaActualizacion(String legajoId) throws IOException {
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Legajo legajo = this.legajoSerevice.findLegajoById(legajoId);
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
         String userName = userService.getAuthenticatedUser().get().getUserNombre();
@@ -1774,12 +1777,12 @@ public class CertificadoServiceImpl implements CertificadoService {
         cuerpo.setFont(font, 10);
         n = -15;
         cuerpo.newLineAtOffset(30, 730);//XX,YY
-        cuerpo.showText("Apellido y Nombre: " + alumno.getAlumnoApellido() + ", " + alumno.getAlumnoNombre());
+        cuerpo.showText("Apellido y Nombre: " + persona.getPersonaApellido() + ", " + persona.getPersonaNombre());
         cuerpo.newLineAtOffset(300, 0);
         cuerpo.showText("Libreta Estudiantil: " + legajoId);
         cuerpo.newLineAtOffset(-300, n);
         //cuerpo.newLineAtOffset(0,n);
-        cuerpo.showText("DNI: " + alumno.getAlumnoDni());
+        cuerpo.showText("DNI: " + persona.getPersonaDni());
         cuerpo.newLineAtOffset(30, -24);
         cuerpo.showText("1.- Fotocopia DNI");
         cuerpo.newLineAtOffset(300, 0);
@@ -2289,7 +2292,7 @@ public class CertificadoServiceImpl implements CertificadoService {
 //            int i=0;
 //            for (AlumnoLegajoInscripcionCarreraDTO dto : listado) {
 //                i++;
-//                String dni = dto.getAlumnoDni().toString(); // Asigna el valor de la segunda columna (dni) a dni
+//                String dni = dto.getPersonaDni().toString(); // Asigna el valor de la segunda columna (dni) a dni
 //                String apellido = dto.getAlumnoApellido()+", "+dto.getAlumnoNombre(); // Asigna el valor de la tercera columna (apellido+nombre) a apellido
 //                //        nota_c = dto.;
 //                if (i == listado.size()) {
@@ -2571,8 +2574,8 @@ public class CertificadoServiceImpl implements CertificadoService {
                 if (i < cursadas.size()) {
                     NotaCursadaDTO fResultado = cursadas.get(i);
 
-                    dni = fResultado.getAlumnoDni(); // Asigna el valor de la segunda columna (dni) a dni
-                    apellido = fResultado.getAlumnoApellido() + "," + fResultado.getAlumnoNombre(); // Asigna el valor de la tercera columna (apellido+nombre) a apellido
+                    dni = fResultado.getPersonaDni(); // Asigna el valor de la segunda columna (dni) a dni
+                    apellido = fResultado.getPersonaApellido() + "," + fResultado.getPersonaNombre(); // Asigna el valor de la tercera columna (apellido+nombre) a apellido
                     nota_c = String.valueOf(fResultado.getNotaCalificacionNotaNumero());
                     status = fResultado.getCursadaStatus();
                 }
@@ -2871,16 +2874,16 @@ public class CertificadoServiceImpl implements CertificadoService {
     @Override
     public byte[] generarCredencialEstudiantil(String legajoId) {
         try {
-            Alumno alumno = alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+            Persona persona = alumnoService.obtenerAlumnoPorLegajoId(legajoId);
             Legajo legajo = legajoSerevice.findLegajoById(legajoId);
             Carrera carrera = carreraService.obtenerCarreraPorLegajoId(legajoId);
             Map<String, Object> templateData = new HashMap<>();
-            templateData.put("nombre", alumno.getAlumnoApellido() + ", " + alumno.getAlumnoNombre());
-            templateData.put("dni", alumno.getAlumnoDni());
+            templateData.put("nombre", persona.getPersonaApellido() + ", " + persona.getPersonaNombre());
+            templateData.put("dni", persona.getPersonaDni());
             templateData.put("legajoId", legajoId);
             templateData.put("carrera", carrera.getCarreraNombre());
-            templateData.put("telefono", alumno.getDomicilioAlumnoCelular());
-            templateData.put("correo", alumno.getDomicilioAlumnoCorreo());
+            templateData.put("telefono", persona.getPersonaDomicilioCelular());
+            templateData.put("correo", persona.getPersonaCorreo());
             templateData.put("emision", LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
             templateData.put("fotocopia_dni", "Si".equalsIgnoreCase(legajo.getLegajoFotocopiaDni()) ? "✔" : "✘");
@@ -2948,7 +2951,7 @@ public class CertificadoServiceImpl implements CertificadoService {
 public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, String autoridades) {
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.findAlumnoById(alumnoDNI);
+        Persona persona = this.alumnoService.findAlumnoById(alumnoDNI);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -3049,7 +3052,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             //consulta
             String carrera_id = carreraObj.getCarreraNombre();
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String resolucion = carreraObj.getCarreraResolucion();
             String genero2 = "";
             String genero1 = "";
@@ -3093,9 +3096,9 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
 
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
 
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            String alumno_dni = String.valueOf(alumno.getAlumnoDni());
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
             String t6 = (apellido + " " + nombre + " D.N.I: " + alumno_dni + " ");
             String t7 = (", ha finalizado el cursado la carrera: ");
             regular.setFont(negrita, letra);
@@ -3192,7 +3195,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
     public PDDocument generaAsistenciaSalidaCampo(String legajoId, String autoridades, String fechaSeleccionada, String curso, String accion, String lugar) {
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -3298,7 +3301,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
 
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -3340,9 +3343,9 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
 
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            String alumno_dni = String.valueOf(alumno.getAlumnoDni());
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
             String t6 = (apellido + " " + nombre + " D.N.I: " + alumno_dni + " ");
 
             String t7 = (", estudiante del " + curso + " de la carrera:");
@@ -3452,7 +3455,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
         System.out.println("fecha Seelccionada" + fechaSeleccionada);
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -3547,7 +3550,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             PDType1Font normal = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -3589,11 +3592,11 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
 
-            String nombre = alumno.getAlumnoNombre();
+            String nombre = persona.getPersonaNombre();
 
-            String apellido = alumno.getAlumnoApellido();
+            String apellido = persona.getPersonaApellido();
 
-            String alumno_dni = String.valueOf(alumno.getAlumnoDni());
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
 
             String t6 = (apellido + " " + nombre + " D.N.I: " + alumno_dni + " ");
 
@@ -3702,7 +3705,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
                                               String accion, String entrada, String salida, String materia, String calificacion, String fecha) {
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.findAlumnoById(alumnoDNI);
+        Persona persona = this.alumnoService.findAlumnoById(alumnoDNI);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -3808,7 +3811,7 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
 
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -3850,9 +3853,9 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
 
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            String alumno_dni = String.valueOf(alumno.getAlumnoDni());
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
             String t6 = (apellido + " " + nombre + " D.N.I: " + alumno_dni + " ");
 
             String t7 = (", alumno regular del " + curso + " de la carrera:");
@@ -3958,7 +3961,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
 
         PDImageXObject Iesc1, Iesc2;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -4062,7 +4065,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
 
             //consulta
             String carrera_id = carreraObj.getCarreraId();
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String resolucion = carreraObj.getCarreraResolucion();
             String genero2 = "";
             String genero1 = "";
@@ -4106,9 +4109,9 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
 
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
 
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            String alumno_dni = String.valueOf(alumno.getAlumnoDni());
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
             String t6 = (apellido + " " + nombre + " D.N.I: " + alumno_dni + " ");
 
             String t7 = (", ha finalizado el cursado de la carrera: ");
@@ -4236,8 +4239,8 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
                 NotaCursadaDTO nota = cursadas.get(i);
                 org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(i + 1);
-                row.createCell(1).setCellValue(nota.getAlumnoApellido() + ", " + nota.getAlumnoNombre());
-                row.createCell(2).setCellValue(nota.getAlumnoDni());
+                row.createCell(1).setCellValue(nota.getPersonaApellido() + ", " + nota.getPersonaNombre());
+                row.createCell(2).setCellValue(nota.getPersonaDni());
             }
 
 //            // Ajuste de tamaño automático de columnas
@@ -4264,7 +4267,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
                                                   String fechaSeleccionada, String accion, String materia) {
         PDImageXObject Iesc1;
         Carrera carreraObj = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
@@ -4370,7 +4373,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
 
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -4411,9 +4414,9 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
             regular.newLineAtOffset(tamaño(t41, letra, normal) + t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), 0);
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            String alumno_dni = String.valueOf(alumno.getAlumnoDni());
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
             String t6 = (apellido + " " + nombre + " D.N.I: " + alumno_dni + " ");
             String t7 = (", alumno regular del " + curso + " de la carrera:");
             regular.setFont(negrita, letra);
@@ -5251,9 +5254,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                 if (i < cursadas.size()) {
                     NotaCursadaDTO fResultado = cursadas.get(i);
 
-                    dni = fResultado.getAlumnoDni() != null ? fResultado.getAlumnoDni() : "-";
-                    apellido = (fResultado.getAlumnoApellido() != null ? fResultado.getAlumnoApellido() : "") + ", " +
-                            (fResultado.getAlumnoNombre() != null ? fResultado.getAlumnoNombre() : "");
+                    dni = fResultado.getPersonaDni() != null ? fResultado.getPersonaDni() : "-";
+                    apellido = (fResultado.getPersonaApellido() != null ? fResultado.getPersonaApellido() : "") + ", " +
+                            (fResultado.getPersonaNombre() != null ? fResultado.getPersonaNombre() : "");
 
                     String numero = fResultado.getNotaCalificacionNotaNumero() != null ? fResultado.getNotaCalificacionNotaNumero().toString() : "-";
                     String letraL = fResultado.getNotaCalificacionNotaLetra() != null ? fResultado.getNotaCalificacionNotaLetra() : "-";
@@ -5319,13 +5322,13 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                 cellNombreMateria.setFontSize(letra);
                 cellNombreMateria.setTextColor(color);
                 // Celda para la columna "Apellido"
-                Cell<PDPage> cellNotaFinal = rew.createCell(20, apellido);
+                Cell<PDPage> cellNotaFinal = rew.createCell(25.1f, apellido);
                 cellNotaFinal.setAlign(HorizontalAlignment.LEFT);
                 cellNotaFinal.setValign(VerticalAlignment.MIDDLE);
                 cellNotaFinal.setFont(PDType1Font.HELVETICA);
                 cellNotaFinal.setTextColor(color);
                 // Celda para la columna "1er Parcial"
-                Cell<PDPage> cellEscrito = rew.createCell(5.9f, primerParcial);
+                Cell<PDPage> cellEscrito = rew.createCell(5.8f, primerParcial);
                 cellEscrito.setAlign(HorizontalAlignment.CENTER);
                 cellEscrito.setValign(VerticalAlignment.MIDDLE);
                 cellEscrito.setFont(PDType1Font.HELVETICA);
@@ -5373,23 +5376,23 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                 cellcond2.setFont(PDType1Font.HELVETICA);
                 cellcond2.setTextColor(color);
                 // Celda para la columna "Promedio Final"
-                Cell<PDPage> cellcond3 = rew.createCell(10, nota_c);
+                Cell<PDPage> cellcond3 = rew.createCell(13, nota_c);
                 cellcond3.setAlign(HorizontalAlignment.CENTER);
                 cellcond3.setValign(VerticalAlignment.MIDDLE);
                 cellcond3.setFont(PDType1Font.HELVETICA);
                 cellcond3.setTextColor(color);
                 // Celda para la columna "Condicion"
-                Cell<PDPage> cellcond4 = rew.createCell(8, estado);//8
+                Cell<PDPage> cellcond4 = rew.createCell(10, estado);//8
                 cellcond4.setAlign(HorizontalAlignment.CENTER);
                 cellcond4.setValign(VerticalAlignment.MIDDLE);
                 cellcond4.setFont(PDType1Font.HELVETICA);
                 cellcond4.setTextColor(color);
                 // Celda para la columna "Firma"
-                Cell<PDPage> cellcond5 = rew.createCell(10.1f, "");//8
-                cellcond5.setAlign(HorizontalAlignment.CENTER);
-                cellcond5.setValign(VerticalAlignment.MIDDLE);
-                cellcond5.setFont(PDType1Font.HELVETICA);
-                cellcond5.setTextColor(color);
+//                Cell<PDPage> cellcond5 = rew.createCell(10.1f, "");//8
+//                cellcond5.setAlign(HorizontalAlignment.CENTER);
+//                cellcond5.setValign(VerticalAlignment.MIDDLE);
+//                cellcond5.setFont(PDType1Font.HELVETICA);
+//                cellcond5.setTextColor(color);
                 float filaHeight = rew.getHeight();
                 H = H + filaHeight;
             }
@@ -5501,9 +5504,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                 if (i < cursadas.size()) {
                     NotaCursadaDTO fResultado = cursadas.get(i);
 
-                    dni = fResultado.getAlumnoDni() != null ? fResultado.getAlumnoDni() : "-";
-                    apellido = (fResultado.getAlumnoApellido() != null ? fResultado.getAlumnoApellido() : "") + ", " +
-                            (fResultado.getAlumnoNombre() != null ? fResultado.getAlumnoNombre() : "");
+                    dni = fResultado.getPersonaDni() != null ? fResultado.getPersonaDni() : "-";
+                    apellido = (fResultado.getPersonaApellido() != null ? fResultado.getPersonaApellido() : "") + ", " +
+                            (fResultado.getPersonaNombre() != null ? fResultado.getPersonaNombre() : "");
 
                     String numero = fResultado.getNotaCalificacionNotaNumero() != null ? fResultado.getNotaCalificacionNotaNumero().toString() : "-";
                     String letraL = fResultado.getNotaCalificacionNotaLetra() != null ? fResultado.getNotaCalificacionNotaLetra() : "-";
@@ -5711,7 +5714,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
             regular.beginText();
             regular.setFont(PDType1Font.HELVETICA_BOLD, 12);
             regular.newLineAtOffset(40, 520);
-            regular.showText("Planilla de seguimiento");
+            regular.showText("Planilla de calificaciones");
             regular.endText();
 
 // Columna izquierda
@@ -5964,11 +5967,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
             float leading = -14;
             regular.beginText();
             regular.setFont(PDType1Font.HELVETICA_BOLD, 12);
-            regular.newLineAtOffset(20, 520);
-            regular.showText("Planilla de seguimiento");
+            regular.newLineAtOffset(20, 518);
+            regular.showText("Planilla de calificaciones");
             regular.endText();
-
-// Columna izquierda
             regular.beginText();
             regular.setFont(PDType1Font.HELVETICA, 10);
             regular.newLineAtOffset(20, y);
@@ -5993,10 +5994,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
             regular.newLineAtOffset(0, leading);
             regular.showText("FECHA: " + materiaCarrera.getFecha());
             regular.endText();
-
             regular.close();
-
-
             //=====================
             float margin = 20;
             float yStartNewPage = page.getMediaBox().getHeight() - (3 * margin) - 20;
@@ -6112,19 +6110,20 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         cell.setValign(VerticalAlignment.MIDDLE);
         cell.setFontSize(letra);
         float c = cell.getExtraWidth();
-        cell = headerRow.createCell(20, "APELLIDO Y NOMBRE");//30
+        cell = headerRow.createCell(25.1f, "APELLIDO Y NOMBRE");//30
         cell.setAlign(HorizontalAlignment.CENTER);
         cell.setValign(VerticalAlignment.MIDDLE);
         float r = cell.getInnerWidth();
         cell.setFontSize(letra);
-        // Calcular la posición yStart para la nueva tabla basado en la altura de la tabla anterior y un margen---293.8f
-        BaseTable calificaciones_bolillas = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, 237.6f + auxmargin, Documento, page, true, drawContent);
+
+        // Calcular la posición yStart para la nueva tabla basado en la altura de la tabla anterior y un margen---293.8f// 237
+        BaseTable calificaciones_bolillas = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, 273.6f + auxmargin, Documento, page, true, drawContent);
         Row<PDPage> cabecalfbol = calificaciones_bolillas.createRow(27);
-        Cell<PDPage> cab = cabecalfbol.createCell(78.1f, "CALIFICACIONES");//49
+        Cell<PDPage> cab = cabecalfbol.createCell(73, "CALIFICACIONES");//49
         cab.setAlign(HorizontalAlignment.CENTER);
         cab.setValign(VerticalAlignment.MIDDLE);
         cab.setFontSize(letra);
-        BaseTable fila = new BaseTable(yStart - 26, yStartNewPage, bottomMargin, tableWidth, 237.4f + auxmargin, Documento, page, true, drawContent);
+        BaseTable fila = new BaseTable(yStart - 26, yStartNewPage, bottomMargin, tableWidth, 273.6f + auxmargin, Documento, page, true, drawContent);
         Row<PDPage> cabfila = fila.createRow(29);//25
 
         Cell<PDPage> cabfilaabajo = cabfila.createCell(6, "1er Parcial");//8.2f
@@ -6159,18 +6158,18 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         cabfilaabajo.setAlign(HorizontalAlignment.CENTER);
         cabfilaabajo.setValign(VerticalAlignment.MIDDLE);
         cabfilaabajo.setFontSize(8);
-        cabfilaabajo = cabfila.createCell(10, "Promedio Final");//8
+        cabfilaabajo = cabfila.createCell(13, "Promedio Final");//8
         cabfilaabajo.setAlign(HorizontalAlignment.CENTER);
         cabfilaabajo.setValign(VerticalAlignment.MIDDLE);
         cabfilaabajo.setFontSize(8);
-        cabfilaabajo = cabfila.createCell(8, "Condicion");//8
+        cabfilaabajo = cabfila.createCell(10, "Condicion");//8
         cabfilaabajo.setAlign(HorizontalAlignment.CENTER);
         cabfilaabajo.setValign(VerticalAlignment.MIDDLE);
         cabfilaabajo.setFontSize(8);
-        cabfilaabajo = cabfila.createCell(10.1f, "Firma del Alumno");//8
-        cabfilaabajo.setAlign(HorizontalAlignment.CENTER);
-        cabfilaabajo.setValign(VerticalAlignment.MIDDLE);
-        cabfilaabajo.setFontSize(8);
+//        cabfilaabajo = cabfila.createCell(10.1f, "Firma del Alumno");//8
+//        cabfilaabajo.setAlign(HorizontalAlignment.CENTER);
+//        cabfilaabajo.setValign(VerticalAlignment.MIDDLE);
+//        cabfilaabajo.setFontSize(8);
         fila.draw();
         table.draw();
         calificaciones_bolillas.draw();
@@ -6190,7 +6189,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
 
 @Override
 public PDDocument generaCalificador(String legajoId) {
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
         double nuevoProm = 0;
         int contProm = 0;
@@ -6287,12 +6286,12 @@ public PDDocument generaCalificador(String legajoId) {
             int tan = 10;
             BaseTable tablel1 = new BaseTable(yStart + 110, yStartNewPage, bottomMargin, tableWidth, auxmargin - 15, Documento, Pagina, true, drawContent);
             Row<PDPage> l1 = tablel1.createRow(10);
-            Cell<PDPage> cellL1 = l1.createCell(50, "Alumno/a :" + alumno.getAlumnoApellido() + ", " + alumno.getAlumnoNombre());
+            Cell<PDPage> cellL1 = l1.createCell(50, "Alumno/a :" + persona.getPersonaApellido() + ", " + persona.getPersonaNombre());
             cellL1.setAlign(HorizontalAlignment.LEFT);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
             //cellL1.setBorderStyle(null);
-            cellL1 = l1.createCell(20, "DNI: " + alumno.getAlumnoDni());
+            cellL1 = l1.createCell(20, "DNI: " + persona.getPersonaDni());
             cellL1.setAlign(HorizontalAlignment.CENTER);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
@@ -6321,12 +6320,12 @@ public PDDocument generaCalificador(String legajoId) {
             cuadro.beginText();
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l2 = tablel2.createRow(10);
-            Cell<PDPage> cellL2 = l2.createCell(55, "Nacido en la localidad de :" + alumno.getAlumnoLocalidadNacimiento());
+            Cell<PDPage> cellL2 = l2.createCell(55, "Nacido en la localidad de :" + persona.getPersonaLocalidadNacimiento());
             cellL2.setAlign(HorizontalAlignment.LEFT);
             cellL2.setValign(VerticalAlignment.MIDDLE);
             cellL2.setFontSize(tan);
             // cellL2.setBorderStyle(null);
-            cellL2 = l2.createCell(55, "Departamento: " + alumno.getAlumnoDepartamentoNacimiento());
+            cellL2 = l2.createCell(55, "Departamento: " + persona.getPersonaDepartamentoNacimiento());
             cellL2.setAlign(HorizontalAlignment.LEFT);
             cellL2.setValign(VerticalAlignment.MIDDLE);
             cellL2.setFontSize(tan);
@@ -6336,7 +6335,7 @@ public PDDocument generaCalificador(String legajoId) {
             System.out.println("Aca es el 4.1");
             BaseTable tablel3 = new BaseTable(yStart + 70, yStartNewPage, bottomMargin, tableWidth, auxmargin - 15, Documento, Pagina, true, drawContent);
             Row<PDPage> l3 = tablel3.createRow(10);
-            Cell<PDPage> cellL3 = l3.createCell(55, "Provincia : " + alumno.getAlumnoPaisNacimiento());
+            Cell<PDPage> cellL3 = l3.createCell(55, "Provincia : " + persona.getPersonaPaisNacimiento());
             System.out.println("l3.createCell");
             cellL3.setAlign(HorizontalAlignment.LEFT);
             cellL3.setValign(VerticalAlignment.MIDDLE);
@@ -6347,7 +6346,7 @@ public PDDocument generaCalificador(String legajoId) {
 //            System.out.println(fechaEnletra(alumno.getAlumnoFechaNacimiento()));
             System.out.println("cellL3.setFontSize(tan);");
 //            cellL3 = l3.createCell(55, "El dia: " + fechaEnletra(alumno.getAlumnoFechaNacimiento()));
-            cellL3 = l3.createCell(55, "El dia: "+alumno.getAlumnoFechaNacimiento().toString());
+            cellL3 = l3.createCell(55, "El dia: "+ persona.getPersonaFechaNacimiento().toString());
             cellL3.setAlign(HorizontalAlignment.LEFT);
             cellL3.setValign(VerticalAlignment.MIDDLE);
             cellL3.setFontSize(tan);
@@ -6357,7 +6356,7 @@ public PDDocument generaCalificador(String legajoId) {
             System.out.println("Aca es el 4.1.1");
             BaseTable tablel4 = new BaseTable(yStart + 50, yStartNewPage, bottomMargin, tableWidth, auxmargin - 15, Documento, Pagina, true, drawContent);
             Row<PDPage> l4 = tablel4.createRow(20);
-            Cell<PDPage> cellL4 = l4.createCell(100, "Titulo Nivel Medio: " + alumno.getSecundarioAlumnoTitulo());
+            Cell<PDPage> cellL4 = l4.createCell(100, "Titulo Nivel Medio: " + persona.getPersonaTitulo());
             cellL4.setAlign(HorizontalAlignment.LEFT);
             cellL4.setValign(VerticalAlignment.MIDDLE);
             cellL4.setFontSize(tan);
@@ -6373,7 +6372,7 @@ public PDDocument generaCalificador(String legajoId) {
             System.out.println("Aca es el 4.1.2");
             BaseTable tablel5 = new BaseTable(yStart + 30, yStartNewPage, bottomMargin, tableWidth, auxmargin - 15, Documento, Pagina, true, drawContent);
             Row<PDPage> l5 = tablel5.createRow(20);
-            Cell<PDPage> cellL5 = l5.createCell(100, "Expedido Por : " + alumno.getSecundarioAlumnoEscuela());
+            Cell<PDPage> cellL5 = l5.createCell(100, "Expedido Por : " + persona.getPersonaEscuela());
             cellL5.setAlign(HorizontalAlignment.LEFT);
             cellL5.setValign(VerticalAlignment.MIDDLE);
             cellL5.setFontSize(tan);
@@ -6625,7 +6624,7 @@ public PDDocument generaCalificador(String legajoId) {
 
 @Override
 public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
-        Alumno alumno = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
+        Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
         Atencion atencion= this.atencionService.findById(atencionId).get();
         Legajo legajo=this.legajoSerevice.findLegajoById(legajoId);
@@ -6778,7 +6777,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
             //cellL1.setBorderStyle(null);
-            cell0 = l0.createCell(40, "Tipo: "+atencion.getAtencionConsulta());
+            cell0 = l0.createCell(40, "Tipo: "+atencion.getAtencionTipo());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
@@ -6804,12 +6803,12 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.setFont(PDType1Font.HELVETICA, 20);
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l1 = tablel1.createRow(10);
-            Cell<PDPage> cellL1 = l1.createCell(60, "Alumno/a :" + alumno.getAlumnoApellido() + ", " + alumno.getAlumnoNombre());
+            Cell<PDPage> cellL1 = l1.createCell(60, "Alumno/a :" + persona.getPersonaApellido() + ", " + persona.getPersonaNombre());
             cellL1.setAlign(HorizontalAlignment.LEFT);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
             //cellL1.setBorderStyle(null);
-            cellL1 = l1.createCell(20, "DNI: " + alumno.getAlumnoDni());
+            cellL1 = l1.createCell(20, "DNI: " + persona.getPersonaDni());
             cellL1.setAlign(HorizontalAlignment.CENTER);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
@@ -6957,4 +6956,419 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
         }
         return Documento;
     }
+
+
+
+
+    @Override
+    public PDDocument generaTroquelNotaIngresante(Integer atencionId) {
+        Atencion atencion = this.atencionService.findById(atencionId)
+                .orElseThrow(() ->
+                        new RuntimeException("No se encontró la atención con id: " + atencionId)
+                );
+        double nuevoProm = 0;
+        int contProm = 0;
+        PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
+        PDDocument Documento = new PDDocument();
+        try {
+            int n = -10;//distancia entre lineas
+            int letra = 11;//Tamaño de letras
+            PDType1Font normal = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+            //Creando documento nuevo
+            PDPage Pagina = new PDPage(PDRectangle.A4);
+            Documento.addPage(Pagina);
+            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+            if (iesc1I == null) {
+                System.out.println("readFilesInBytes: File " + "file" + " does not exist");
+            }
+            byte[] ba = IOUtils.toByteArray(iesc1I);
+            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");
+            PDPageContentStream contenido = new PDPageContentStream(Documento, Pagina);
+            int fontSize = 8; // Tamaño de la fuente
+            contenido.setFont(normal, fontSize);
+            float pageHeight = PDRectangle.A4.getHeight();
+            float pageWidth = PDRectangle.A4.getWidth();
+            String[] lines = {
+                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
+                    "“CAMPINTA GUAZU GLORIA PEREZ”",
+                    "Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15",
+                    "Bahia Blanca Nº 235 Bº Kennedy – Tel.N°(0388)-3428370)",
+                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina",
+                    "________________________________________________________________________________________________________________________"
+            };
+            n = -10;
+            contenido.beginText();
+            float iStart = 820;
+            contenido.newLineAtOffset(0, iStart);
+            for (String line : lines) {
+                float textWidth = normal.getStringWidth(line) / 1000 * fontSize;
+                float xStart = (pageWidth - textWidth) / 2;
+                contenido.newLineAtOffset(xStart, 0);
+                contenido.showText(line);
+                contenido.newLineAtOffset(-xStart, n);
+            }
+            contenido.endText();
+//            contenido.close();
+            String aporteSumas = "";
+            //imagen del encavezado izquierda
+            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+            PDesc1.drawImage(Iesc1, 30, 770, 65, 60);//Draw an image at the x,y coordinates, with the given size.
+            PDesc1.close();
+            //===================================================================
+//Justificar texto
+            int margin = 30;
+            float longitud = 500;//longitud permitida para justificar
+            PDPageContentStream cuadro = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDRectangle mediabox = Pagina.getMediaBox();
+            float width = mediabox.getWidth() - 4 * margin;
+            float X = mediabox.getLowerLeftX() + margin;
+            float Y = mediabox.getUpperRightY() - margin;
+            List<String> lineas = new ArrayList<String>();
+
+            // starting y position is whole page height subtracted by top and bottom margin
+            float yStartNewPage = Pagina.getMediaBox().getHeight() - (2 * margin);
+            // we want table across whole page width (subtracted by left and right margin ofcourse)
+            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+            boolean drawContent = true;
+            float yStart =Pagina.getMediaBox().getHeight()-90;
+            float bottomMargin = 70;
+            float auxmargin = 30;
+            ////================================
+            int tan = 10;
+
+            contenido.beginText();
+            contenido.newLineAtOffset(margin, yStart);
+            contenido.setFont(negrita, 15);
+            contenido.showText(atencion.getAtencionTipo()+" N°: "+atencion.getNumeroTipo());
+            contenido.endText();
+            yStart -=10;
+            Float H=0f;
+
+            BaseTable TablaF0 = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            cuadro.beginText();
+            cuadro.setFont(PDType1Font.HELVETICA, 20);
+            cuadro.newLineAtOffset(0, 800);//X=40
+            Row<PDPage> l0 = TablaF0.createRow(10);
+
+            Cell<PDPage> cell0 = l0.createCell(15, "Tramite: "+atencion.getId());
+            cell0.setAlign(HorizontalAlignment.LEFT);
+            cell0.setValign(VerticalAlignment.MIDDLE);
+            cell0.setFontSize(tan);
+            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+
+            //cellL1.setBorderStyle(null);
+            cell0 = l0.createCell(30, "Cod Seguimiento: "+atencion.getCodigoSeguimiento());
+            cell0.setAlign(HorizontalAlignment.LEFT);
+            cell0.setValign(VerticalAlignment.MIDDLE);
+            cell0.setFontSize(tan);
+            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            cell0 = l0.createCell(25, "Fecha: "+ atencion.getAtencionFecha());
+            cell0.setAlign(HorizontalAlignment.LEFT);
+            cell0.setValign(VerticalAlignment.MIDDLE);
+            cell0.setFontSize(tan);
+            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            cell0 = l0.createCell(30, "Prioridad: "+atencion.getAtencionPrioridad());
+            cell0.setAlign(HorizontalAlignment.LEFT);
+            cell0.setValign(VerticalAlignment.MIDDLE);
+            cell0.setFontSize(tan);
+            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            cuadro.endText();
+            TablaF0.draw();
+            H=H+TablaF0.getHeaderAndDataHeight();
+
+            BaseTable tablel1 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            cuadro.beginText();
+            cuadro.setFont(PDType1Font.HELVETICA, 20);
+            cuadro.newLineAtOffset(0, 800);//X=40
+            Row<PDPage> l1 = tablel1.createRow(10);
+            Cell<PDPage> cellL1 = l1.createCell(50, "Remitente:" + atencion.getAtencionApellidoNombre());
+            cellL1.setAlign(HorizontalAlignment.LEFT);
+            cellL1.setValign(VerticalAlignment.MIDDLE);
+            cellL1.setFontSize(tan);
+            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            //cellL1.setBorderStyle(null);
+            cellL1 = l1.createCell(20, "Celular: " + atencion.getAtencionCelular());
+            cellL1.setAlign(HorizontalAlignment.CENTER);
+            cellL1.setValign(VerticalAlignment.MIDDLE);
+            cellL1.setFontSize(tan);
+            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            cellL1 = l1.createCell(30, "Destino: " + atencion.getAtencionDestino());
+            cellL1.setAlign(HorizontalAlignment.LEFT);
+            cellL1.setValign(VerticalAlignment.MIDDLE);
+            cellL1.setFontSize(tan);
+            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cuadro.endText();
+            tablel1.draw();
+            H=H+tablel1.getHeaderAndDataHeight();
+
+            BaseTable tablel6 = new BaseTable(yStart -H , yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            cuadro.beginText();
+            cuadro.newLineAtOffset(0, 800);//X=40
+            Row<PDPage> l6 = tablel6.createRow(20);
+            Cell<PDPage> cellL6 = l6.createCell(90, "Asunto: " + atencion.getAtencionAsunto());
+            cellL6.setAlign(HorizontalAlignment.LEFT);
+            cellL6.setValign(VerticalAlignment.MIDDLE);
+            cellL6.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL6.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL6.setFontSize(tan);
+            cellL6 = l6.createCell(10, "Folios: " + atencion.getAtencionFolios());
+            cellL6.setAlign(HorizontalAlignment.LEFT);
+            cellL6.setValign(VerticalAlignment.MIDDLE);
+            cellL6.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL6.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL6.setFontSize(tan);
+            cuadro.endText();
+            tablel6.draw();
+            H=H+tablel6.getHeaderAndDataHeight();
+
+            BaseTable tablel2 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            cuadro.beginText();
+            cuadro.newLineAtOffset(0, 800);//X=40
+            Row<PDPage> l2 = tablel2.createRow(10);
+
+            String problema = atencion.getAtencionProblema();
+            if (problema != null) {
+                problema = problema.replaceAll("\\r?\\n", " ").trim();
+            }
+
+            Cell<PDPage> cellL2 = l2.createCell(100, "Solicitud: " + problema);
+
+            cellL2.setAlign(HorizontalAlignment.LEFT);
+            cellL2.setValign(VerticalAlignment.MIDDLE);
+            cellL2.setFontSize(tan);
+            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            // cellL2.setBorderStyle(null);
+//
+//            cellL2 = l2.createCell(10, "DNI:"+"legajo.getLegajoFotocopiaDni()");
+//            cellL2.setAlign(HorizontalAlignment.LEFT);
+//            cellL2.setValign(VerticalAlignment.MIDDLE);
+//            cellL2.setFontSize(tan);
+//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //  cellL2.setBorderStyle(null);
+//
+//            cellL2 = l2.createCell(10, "Nac:"+"legajo.getLegajoCertificadoNacimiento()");
+//            cellL2.setAlign(HorizontalAlignment.LEFT);
+//            cellL2.setValign(VerticalAlignment.MIDDLE);
+//            cellL2.setFontSize(tan);
+//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //  cellL2.setBorderStyle(null);
+//
+//            cellL2 = l2.createCell(25, "Tit:"+"legajo.getLegajoFotocopiaTitulo()");
+//            cellL2.setAlign(HorizontalAlignment.LEFT);
+//            cellL2.setValign(VerticalAlignment.MIDDLE);
+//            cellL2.setFontSize(tan);
+//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //  cellL2.setBorderStyle(null);
+//
+//            cellL2 = l2.createCell(10, "Sal:"+"legajo.getLegajoCarnetSanitario()");
+//            cellL2.setAlign(HorizontalAlignment.LEFT);
+//            cellL2.setValign(VerticalAlignment.MIDDLE);
+//            cellL2.setFontSize(tan);
+//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //  cellL2.setBorderStyle(null);
+//
+//            cellL2 = l2.createCell(15, "Fotos:"+"legajo.getLegajoFoto()");
+//            cellL2.setAlign(HorizontalAlignment.LEFT);
+//            cellL2.setValign(VerticalAlignment.MIDDLE);
+//            cellL2.setFontSize(tan);
+//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //  cellL2.setBorderStyle(null);
+//
+//            cellL2 = l2.createCell(20, "Inscripcion:"+aporteSumas);
+//            cellL2.setAlign(HorizontalAlignment.LEFT);
+//            cellL2.setValign(VerticalAlignment.MIDDLE);
+//            cellL2.setFontSize(tan);
+//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //  cellL2.setBorderStyle(null);
+
+
+            cuadro.endText();
+            tablel2.draw();
+            H=H+tablel2.getHeaderAndDataHeight();
+            BaseTable tablel3 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            cuadro.beginText();
+            cuadro.newLineAtOffset(0, 800);//X=40
+            Row<PDPage> l3 = tablel3.createRow(10);
+            Cell<PDPage> cellL3 = l3.createCell(70, "Recepcionado por: "+atencion.getAtencionUsuario());
+            cellL3.setAlign(HorizontalAlignment.LEFT);
+            cellL3.setValign(VerticalAlignment.MIDDLE);
+            cellL3.setFontSize(tan);
+            cellL3.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL3.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            // cellL3.setBorderStyle(null);
+            cellL3 = l3.createCell(30, "Enviar a: ");
+            cellL3.setAlign(HorizontalAlignment.LEFT);
+            cellL3.setValign(VerticalAlignment.MIDDLE);
+            cellL3.setFontSize(tan);
+            cellL3.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL3.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            //cellL3.setBorderStyle(null);
+            cuadro.endText();
+            tablel3.draw();
+            H=H+tablel3.getHeaderAndDataHeight();
+
+            BaseTable tablel4 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            cuadro.beginText();
+            cuadro.newLineAtOffset(0, 800);//X=40
+            Row<PDPage> l4 = tablel4.createRow(20);
+            Cell<PDPage> cellL4 = l4.createCell(100, "Observaciones"+atencion.getAtencionObservaciones());
+            cellL4.setAlign(HorizontalAlignment.LEFT);
+            cellL4.setValign(VerticalAlignment.MIDDLE);
+            cellL4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL4.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            cellL4.setFontSize(tan);
+            cuadro.endText();
+            tablel4.draw();
+            H=H+tablel4.getHeaderAndDataHeight();
+            contenido.beginText();
+            cuadro.close();
+            contenido.close();
+
+            //Documento.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return Documento;
+    }
+
+    @Override
+    public PDDocument generaTroquelPase(Integer paseId) {
+        Pases pase = this.paseService.findById(Long.valueOf(paseId));
+        if (pase == null) {
+            return null;
+        }
+
+        PDDocument documento = new PDDocument();
+
+        try {
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            documento.addPage(pagina);
+
+            PDType1Font normal = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+
+            float margin = 30;
+            float yStart = pagina.getMediaBox().getHeight() - 10;
+            float bottomMargin = 70;
+            float tableWidth = pagina.getMediaBox().getWidth() - 2 * margin;
+            float yStartNewPage = pagina.getMediaBox().getHeight() -margin;
+
+//            // --- Título ---
+//            try (PDPageContentStream contenido = new PDPageContentStream(documento, pagina)) {
+//                contenido.beginText();
+//                contenido.setFont(negrita, 15);
+//                contenido.newLineAtOffset(margin, yStart);
+//                contenido.showText("Pase N°: " + pase.getId());
+//                contenido.endText();
+//            }
+
+            // --- Tabla Boxable ---
+            BaseTable tabla = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, documento, pagina, true, true);
+            int fontSize = 10;
+
+            // Fila: Trámite ID
+            Row<PDPage> filaTramite = tabla.createRow(15);
+            Cell<PDPage> c1 = filaTramite.createCell(70, "Trámite N°: " + (pase.getTramite() != null ? pase.getTramite().getId() : ""));
+            c1.setFontSize(fontSize);
+            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            // Definís el formato que quieras
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String fechaCreacion = pase.getCreatedAt() != null ? pase.getCreatedAt().format(formatter) : "";
+
+            c1 = filaTramite.createCell(30, "Fecha: " + fechaCreacion);
+            c1.setFontSize(fontSize);
+            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+
+            // Fila: De Usuario
+            Row<PDPage> filaDe = tabla.createRow(15);
+            String deUsuario = pase.getDeUsuario() != null ? pase.getDeUsuario().getPersonalNombre() + " " + pase.getDeUsuario().getPersonalApellido() : "Sin asignar";
+            Cell<PDPage> c2 = filaDe.createCell(50, "De Usuario: " + deUsuario);
+            c2.setFontSize(fontSize);
+            c2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            c2=filaDe.createCell(50, " Area: " + (pase.getDeUsuario().getDestino().getNombre()));
+            c2.setAlign(HorizontalAlignment.LEFT);
+            c2.setValign(VerticalAlignment.MIDDLE);
+            c2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c2.setFontSize(fontSize);
+            c2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+
+            // Fila: Para Usuario
+            Row<PDPage> filaParaUsuario = tabla.createRow(15);
+            String paraUsuario = pase.getParaUsuario() != null ? pase.getParaUsuario().getPersonalNombre() + " " + pase.getParaUsuario().getPersonalApellido() : "Sin asignar";
+            Cell<PDPage> c4 = filaParaUsuario.createCell(50, "Para Usuario: " + paraUsuario);
+            c4.setFontSize(fontSize);
+            c4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c4.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            c4=filaParaUsuario.createCell(50, " Area: " + (pase.getParaUsuario().getDestino().getNombre()));
+            c4.setAlign(HorizontalAlignment.LEFT);
+            c4.setValign(VerticalAlignment.MIDDLE);
+            c4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c4.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c4.setFontSize(fontSize);
+            c4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c4.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            // Fila: Observaciones
+            Row<PDPage> filaObs = tabla.createRow(15);
+            Cell<PDPage> c7 = filaObs.createCell(100, "Observaciones: " + (pase.getObservaciones() != null ? pase.getObservaciones() : ""));
+            c7.setFontSize(fontSize);
+            c7.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c7.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+
+
+
+            // Dibujar tabla completa
+            tabla.draw();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return documento;
+    }
+
+
+
+
+
+
+
+
+
 }
+
+

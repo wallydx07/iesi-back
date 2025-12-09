@@ -49,4 +49,8 @@ public interface CertificadoService {
     PDDocument generaCalificador(String legajoId);
 
     PDDocument generaTroquelTramite(String legajoId, Integer atencionId);
+
+    PDDocument generaTroquelNotaIngresante(Integer atencionId) throws IOException;
+
+    PDDocument generaTroquelPase(Integer paseId);
 }

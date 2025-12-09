@@ -191,7 +191,10 @@ public class ConstanciaController {
         System.out.println("Usuario: " + updateCertificado.getUsuario());
         System.out.println("Validado: " + updateCertificado.getValidado());
         System.out.println("Monto: " + updateCertificado.getMonto());
-        System.out.println("Legajo ID: " + updateCertificado.getAtencion().getLegajo().getLegajoId());
+//        System.out.println("Legajo ID: " + updateCertificado.getAtencion().getLegajo().getLegajoId());
+
+        System.out.println("Legajo ID: " + updateCertificado.getAtencion().getLegajoId());
+
         System.out.println("Atencion ID: " + updateCertificado.getAtencion().getId());
         System.out.println("--------------------------------------");
 

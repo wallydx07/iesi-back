@@ -37,9 +37,21 @@ public class ExamenHorarioController {
         return examenHorarioService.save(examenHorario);
     }
 
-    @PutMapping("/{id}")
-    public ExamenHorario update(@PathVariable Integer id, @RequestBody ExamenHorario examenHorario) {
-        return examenHorarioService.update(id, examenHorario);
+    @PostMapping("/{turnoId}")
+    public ExamenHorario createConturno(
+            @PathVariable String turnoId,
+            @RequestBody ExamenHorario examenHorario) {
+        return examenHorarioService.saveConTurno(turnoId, examenHorario);
+    }
+
+
+    @PutMapping("/{turnoId}/{id}")
+    public ExamenHorario update(
+            @PathVariable String turnoId,
+            @PathVariable Integer id,
+            @RequestBody ExamenHorario examenHorario) {
+
+        return examenHorarioService.update(id, examenHorario, turnoId);
     }
 
     @DeleteMapping("/{id}")

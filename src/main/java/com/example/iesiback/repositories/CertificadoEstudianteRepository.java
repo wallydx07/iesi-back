@@ -18,26 +18,46 @@ public interface CertificadoEstudianteRepository extends JpaRepository<Certifica
     List<CertificadoEstudiante> findByValidado(Boolean validado);
     List<CertificadoEstudiante> findByMonto(Integer monto);
     List<CertificadoEstudiante> findByAtencionId(Integer atencionId);
-    List<CertificadoEstudiante> findByAtencion_Legajo_LegajoId(String legajoId);
+    List<CertificadoEstudiante> findByAtencion_LegajoId(String legajoId);
 
-    @Query("SELECT new com.example.iesiback.dto.AporteDTO(" +
-            "c.id, " +
-            "al.alumnoDni, " +
-            "al.alumnoApellido, " +
-            "al.alumnoNombre, " +
-            "a.legajo.legajoId, " +
-            "c.monto, " +
-            "0, " +                    // recibo (falso, 0)
-            "0, " +                    // talonario (falso, 0)
-            "c.fecha, " +
-            "c.observaciones, " +
-            "c.usuario, " +
-            "c.validado) " +
-            "FROM CertificadoEstudiante c " +
-            "JOIN c.atencion a " +
-            "JOIN a.legajo.legajoAlumnoDni al")
-    List<AporteDTO> findCertificadosComoAportes();
+//    @Query("SELECT new com.example.iesiback.dto.AporteDTO(" +
+//            "c.id, " +
+//            "al.personaDni, " +
+//            "al.personaApellido, " +
+//            "al.personaNombre, " +
+//            "a.legajoId, " +
+//            "c.monto, " +
+//            "0, " +                    // recibo (falso, 0)
+//            "0, " +                    // talonario (falso, 0)
+//            "c.fecha, " +
+//            "c.observaciones, " +
+//            "c.usuario, " +
+//            "c.validado) " +
+//            "FROM CertificadoEstudiante c " +
+//            "JOIN c.atencion a " +
+//            "JOIN a.atencionDni al")
+//    List<AporteDTO> findCertificadosComoAportes();
+//
 
+    @Query(value = """
+    SELECT
+      c.constancia_id,
+      p.persona_apellido,
+      p.persona_nombre,
+      a.legajo_id,
+      c.monto,
+      0 AS recibo,
+      0 AS talonario,
+      c.fecha,
+      c.observaciones,
+      c.usuario,
+      c.validado
+    FROM certificado_estudiante c
+    INNER JOIN atencion a ON c.atencion_id = a.atencion_id
+    INNER JOIN persona p ON a.atencion_dni = p.persona_dni
+    ORDER BY c.fecha DESC
+""", nativeQuery = true)
+    List<Object[]> findCertificadosComoAportes();
 
 
 }

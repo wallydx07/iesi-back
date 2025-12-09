@@ -95,20 +95,46 @@ public class ExamenServiceImpl implements ExamenService {
 //            String fecha = cursadaExamenService.obtenerFechaPorMateriaYTurno(cursada.getMateriaId(), turno);
 //            String hora=cursadaExamenService.obtenerHoraPorMateriaYTurno(cursada.getMateriaId(), turno);
 
+            String fecha = "-";
+            String hora = "-";
 
+            Optional<CursadaExamen> cursadaExamen =
+                    cursadaExamenRepository.findByMateriaIdAndTurno_TurnoId(
+                            cursada.getMateriaId(), turno
+                    );
 
-            String fecha="-";
-            String hora="-";
-            ExamenHorario examenHorario = examenHorarioService.findByMateriaIdAndTurnoId(cursada.getMateriaId(), turno)
-                    .orElse(null);
-            if (examenHorario != null) {
-                fecha = examenHorario.getFecha().toString();
-                hora = examenHorario.getHora().toString();
-                // Continuás la lógica
-            } else {
-                // Manejás el caso cuando no se encuentra
-                System.out.println("No se encontró el horario.");
+            if (cursadaExamen.isPresent()) {
+                CursadaExamen ce = cursadaExamen.get();
+
+                // Fecha segura
+                fecha = (ce.getFecha() != null)
+                        ? ce.getFecha().toString()
+                        : "-";
+
+                // Hora segura
+                hora = (ce.getHora() != null)
+                        ? ce.getHora()
+                        : "-";
             }
+
+
+//            String fecha="-";
+//            String hora="-";
+//
+
+//
+//            ExamenHorario examenHorario = examenHorarioService.findByMateriaIdAndTurnoId(cursada.getMateriaId(), turno)
+//                    .orElse(null);
+//
+//            if (examenHorario != null) {
+//                fecha = examenHorario.getFecha().toString();
+//                hora = examenHorario.getHora().toString();
+//                // Continuás la lógica
+//            } else {
+//             Optional<CursadaExamen> cursadaExamen=cursadaExamenRepository.findByMateriaIdAndTurno_TurnoId(cursada.getMateriaId(), turno);
+//                fecha = cursadaExamen.get().getFecha().toString();
+//                hora = cursadaExamen.get().getHora();
+//            }
 
             inscripcion.setHora(hora);
             inscripcion.setFecha(fecha);

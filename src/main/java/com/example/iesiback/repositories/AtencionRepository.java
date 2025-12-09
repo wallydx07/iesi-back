@@ -15,9 +15,13 @@ public interface AtencionRepository extends JpaRepository<Atencion, Integer> {
     List<Atencion> findByAtencionCorreoContainingIgnoreCase(String correo);
     List<Atencion> findByAtencionDestino(String destino);
     List<Atencion> findByAtencionUsuario(String usuario);
-    List<Atencion> findByAtencionResuelto(Boolean resuelto);
+    List<Atencion> findByAtencionResuelto(String resuelto);
     List<Atencion> findByAtencionFecha(LocalDate fecha);
     Optional<Atencion> findByCodigoSeguimiento(String codigoSeguimiento);
     List<Atencion> findAllByOrderByIdDesc();
+    List<Atencion> findByGestorDni(Long gestorDni);
+    List<Atencion> findByAtencionReferencia(Integer atencionReferencia);
+    List<Atencion> findAllByOrderByAtencionFechaDesc();
+
 
 }

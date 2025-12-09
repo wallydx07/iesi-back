@@ -6,6 +6,9 @@ import com.example.iesiback.repositories.CertificadoEstudianteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -71,7 +74,7 @@ import java.util.List;
 
         @Override
         public List<CertificadoEstudiante> findByLegajoId(String legajoId) {
-            return repository.findByAtencion_Legajo_LegajoId(legajoId);
+            return repository.findByAtencion_LegajoId(legajoId);
         }
 
     @Override
@@ -81,6 +84,23 @@ import java.util.List;
 
     @Override
     public List<AporteDTO> obtenerCertificadosComoAportes() {
-        return repository.findCertificadosComoAportes();
+        List<AporteDTO> lista = repository.findCertificadosComoAportes()
+                .stream()
+                .map(obj -> new AporteDTO(
+                        ((Number)obj[0]).intValue(),
+                        null, // DNI si querés agregarlo después
+                        (String)obj[1],
+                        (String)obj[2],
+                        ((String)obj[3]),
+                        ((Number)obj[4]).intValue(),
+                        ((Number)obj[5]).intValue(),
+                        ((Number)obj[6]).intValue(),
+                        LocalDate.parse(obj[7].toString()),
+                        (String)obj[8],
+                        (String)obj[9],
+                        (Boolean)obj[10]
+                ))
+                .toList();
+        return lista;
     }
 }

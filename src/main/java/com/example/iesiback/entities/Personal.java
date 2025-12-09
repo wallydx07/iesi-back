@@ -1,10 +1,7 @@
 package com.example.iesiback.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,4 +65,13 @@ public class Personal {
 
     @Column(name = "curriculum")
     private Boolean curriculum;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destino_id")
+    private Destino destino;  // el área donde trabaja el personal
+
+    @Size(max = 50)
+    @Column(name = "departamento", length = 50)
+    private String departamento;
 }

@@ -29,13 +29,12 @@ public class CursadaExamen {
     @Column(name = "vocal2_dni", length = 50)
     private String vocal2Dni;
 
-        @Column(name = "fecha")
-        private LocalDate fecha;
+    @Column(name = "fecha")
+    private LocalDate fecha;
 
     @Size(max = 10)
     @Column(name = "hora", length = 10)
     private String hora;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "turno_id", referencedColumnName = "turno_id") // Referencia correcta a Turno

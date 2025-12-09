@@ -13,7 +13,9 @@ public interface ExamenHorarioService {
 
     ExamenHorario save(ExamenHorario examenHorario);
 
-    ExamenHorario update(Integer id, ExamenHorario examenHorario);
+    ExamenHorario saveConTurno(String turno1, ExamenHorario examenHorario);
+
+    ExamenHorario update(Integer id, ExamenHorario examenHorario, String turnoId);
 
     void delete(Integer id);
 

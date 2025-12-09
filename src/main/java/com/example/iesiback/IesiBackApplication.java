@@ -9,9 +9,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 public class IesiBackApplication {
-    static{
-        OpenCV.loadLocally();
-    }
+
+//    static{
+//        OpenCV.loadLocally();
+//    }
+
     public static void main(String[] args) {
         SpringApplication.run(IesiBackApplication.class, args);
     }

@@ -14,9 +14,9 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Intege
     @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
                   "FROM Inscripcion i " +
                   "JOIN i.legajo l " +
-                  "JOIN l.legajoAlumnoDni a " +
+                  "JOIN l.legajoPersonaDni a " +
                   "JOIN i.carrera c " +
-                  "WHERE a.alumnoDni = :alumnoDni " +
+                  "WHERE a.personaDni = :alumnoDni " +
                   "AND c.carreraNombre = :carreraNombre")
     boolean existsByAlumnoDniAndCarreraNombre(@Param("alumnoDni") String alumnoDni,
                                               @Param("carreraNombre") String carreraNombre);

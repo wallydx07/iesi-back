@@ -64,6 +64,14 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/documento/upload").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/atenciones/seguimiento/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll()
+                        // 🔥 Necesario para SockJS
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/ws").permitAll()
+                        .requestMatchers("/ws/info/**").permitAll()
+
+                        // 🔥 Necesario para STOMP topics
+                        .requestMatchers("/topic/**").permitAll()
+                        .requestMatchers("/app/**").permitAll()
                         .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))

@@ -1,6 +1,6 @@
 package com.example.iesiback.repositories;
 
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Legajo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -29,9 +29,9 @@ public interface LegajoRepository extends JpaRepository<Legajo, String> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Legajo l SET l.legajoAlumnoDni = :nuevoDni WHERE l.legajoAlumnoDni = :dniActual")
+    @Query("UPDATE Legajo l SET l.legajoPersonaDni = :nuevoDni WHERE l.legajoPersonaDni = :dniActual")
     int actualizarAlumnoDni(@Param("dniActual") Long dniActual, @Param("nuevoDni") Long nuevoDni);
 
-    List<Legajo> findByLegajoAlumnoDni(Alumno alumno);
+    List<Legajo> findByLegajoPersonaDni(Persona persona);
 
 }

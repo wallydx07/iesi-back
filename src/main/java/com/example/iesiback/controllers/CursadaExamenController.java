@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
 @RequestMapping("/api/cursada-examen")
@@ -18,11 +20,27 @@ public class CursadaExamenController {
     @Autowired
     private CursadaExamenService cursadaExamenService;
 
+    @GetMapping("/findById")
+    public ResponseEntity<Optional<CursadaExamen>> existePorTurnoYMateria(@RequestParam Integer cursadaExamenId) {
+        Optional<CursadaExamen> existe = cursadaExamenService.findById(cursadaExamenId);
+        return ResponseEntity.ok(existe);
+    }
+
     @GetMapping("/existe")
-    public ResponseEntity<Boolean> existePorTurnoYMateria(@RequestParam String turnoId, @RequestParam String materiaId) {
+    public ResponseEntity<Boolean> existePorTurnoYMateria(
+            @RequestParam String turnoId,
+            @RequestParam String materiaId) {
+
         boolean existe = cursadaExamenService.existePorTurnoYMateria(turnoId, materiaId);
         return ResponseEntity.ok(existe);
     }
+
+
+//    @GetMapping("/findById")
+//    public ResponseEntity<Boolean> findByTurnoYMateria(@RequestParam String turnoId, @RequestParam String materiaId) {
+//        boolean existe = cursadaExamenService.existePorTurnoYMateria(turnoId, materiaId);
+//        return ResponseEntity.ok(existe);
+//    }
 
     @GetMapping("/fecha")
     public ResponseEntity<String> obtenerFecha(
@@ -56,5 +74,13 @@ public class CursadaExamenController {
         List<ExamenCursadaDTO> cursadas = cursadaExamenService.obtenerCursadasPorTurno(turnoId);
         return ResponseEntity.ok(cursadas);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CursadaExamen> actualizar(@PathVariable Long id, @RequestBody CursadaExamen dto) {
+        return ResponseEntity.ok(cursadaExamenService.actualizar(id, dto));
+    }
+
+
+
 }
 

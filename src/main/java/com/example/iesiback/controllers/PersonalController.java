@@ -54,6 +54,7 @@ public class PersonalController {
             personal.setCuil(personalDetails.getCuil());
             personal.setTitulo(personalDetails.getTitulo());
             personal.setCurriculum(personalDetails.getCurriculum());
+            personal.setDestino(personalDetails.getDestino());
             return ResponseEntity.ok(personalService.save(personal));
         }).orElse(ResponseEntity.notFound().build());
     }

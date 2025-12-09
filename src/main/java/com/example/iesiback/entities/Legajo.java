@@ -16,10 +16,10 @@ public class Legajo {
     @Column(name = "legajo_id", nullable = false, length = 50)
     private String legajoId;
 
-   @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "legajo_alumno_dni", nullable = false)
-    @JsonProperty(value = "alumno", access = JsonProperty.Access.WRITE_ONLY)
-    private Alumno legajoAlumnoDni;
+    @JsonProperty(value = "persona", access = JsonProperty.Access.WRITE_ONLY)
+    private Persona legajoPersonaDni;
 
     @Size(max = 50)
     @Column(name = "legajo_sede", length = 50)
@@ -86,9 +86,9 @@ public class Legajo {
     @JsonManagedReference
     private Set<Aporte> aportes = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private Set<Atencion> atenciones = new LinkedHashSet<>();
+//    @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JsonManagedReference
+//    private Set<Atencion> atenciones = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "legajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @JsonManagedReference
@@ -103,29 +103,20 @@ public class Legajo {
     private Set<Cursada> cursadas = new LinkedHashSet<>();
 
 
-
-    public Set<Atencion> getAtenciones() {
-        return atenciones;
-    }
-
-    public void setAtenciones(Set<Atencion> atenciones) {
-        this.atenciones = atenciones;
-    }
-
-    public Set<Cursada> getCursadas() {
-        return cursadas;
-    }
-
-    public void setCursadas(Set<Cursada> cursadas) {
-        this.cursadas = cursadas;
-    }
-
     public String getLegajoId() {
         return legajoId;
     }
 
     public void setLegajoId(String legajoId) {
         this.legajoId = legajoId;
+    }
+
+    public Persona getLegajoPersonaDni() {
+        return legajoPersonaDni;
+    }
+
+    public void setLegajoPersonaDni(Persona legajoPersonaDni) {
+        this.legajoPersonaDni = legajoPersonaDni;
     }
 
     public String getLegajoSede() {
@@ -152,61 +143,12 @@ public class Legajo {
         this.legajoFoto = legajoFoto;
     }
 
-    public Set<Aporte> getAportes() {
-        return aportes;
+    public String getLegajoFotocopiaDni() {
+        return legajoFotocopiaDni;
     }
 
-    public void setAportes(Set<Aporte> aportes) {
-        this.aportes = aportes;
-    }
-
-
-    public Inscripcion getInscripcion() {
-        return inscripcion;
-    }
-
-    public void setInscripcion(Inscripcion inscripcion) {
-        this.inscripcion = inscripcion;
-    }
-
-    public Set<Observacione> getObservaciones() {
-        return observaciones;
-    }
-
-    public void setObservaciones(Set<Observacione> observaciones) {
-        this.observaciones = observaciones;
-    }
-
-    public String getFolio() {
-        return folio;
-    }
-
-    public void setFolio(String folio) {
-        this.folio = folio;
-    }
-
-    public Alumno getLegajoAlumnoDni() {
-        return legajoAlumnoDni;
-    }
-
-    public void setLegajoAlumnoDni(Alumno legajoAlumnoDni) {
-        this.legajoAlumnoDni = legajoAlumnoDni;
-    }
-
-    public String getLegajoCarnetSanitario() {
-        return legajoCarnetSanitario;
-    }
-
-    public void setLegajoCarnetSanitario(String legajoCarnetSanitario) {
-        this.legajoCarnetSanitario = legajoCarnetSanitario;
-    }
-
-    public String getLegajoCarpetaColgante() {
-        return legajoCarpetaColgante;
-    }
-
-    public void setLegajoCarpetaColgante(String legajoCarpetaColgante) {
-        this.legajoCarpetaColgante = legajoCarpetaColgante;
+    public void setLegajoFotocopiaDni(String legajoFotocopiaDni) {
+        this.legajoFotocopiaDni = legajoFotocopiaDni;
     }
 
     public String getLegajoCertificadoNacimiento() {
@@ -215,30 +157,6 @@ public class Legajo {
 
     public void setLegajoCertificadoNacimiento(String legajoCertificadoNacimiento) {
         this.legajoCertificadoNacimiento = legajoCertificadoNacimiento;
-    }
-
-    public String getLegajoEstado() {
-        return legajoEstado;
-    }
-
-    public void setLegajoEstado(String legajoEstado) {
-        this.legajoEstado = legajoEstado;
-    }
-
-    public String getLegajoFecha() {
-        return legajoFecha;
-    }
-
-    public void setLegajoFecha(String legajoFecha) {
-        this.legajoFecha = legajoFecha;
-    }
-
-    public String getLegajoFotocopiaDni() {
-        return legajoFotocopiaDni;
-    }
-
-    public void setLegajoFotocopiaDni(String legajoFotocopiaDni) {
-        this.legajoFotocopiaDni = legajoFotocopiaDni;
     }
 
     public String getLegajoFotocopiaTitulo() {
@@ -257,12 +175,36 @@ public class Legajo {
         this.legajoPlanillaProntuarial = legajoPlanillaProntuarial;
     }
 
-    public String getLibreta() {
-        return libreta;
+    public String getLegajoCarnetSanitario() {
+        return legajoCarnetSanitario;
     }
 
-    public void setLibreta(String libreta) {
-        this.libreta = libreta;
+    public void setLegajoCarnetSanitario(String legajoCarnetSanitario) {
+        this.legajoCarnetSanitario = legajoCarnetSanitario;
+    }
+
+    public String getLegajoCarpetaColgante() {
+        return legajoCarpetaColgante;
+    }
+
+    public void setLegajoCarpetaColgante(String legajoCarpetaColgante) {
+        this.legajoCarpetaColgante = legajoCarpetaColgante;
+    }
+
+    public String getLegajoEstado() {
+        return legajoEstado;
+    }
+
+    public void setLegajoEstado(String legajoEstado) {
+        this.legajoEstado = legajoEstado;
+    }
+
+    public String getLegajoFecha() {
+        return legajoFecha;
+    }
+
+    public void setLegajoFecha(String legajoFecha) {
+        this.legajoFecha = legajoFecha;
     }
 
     public String getUsuario() {
@@ -273,11 +215,67 @@ public class Legajo {
         this.usuario = usuario;
     }
 
+    public String getLibreta() {
+        return libreta;
+    }
+
+    public void setLibreta(String libreta) {
+        this.libreta = libreta;
+    }
+
+    public String getFolio() {
+        return folio;
+    }
+
+    public void setFolio(String folio) {
+        this.folio = folio;
+    }
+
     public boolean isNotasCorregidas() {
         return notasCorregidas;
     }
 
     public void setNotasCorregidas(boolean notasCorregidas) {
         this.notasCorregidas = notasCorregidas;
+    }
+
+    public Set<Aporte> getAportes() {
+        return aportes;
+    }
+
+    public void setAportes(Set<Aporte> aportes) {
+        this.aportes = aportes;
+    }
+
+//    public Set<Atencion> getAtenciones() {
+//        return atenciones;
+//    }
+//
+//    public void setAtenciones(Set<Atencion> atenciones) {
+//        this.atenciones = atenciones;
+//    }
+
+    public Inscripcion getInscripcion() {
+        return inscripcion;
+    }
+
+    public void setInscripcion(Inscripcion inscripcion) {
+        this.inscripcion = inscripcion;
+    }
+
+    public Set<Observacione> getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(Set<Observacione> observaciones) {
+        this.observaciones = observaciones;
+    }
+
+    public Set<Cursada> getCursadas() {
+        return cursadas;
+    }
+
+    public void setCursadas(Set<Cursada> cursadas) {
+        this.cursadas = cursadas;
     }
 }

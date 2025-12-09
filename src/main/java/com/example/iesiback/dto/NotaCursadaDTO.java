@@ -1,14 +1,13 @@
 package com.example.iesiback.dto;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 public interface NotaCursadaDTO {
     Long getNotaId();
-    String getAlumnoDni();
-    String getAlumnoLegajoId();
-    String getAlumnoApellido();
-    String getAlumnoNombre();
+    String getPersonaDni();
+    String getPersonaLegajoId();
+    String getPersonaApellido();
+    String getPersonaNombre();
     LocalDate getNotaFechaNota();
     Double getNotaCalificacionNotaNumero();
     String getNotaCalificacionNotaLetra();

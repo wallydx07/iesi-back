@@ -1,7 +1,7 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.entities.Alumno;
-import com.example.iesiback.repositories.AlumnoRepository;
+import com.example.iesiback.entities.Persona;
+import com.example.iesiback.repositories.PersonaRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,48 +11,48 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class AlumnoServiceImpl implements AlumnoService {
+public class PersonaServiceImpl implements PersonaService {
 
     @Autowired
-    private AlumnoRepository alumnoRepository;
+    private PersonaRepository personaRepository;
     @Autowired
     private LegajoService legajoService;
     @Override
-    public Alumno createAlumno(Alumno alumno) {
-        return alumnoRepository.save(alumno);
+    public Persona createAlumno(Persona persona) {
+        return personaRepository.save(persona);
     }
 
     @Override
-    public Alumno findAlumnoById(String id) {
-        return alumnoRepository.findById(id)
+    public Persona findAlumnoById(String id) {
+        return personaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Alumno no encontrado con ID: " + id));
     }
 
 
 @Override
-public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
-        return alumnoRepository.findAlumnoByLegajoId(legajoId);
+public Persona obtenerAlumnoPorLegajoId(String legajoId) {
+        return personaRepository.findAlumnoByLegajoId(legajoId);
     }
 
     @Override
-    public List<Alumno> obtenerAlumnos() {
-        return alumnoRepository.findAll();
+    public List<Persona> obtenerAlumnos() {
+        return personaRepository.findAll();
     }
 
     @Override
-    public Optional<Alumno> findById(String id) {
-        return alumnoRepository.findById(id);
+    public Optional<Persona> findById(String id) {
+        return personaRepository.findById(id);
     }
 
     @Override
-    public Alumno save(Alumno alumno) {
-        return alumnoRepository.save(alumno);
+    public Persona save(Persona persona) {
+        return personaRepository.save(persona);
     }
 
     @Override
     public boolean delete(String id) {
-        return alumnoRepository.findById(id).map(alumno -> {
-            alumnoRepository.delete(alumno);
+        return personaRepository.findById(id).map(alumno -> {
+            personaRepository.delete(alumno);
             return true;
         }).orElse(false);
     }
@@ -60,20 +60,20 @@ public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
     @Override
     public List<String> buscarPorDniApellidoNombre(String busqueda) {
         if (busqueda == null || busqueda.trim().isEmpty()) {
-            return alumnoRepository.buscarPorDniApellidoNombre(null);
+            return personaRepository.buscarPorDniApellidoNombre(null);
         }
         // Armamos patrón de búsqueda con múltiples palabras
         String[] palabras = busqueda.trim().split("\\s+");
         String busquedaParam = "%" + String.join("%", palabras) + "%"; // Ej: %juan%perez%
 
-        return alumnoRepository.buscarPorDniApellidoNombre(busquedaParam.toLowerCase());
+        return personaRepository.buscarPorDniApellidoNombre(busquedaParam.toLowerCase());
     }
 
 
 
     @Override
-    public List<Alumno> buscarPorDni(String dni) {
-        return alumnoRepository.buscarPorDni(dni);
+    public List<Persona> buscarPorDni(String dni) {
+        return personaRepository.buscarPorDni(dni);
     }
 
 
@@ -85,7 +85,7 @@ public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
             String[] palabras = busqueda.trim().split("\\s+");
             busquedaParam = "%" + String.join("%", palabras) + "%";
         }
-        return alumnoRepository.buscarPorApellidoYCarrera(
+        return personaRepository.buscarPorApellidoYCarrera(
                 busquedaParam != null ? busquedaParam.toLowerCase() : null,
                 carreraNombre != null && !carreraNombre.trim().isEmpty() ? carreraNombre.toLowerCase() : null
         );
@@ -93,22 +93,22 @@ public Alumno obtenerAlumnoPorLegajoId(String legajoId) {
 
     @Transactional
     public void cambioDNI(String dniActual, Long dniCorrecto) {
-        Alumno alumnoViejo = buscarPorDni(dniActual)
+        Persona personaViejo = buscarPorDni(dniActual)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
 
         // Crear nuevo alumno
-        Alumno nuevoAlumno = new Alumno();
-        BeanUtils.copyProperties(alumnoViejo, nuevoAlumno, "alumnoDni", "id");
-        nuevoAlumno.setAlumnoDni(dniCorrecto);
-        alumnoRepository.save(nuevoAlumno);
+        Persona nuevoPersona = new Persona();
+        BeanUtils.copyProperties(personaViejo, nuevoPersona, "alumnoDni", "id");
+        nuevoPersona.setPersonaDni(dniCorrecto);
+        personaRepository.save(nuevoPersona);
 
         // Actualizar legajos
-        legajoService.actualizarAlumnoDNI(alumnoViejo, nuevoAlumno);
+        legajoService.actualizarAlumnoDNI(personaViejo, nuevoPersona);
 
         // Eliminar alumno viejo
-        alumnoRepository.delete(alumnoViejo);
+        personaRepository.delete(personaViejo);
     }
 
 

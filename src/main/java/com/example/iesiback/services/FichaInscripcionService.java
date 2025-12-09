@@ -1,7 +1,7 @@
 package com.example.iesiback.services;
 
 import be.quodlibet.boxable.*;
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Aporte;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
@@ -17,20 +17,18 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class FichaInscripcionService {
 
-    Alumno alumno;
+    Persona persona;
     Legajo legajo;
     Aporte aporte;
     Carrera carrera;
 
-    public byte[] generarFichaInscripcion(Alumno alumno, Legajo legajo, Aporte aporte, Carrera carrera) throws IOException {
+    public byte[] generarFichaInscripcion(Persona persona, Legajo legajo, Aporte aporte, Carrera carrera) throws IOException {
         String talonario=String.valueOf(aporte.getId());
         String monto=String.valueOf(aporte.getAporteMonto());
         PDDocument Documento=new PDDocument();
@@ -204,46 +202,46 @@ public class FichaInscripcionService {
         n=-15;
         //================DATOS PERSONALES
         cuerpo.newLineAtOffset(40, 645);//XX,YY
-        cuerpo.showText("Apellido y Nombre: "+alumno.getAlumnoApellido()+" "+alumno.getAlumnoNombre());
+        cuerpo.showText("Apellido y Nombre: "+ persona.getPersonaApellido()+" "+ persona.getPersonaNombre());
         cuerpo.newLineAtOffset(300,0);
         cuerpo.showText("Libreta Estudiantil: "+legajo.getLegajoId());
         cuerpo.newLineAtOffset(-300,n );
         //cuerpo.newLineAtOffset(0,n);
-        cuerpo.showText("DNI: "+alumno.getAlumnoDni());
+        cuerpo.showText("DNI: "+ persona.getPersonaDni());
         ////================LUGAR Y FECHA DE NACIEMIENTO
         cuerpo.newLineAtOffset(0,-45 );
-        cuerpo.showText("Localidad: "+alumno.getAlumnoLocalidadNacimiento());
+        cuerpo.showText("Localidad: "+ persona.getPersonaLocalidadNacimiento());
         cuerpo.newLineAtOffset(300,0);
-        cuerpo.showText("Provincia: "+alumno.getAlumnoProvinciaNacimiento());
+        cuerpo.showText("Provincia: "+ persona.getPersonaProvinciaNacimiento());
         cuerpo.newLineAtOffset(-300,n );
-        cuerpo.showText("Pais: "+alumno.getAlumnoPaisNacimiento());
+        cuerpo.showText("Pais: "+ persona.getPersonaPaisNacimiento());
         cuerpo.newLineAtOffset(300,0 );
-        cuerpo.showText("Fecha: "+alumno.getAlumnoFechaNacimiento());
+        cuerpo.showText("Fecha: "+ persona.getPersonaFechaNacimiento());
         //==============================LDomicilio
         cuerpo.newLineAtOffset(-300, -42);
-        cuerpo.showText("Calle: "+alumno.getDomicilioAlumnoCalle());
+        cuerpo.showText("Calle: "+ persona.getPersonaDomicilioCalle());
         cuerpo.newLineAtOffset(200,0);
-        cuerpo.showText("N° "+alumno.getDomicilioAlumnoNro());
+        cuerpo.showText("N° "+ persona.getPersonaDomicilioNro());
         cuerpo.newLineAtOffset(100, -0);
-        cuerpo.showText("Barrio: "+alumno.getDomicilioAlumnoBarrio());
+        cuerpo.showText("Barrio: "+ persona.getPersonaDomicilioBarrio());
         cuerpo.newLineAtOffset(-300,n);
-        cuerpo.showText("Localidad: "+alumno.getDomicilioAlumnoLocalidad());
+        cuerpo.showText("Localidad: "+ persona.getPersonaDomicilioLocalidad());
         cuerpo.newLineAtOffset(300,0);
-        cuerpo.showText("E-mail: "+alumno.getDomicilioAlumnoCorreo());
+        cuerpo.showText("E-mail: "+ persona.getPersonaCorreo());
         cuerpo.newLineAtOffset(-300, n);
-        cuerpo.showText("Telefono fijo: "+alumno.getDomicilioAlumnoTelefono());
+        cuerpo.showText("Telefono fijo: "+ persona.getPersonaDomicilioTelefono());
         cuerpo.newLineAtOffset(300, 0);
-        cuerpo.showText("Celular: "+alumno.getDomicilioAlumnoCelular());
+        cuerpo.showText("Celular: "+ persona.getPersonaDomicilioCelular());
         ////================DATOS DE LA COMUNIDAD DE PERTENENCIA
 
         cuerpo.newLineAtOffset(-300, -40);
-        cuerpo.showText("Comunidad: "+alumno.getComunidadAlumnoNombre());
+        cuerpo.showText("Comunidad: "+ persona.getPersonaComunidadNombre());
         cuerpo.newLineAtOffset(300, 0);
         //        cuerpo.showText("N° de Personería Jurídica: "+ alumno.getComunidad_alumno_personeria());
         //         cuerpo.newLineAtOffset(-300, n);
-        cuerpo.showText("Pueblo: "+alumno.getComunidadAlumnoPueblo());
+        cuerpo.showText("Pueblo: "+ persona.getPersonaComunidadPueblo());
         cuerpo.newLineAtOffset(-300,n);
-        cuerpo.showText("Departamento: "+alumno.getComunidadAlumnoDepartamente());
+        cuerpo.showText("Departamento: "+ persona.getPersonaComunidadDepartamento());
         //cuerpo.newLineAtOffset(-300, n);
         // cuerpo.showText("Autoridad: "+alumno.getComunidad_alumno_autoridad());
         // cuerpo.newLineAtOffset(0, n);
@@ -251,13 +249,13 @@ public class FichaInscripcionService {
         ////================LESTUDIOS SECUNDARIOS
         cuerpo.newLineAtOffset(0, -45);
         //cuerpo.setFont(Ma6, 20);
-        cuerpo.showText("Estudios Secundario/Polimodal: "+alumno.getSecundarioAlumnoCompleto());
+        cuerpo.showText("Estudios Secundario/Polimodal: "+ persona.getPersonaSecundarioCompleto());
         cuerpo.newLineAtOffset(300,0);
-        cuerpo.showText("año de egreso:  "+alumno.getSecundarioAlumnoFecha());
+        cuerpo.showText("año de egreso:  "+ persona.getPersonaSecundarioFecha());
         cuerpo.newLineAtOffset(-300, n);
-        cuerpo.showText("Instituto del cual egreso: "+alumno.getSecundarioAlumnoEscuela());
+        cuerpo.showText("Instituto del cual egreso: "+ persona.getPersonaEscuela());
         cuerpo.newLineAtOffset(0, n);
-        cuerpo.showText("Titulo Obtenido: "+alumno.getSecundarioAlumnoTitulo());
+        cuerpo.showText("Titulo Obtenido: "+ persona.getPersonaTitulo());
 
         ////================MAYORES DE 25 AÑOS – Resol. Prov. N°
         cuerpo.newLineAtOffset(0, -43);

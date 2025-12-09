@@ -1,6 +1,6 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.repositories.LegajoRepository;
@@ -66,10 +66,10 @@ public class LegajoServiceImpl implements LegajoService {
     }
 
     @Transactional
-    public void actualizarAlumnoDNI(Alumno alumnoViejo, Alumno nuevoAlumno) {
-        List<Legajo> legajos = legajoRepository.findByLegajoAlumnoDni(alumnoViejo);
+    public void actualizarAlumnoDNI(Persona personaViejo, Persona nuevoPersona) {
+        List<Legajo> legajos = legajoRepository.findByLegajoPersonaDni(personaViejo);
         for (Legajo l : legajos) {
-            l.setLegajoAlumnoDni(nuevoAlumno);
+            l.setLegajoPersonaDni(nuevoPersona);
         }
         legajoRepository.saveAll(legajos);
     }

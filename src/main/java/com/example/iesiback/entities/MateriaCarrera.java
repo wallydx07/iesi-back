@@ -56,6 +56,9 @@ public class MateriaCarrera {
     @Column(name = "fin", length = 10)
     private String fin;
 
+    @Column(name = "fecha_limite")
+    private LocalDate fechaLimite;
+
     @JsonIgnore
     @OneToMany(mappedBy = "materiaCarrera")
     private Set<Cursada> cursadas = new LinkedHashSet<>();

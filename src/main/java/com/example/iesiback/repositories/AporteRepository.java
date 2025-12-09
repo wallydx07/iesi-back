@@ -15,9 +15,9 @@ public interface AporteRepository extends JpaRepository<Aporte, Integer> {
     // Puedes agregar métodos de consulta personalizados aquí si lo requieres
     @Query("select new com.example.iesiback.dto.AporteDTO(" +
             "a.id, " +
-            "al.alumnoDni, " +
-            "al.alumnoApellido, " +
-            "al.alumnoNombre, " +
+            "al.personaDni, " +
+            "al.personaApellido, " +
+            "al.personaNombre, " +
             "l.legajoId, " +
             "a.aporteMonto, " +
             "a.aporteNroRecibo, " +
@@ -28,7 +28,7 @@ public interface AporteRepository extends JpaRepository<Aporte, Integer> {
             "a.validado) " +
             "from Aporte a " +
             "join a.aporteLegajo l " +
-            "join l.legajoAlumnoDni al " +
+            "join l.legajoPersonaDni al " +
             "where a.aporteMonto <> 0 " +
             "order by a.id desc")
     List<AporteDTO> findAportesConDatos();

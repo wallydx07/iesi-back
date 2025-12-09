@@ -102,6 +102,17 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
                                          @RequestParam("tipoEntidad") String tipoEntidad,
                                          @RequestParam("entidadId") String entidadId,
                                          @RequestParam("tipoDocumento") String tipoDocumento) {
+    System.out.println("=== BACKEND: RECIBIENDO ARCHIVO ===");
+    System.out.println("Nombre archivo (file): " + (file != null ? file.getOriginalFilename() : "NULL"));
+    System.out.println("Tipo MIME: " + (file != null ? file.getContentType() : "NULL"));
+    System.out.println("Tamaño: " + (file != null ? file.getSize() : 0));
+    System.out.println("tipo (carpeta o categoria): " + tipo);
+    System.out.println("tipoEntidad: " + tipoEntidad);
+    System.out.println("entidadId: " + entidadId);
+    System.out.println("tipoDocumento: " + tipoDocumento);
+    System.out.println("====================================");
+
+
     String ruta = null;
     System.out.println("Ejecutando subida");
     try {
@@ -234,12 +245,36 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
     }
 
 
+    private void guardarDocumentoEnBaseDeDatos(
+            MultipartFile file,
+            String ruta,
+            String tipoEntidad, //LEGAJO; ATENCION
+            String entidadId, //relaciona la entidad
+            String tipoDocumento //certificado naciemieno ddni, titulo
+    ) {
 
-    private void guardarDocumentoEnBaseDeDatos(MultipartFile file, String ruta, String tipoEntidad, String entidadId, String tipoDocumento) {
+        System.out.println("--------------------------------------------------");
+        System.out.println("📥 GUARDANDO DOCUMENTO EN BD");
+        System.out.println("Nombre archivo: " + file.getOriginalFilename());
+        System.out.println("Tipo MIME: " + file.getContentType());
+        System.out.println("Tamaño (bytes): " + file.getSize());
+        System.out.println("Ruta guardada: " + ruta);
+        System.out.println("Tipo Entidad: " + tipoEntidad);
+        System.out.println("Entidad ID: " + entidadId);
+        System.out.println("Tipo Documento: " + tipoDocumento);
+        System.out.println("--------------------------------------------------");
+
+        // Buscar por nombre si existe
         Documento documento = documentoRepository.findByNombre(file.getOriginalFilename());
+
         if (documento == null) {
+            System.out.println("🆕 No existe un documento con este nombre → creando nuevo.");
             documento = new Documento();
+        } else {
+            System.out.println("♻️ Documento existente encontrado → se actualizará.");
         }
+
+        // Asignar datos
         documento.setNombre(file.getOriginalFilename());
         documento.setTipo(file.getContentType());
         documento.setRuta(ruta);
@@ -247,9 +282,13 @@ public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile fil
         documento.setTipoEntidad(tipoEntidad);
         documento.setEntidadId(entidadId);
         documento.setTipoDocumento(tipoDocumento);
-        documentoRepository.save(documento);
-    }
 
+        // Guardar
+        documentoRepository.save(documento);
+
+        System.out.println("💾 Documento guardado correctamente en la base de datos.");
+        System.out.println("--------------------------------------------------");
+    }
 
 
     @GetMapping("/archivos/{legajoId}")

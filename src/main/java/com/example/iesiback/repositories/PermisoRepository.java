@@ -20,13 +20,13 @@ public interface PermisoRepository extends JpaRepository<Permiso, Long> {
             "WHERE l.legajoId = :libreta")
     String obtenerCarreraPorLibreta(@Param("libreta") String libreta);
 
-    @Query("SELECT l.legajoAlumnoDni.alumnoDni FROM Legajo l WHERE l.legajoId = :libreta")
+    @Query("SELECT l.legajoPersonaDni.personaDni FROM Legajo l WHERE l.legajoId = :libreta")
     int obtenerDniPorLibreta(@Param("libreta") String libreta);
 
-    @Query("SELECT a.alumnoNombre FROM Alumno a WHERE a.alumnoDni = :dni")
+    @Query("SELECT a.personaNombre FROM Persona a WHERE a.personaDni = :dni")
     String obtenerNombrePorDni(@Param("dni") int dni);
 
-    @Query("SELECT a.alumnoApellido FROM Alumno a WHERE a.alumnoDni = :dni")
+    @Query("SELECT a.personaApellido FROM Persona a WHERE a.personaDni = :dni")
     String obtenerApellidoPorDni(@Param("dni") int dni);
 
     @Query(value = "SELECT DISTINCT p.* " +

@@ -18,14 +18,14 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
     @Query("""
         SELECT distinct new com.example.iesiback.dto.AlumnoAsistenciaDTO(
             a.id, a.idInforme.idInforme, a.legajoId, a.estado,
-            al.alumnoDni, al.alumnoApellido, al.alumnoNombre
+            al.personaDni, al.personaApellido, al.personaNombre
         )
         FROM AsistenciaAlumno a
         JOIN Legajo l ON a.legajoId = l.legajoId
-        JOIN Alumno al ON l.legajoAlumnoDni.alumnoDni= al.alumnoDni
+        JOIN Persona al ON l.legajoPersonaDni.personaDni= al.personaDni
         JOIN Cursada c ON c.legajo.legajoId = l.legajoId
         WHERE (:idInforme IS NULL OR a.idInforme.idInforme = :idInforme)
-            ORDER BY al.alumnoApellido asc, al.alumnoNombre asc
+            ORDER BY al.personaApellido asc, al.personaNombre asc
     """)
     List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(
             @Param("idInforme") Integer idInforme

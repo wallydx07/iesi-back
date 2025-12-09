@@ -90,4 +90,43 @@ public class CursadaExamenServiceImpl implements CursadaExamenService {
     }
 
 
+    @Override
+    public CursadaExamen actualizar(Long id, CursadaExamen dto) {
+
+        CursadaExamen e = cursadaExamenRepository.findById(id.intValue())
+                .orElseThrow(() -> new RuntimeException("No encontrado id: " + id));
+
+        // Actualizar campos simples
+        e.setVocal1Dni(dto.getVocal1Dni());
+        e.setVocal2Dni(dto.getVocal2Dni());
+        e.setLibro(dto.getLibro());
+        e.setFolio(dto.getFolio());
+        e.setFirma(dto.getFirma());
+        e.setDocenteDni(dto.getDocenteDni());
+        e.setMateriaId(dto.getMateriaId());
+
+        // Fecha
+        if (dto.getFecha() != null) {
+            e.setFecha(LocalDate.parse(dto.getFecha().toString()));
+        }
+
+        // Hora
+        if (dto.getHora() != null) {
+            e.setHora(dto.getHora());
+        }
+
+        // Turno (ManyToOne)
+        if (dto.getTurno() != null && dto.getTurno().getTurnoId() != null) {
+            Turno turno = turnoService.findById(dto.getTurno().getTurnoId())
+                    .orElseThrow(() -> new RuntimeException("Turno no encontrado"));
+            e.setTurno(turno);
+        }
+
+        return cursadaExamenRepository.save(e);
+    }
+
+    @Override
+    public Optional<CursadaExamen> findById(Integer cursadaExamenId) {
+        return cursadaExamenRepository.findById(cursadaExamenId);
+    }
 }

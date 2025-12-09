@@ -1,14 +1,10 @@
 package com.example.iesiback.controllers;
 
-import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.services.*;
-import com.itextpdf.html2pdf.ConverterProperties;
-import com.itextpdf.html2pdf.HtmlConverter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -16,13 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -560,7 +553,7 @@ public class CertificadoController {
     }
 
     @GetMapping("/generaTroquelTramite")
-    public ResponseEntity<ByteArrayResource> generaAsistenciaExamenFinal(
+    public ResponseEntity<ByteArrayResource> generaTroquelTramite(
             @RequestParam String legajoId,
             @RequestParam Integer atencionId
     ) {
@@ -602,7 +595,47 @@ public class CertificadoController {
         }
     }
 
+    @GetMapping("/generaTroquelIngresoNota")
+    public ResponseEntity<ByteArrayResource> generaTroquelIngresoNota(
+            @RequestParam Integer atencionId
+    ) {
+        try {
+            PDDocument document = certificadoService.generaTroquelNotaIngresante(atencionId);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaTroquelIngresoNota.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 
+    @GetMapping("/generaTroquelPase")
+    public ResponseEntity<ByteArrayResource> generaTroquelPase(
+            @RequestParam Integer paseId
+    ) {
+        try {
+            PDDocument document = certificadoService.generaTroquelPase(paseId);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaTroquelIngresoNota.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 }

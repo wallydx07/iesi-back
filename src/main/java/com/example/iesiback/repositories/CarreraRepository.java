@@ -37,7 +37,7 @@ public interface CarreraRepository extends JpaRepository<Carrera, String> {
 
     @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
             "FROM Inscripcion i " +
-            "WHERE i.legajo.legajoAlumnoDni.alumnoDni = :dniAlumno " +
+            "WHERE i.legajo.legajoPersonaDni.personaDni = :dniAlumno " +
             "AND i.carrera.carreraNombre = :carreraNombre")
     boolean existsByAlumnoDniAndCarreraId(@Param("dniAlumno") String dniAlumno,
                                           @Param("carreraNombre") String carreraNombre);

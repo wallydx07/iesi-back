@@ -22,7 +22,6 @@ docker load -i iesi-back.tar
 docker load -i iesi-front.tar
 # 4. Levantar contenedores nuevos
 docker-compose up -d
-
 --------------ver logs-------------------
 docker logs -f app_backend_1
 

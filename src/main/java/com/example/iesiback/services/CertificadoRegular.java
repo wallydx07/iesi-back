@@ -3,7 +3,7 @@ package com.example.iesiback.services;
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Cell;
 import be.quodlibet.boxable.Row;
-import com.example.iesiback.entities.Alumno;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Carrera;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -18,28 +18,26 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 @Service
 public class CertificadoRegular {
 
-    private final AlumnoService alumnoService;
+    private final PersonaService alumnoService;
     private final CarreraService carreraService;
     @Autowired
-    public CertificadoRegular(@Lazy AlumnoService alumnoService,
+    public CertificadoRegular(@Lazy PersonaService alumnoService,
                               CarreraService carreraService) {
         this.alumnoService= alumnoService;
         this.carreraService= carreraService;
     }
 
     private PDDocument generaRegular(String dir) {
-        Alumno alumno=this.alumnoService.findAlumnoById("--");//agregar el id
+        Persona persona =this.alumnoService.findAlumnoById("--");//agregar el id
         Carrera carrera=this.carreraService.findCarreraById("---");//agregar el id
         PDImageXObject Iesc2;
         PDDocument Documento = new PDDocument();
@@ -132,7 +130,7 @@ public class CertificadoRegular {
             PDType1Font normal = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             //consulta
-            String genero = alumno.getAlumnoGenero();
+            String genero = persona.getPersonaGenero();
             String genero2 = "";
             String genero1 = "";
             if (genero.equals("Masculino")) {
@@ -172,9 +170,9 @@ public class CertificadoRegular {
             regular.newLineAtOffset(tamaño(t41, letra, normal) + t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), 0);
             regular.showText(t5);
             regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal) - t3.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t4.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41) - t41.length() * charspacing(longitud, tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal), t3 + t4 + t5 + t41), -20);////charspacing(longitud, tamaño(t3, letra, normal),t3+t4)-tamaño(t4,letra, PDType1Font.HELVETICA)-t4.length()*charspacing(longitud, tamaño(t3, letra, normal),t3+t4+t5),-20 );
-            String nombre = alumno.getAlumnoNombre();
-            String apellido = alumno.getAlumnoApellido();
-            Long dni=alumno.getAlumnoDni();
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            Long dni= persona.getPersonaDni();
             String t6 = (apellido + " " + nombre + " D.N.I: " + dni + " ");
             String t7 = (", es estudiante regular de la carrera:");
             regular.setFont(negrita, letra);

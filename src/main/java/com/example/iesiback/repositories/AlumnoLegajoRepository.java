@@ -11,9 +11,9 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
 
     @Query("SELECT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
             "l.legajoId, " +
-            "a.alumnoDni, " +
-            "a.alumnoApellido, " +
-            "a.alumnoNombre, " +
+            "a.personaDni, " +
+            "a.personaApellido, " +
+            "a.personaNombre, " +
             "c.carreraId, " +
             "l.legajoFotocopiaDni, " +
             "l.legajoCertificadoNacimiento, " +
@@ -24,18 +24,18 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             "l.legajoAval, " +
             "l.legajoCarpetaColgante, " +
             "l.usuario," +
-            "a.alumnoFechaNacimiento," +
-            "a.domicilioAlumnoCorreo," +
-            "a.domicilioAlumnoCelular" +
+            "a.personaFechaNacimiento," +
+            "a.personaCorreo," +
+            "a.personaDomicilioCelular" +
             ") " +
             "FROM Legajo l " +
-            "JOIN l.legajoAlumnoDni a " +
+            "JOIN l.legajoPersonaDni a " +
             "JOIN Inscripcion i ON i.legajo = l " +
             "JOIN i.carrera c " +
             "WHERE (:carreraId IS NULL OR c.carreraId LIKE :carreraId) " +
             "AND (:estado IS NULL OR l.legajoEstado = :estado) " +
-            "AND (:busqueda IS NULL OR a.alumnoApellido LIKE :busqueda OR a.alumnoNombre LIKE :busqueda OR CONCAT(a.alumnoApellido, ' ', a.alumnoNombre) LIKE :busqueda OR CAST(a.alumnoDni AS string) LIKE :busqueda) " +
-            "ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC")
+            "AND (:busqueda IS NULL OR a.personaApellido LIKE :busqueda OR a.personaNombre LIKE :busqueda OR CONCAT(a.personaApellido, ' ', a.personaNombre) LIKE :busqueda OR CAST(a.personaDni AS string) LIKE :busqueda) " +
+            "ORDER BY a.personaApellido ASC, a.personaNombre ASC")
     List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(
             @Param("carreraId") String carreraId,
             @Param("estado") String estado,
@@ -45,9 +45,9 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
 
     @Query("SELECT DISTINCT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
             "l.legajoId, " +
-            "a.alumnoDni, " +
-            "a.alumnoApellido, " +
-            "a.alumnoNombre, " +
+            "a.personaDni, " +
+            "a.personaApellido, " +
+            "a.personaNombre, " +
             "l.inscripcion.carrera.carreraId, " +
             "l.legajoFotocopiaDni, " +
             "l.legajoCertificadoNacimiento, " +
@@ -58,19 +58,19 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             "l.legajoAval, " +
             "l.legajoCarpetaColgante, " +
             "l.usuario, " +
-            "a.alumnoFechaNacimiento, " +
-            "a.domicilioAlumnoCorreo, " +
-            "a.domicilioAlumnoCelular" +
+            "a.personaFechaNacimiento, " +
+            "a.personaCorreo, " +
+            "a.personaDomicilioCelular" +
             ") " +
             "FROM Cursada cu " +
             "JOIN cu.legajo l " +
-            "JOIN l.legajoAlumnoDni a " +
+            "JOIN l.legajoPersonaDni a " +
             "JOIN cu.materiaCarrera mc " +
             "JOIN mc.carrera car " +
             "WHERE (:dato IS NULL OR car.carreraId LIKE CONCAT(:dato, '%')) " +
             "AND (:estado IS NULL OR l.legajoEstado = :estado) " +
-            "AND (:apellido IS NULL OR a.alumnoApellido LIKE CONCAT(:apellido, '%') OR CAST(a.alumnoDni AS string) LIKE CONCAT(:apellido, '%')) " +
-            "ORDER BY a.alumnoApellido, a.alumnoNombre ASC")
+            "AND (:apellido IS NULL OR a.personaApellido LIKE CONCAT(:apellido, '%') OR CAST(a.personaDni AS string) LIKE CONCAT(:apellido, '%')) " +
+            "ORDER BY a.personaApellido, a.personaNombre ASC")
     List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(
             @Param("dato") String dato,
             @Param("estado") String estado,
@@ -79,9 +79,9 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
     @Query("""
     SELECT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(
         l.legajoId,
-        a.alumnoDni,
-        a.alumnoApellido,
-        a.alumnoNombre,
+        a.personaDni,
+        a.personaApellido,
+        a.personaNombre,
         c.carreraId,
         l.legajoFotocopiaDni,
         l.legajoCertificadoNacimiento,
@@ -92,18 +92,18 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
         l.legajoAval,
         l.legajoCarpetaColgante,
         l.usuario,
-        a.alumnoFechaNacimiento,
-        a.domicilioAlumnoCorreo,
-        a.domicilioAlumnoCelular
+        a.personaFechaNacimiento,
+        a.personaCorreo,
+        a.personaDomicilioCelular
     )
     FROM Legajo l
-    JOIN l.legajoAlumnoDni a
+    JOIN l.legajoPersonaDni a
     JOIN Cursada cu ON cu.legajo = l
     JOIN MateriaCarrera mc ON cu.materiaCarrera.id = mc.id
     JOIN mc.carrera c
     WHERE (mc.id = :dato)
       AND (l.legajoEstado = :estado)
-    ORDER BY a.alumnoApellido ASC, a.alumnoNombre ASC
+    ORDER BY a.personaApellido ASC, a.personaNombre ASC
 """)
     List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(
             @Param("dato") Long dato,

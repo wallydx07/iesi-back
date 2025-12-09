@@ -51,6 +51,7 @@ public class PersonalHorariosServiceImpl implements PersonalHorariosService {
         // Obtenemos todos los horarios según el repositorio
         List<PersonalHorario> horarios = repository.findByDiaYAnio(dia, anio);
 
+
         // Determinar período actual
         String periodoActual;
         if (mes >= Month.MARCH.getValue() && mes <= Month.JULY.getValue()) {
@@ -61,8 +62,9 @@ public class PersonalHorariosServiceImpl implements PersonalHorariosService {
             periodoActual = "ANUAL"; // o "FUERA DE PERÍODO LECTIVO"
         }
 
-        // Filtrar por régimen
+
         return horarios.stream()
+                .filter(h -> Boolean.TRUE.equals(h.getActivo()))  // debe estar activo
                 .filter(h -> {
                     String regimen = h.getMateriaCarrera()
                             .getMateria()
@@ -74,6 +76,22 @@ public class PersonalHorariosServiceImpl implements PersonalHorariosService {
                     );
                 })
                 .collect(Collectors.toList());
+
+
+
+//        // Filtrar por régimen
+//        return horarios.stream()
+//                .filter(h -> {
+//                    String regimen = h.getMateriaCarrera()
+//                            .getMateria()
+//                            .getMateriaRegimen();
+//                    return regimen != null && (
+//                            regimen.equalsIgnoreCase(periodoActual) ||
+//                                    regimen.equalsIgnoreCase("ANUAL") ||
+//                                    regimen.equalsIgnoreCase("FULL")
+//                    );
+//                })
+//                .collect(Collectors.toList());
     }
 
 
