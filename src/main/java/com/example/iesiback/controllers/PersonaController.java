@@ -1,4 +1,5 @@
 package com.example.iesiback.controllers;
+import com.example.iesiback.dto.PromedioEgresadoDTO;
 import com.example.iesiback.entities.Persona;
 import com.example.iesiback.services.PersonaService;
 import com.example.iesiback.services.PersonalService;
@@ -44,6 +45,13 @@ public class PersonaController {
     }
 
 
+    @GetMapping("/buscarPersonal")
+    public List<String> buscarPersonalPorDniApellidoNombre(@RequestParam String apellido) {
+        return alumnoService.buscarPersonalPorDniApellidoNombre(apellido);
+    }
+
+
+
     @GetMapping("/buscarPorApellidoYCarrera")
     public List<String> buscarPorApellidoYCarrera(
             @RequestParam String busqueda,
@@ -87,7 +95,6 @@ public class PersonaController {
             return ResponseEntity.notFound().build();  // Devuelve un 404 si no se encuentra el alumno
         }
     }
-
 
     @GetMapping("personalForbbiden/{id}")
     public ResponseEntity<?> getAlumnoByIdForbbiden(@PathVariable String id) {
@@ -157,9 +164,15 @@ public class PersonaController {
         return ResponseEntity.ok("DNI actualizado correctamente");
     }
 
+    @GetMapping("/promedios/{year}")
+    public ResponseEntity<List<PromedioEgresadoDTO>> obtenerEgresados(
+            @PathVariable Integer year
+    ) {
+        List<PromedioEgresadoDTO> egresados =
+                alumnoService.obtenerEgresados(year);
 
-
-
+        return ResponseEntity.ok(egresados);
+    }
 
 //    @GetMapping("/api/AlumnoExamenDTO")
 //    public List<AlumnoExamenDTO> AlumnoExamenDTO(@RequestParam String apellido, @RequestParam String carreraNombre) {

@@ -51,6 +51,29 @@ public interface CursadaRepository extends JpaRepository<Cursada, Integer> {
 
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, Integer materiaCarreraId);
 
+
+    @Query("""
+    SELECT c
+    FROM Cursada c
+    JOIN c.materiaCarrera mc
+    JOIN mc.carrera ca
+    WHERE ca.carreraId = :carreraId
+""")
+    List<Cursada> findByCarreraId(@Param("carreraId") String carreraId);
+
+
+
+    @Query(value = """
+    SELECT cu.*
+    FROM cursada cu
+    INNER JOIN materia_carrera mc ON cu.cursada_materia_carrera_id = mc.id
+    WHERE cu.cursada_legajo_id = :legajoId
+      AND mc.id = :materiaCarreraId
+    """, nativeQuery = true)
+    Optional<Cursada> findByLegajoAndMateriaCarreraId(
+            @Param("legajoId") String legajoId,
+            @Param("materiaCarreraId") Long materiaCarreraId);
+
 };
 
 

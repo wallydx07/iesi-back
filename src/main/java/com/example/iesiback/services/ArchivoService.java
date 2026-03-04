@@ -8,4 +8,7 @@ public interface ArchivoService {
 
     @Transactional
     byte[] descargarArchivosPorEtiqueta(String etiqueta);
+
+    @Transactional
+    byte[] descargarArchivosPorId(int id);
 }

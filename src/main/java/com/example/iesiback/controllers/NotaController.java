@@ -1,13 +1,8 @@
 package com.example.iesiback.controllers;
 
-import com.example.iesiback.dto.EvaluacionCorrelativaResponse;
-import com.example.iesiback.dto.NotaExamenDTO;
-import com.example.iesiback.dto.NotaCursadaDTO;
-import com.example.iesiback.dto.NotaMateriaDTO;
+import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
-import com.example.iesiback.entities.User;
-import com.example.iesiback.exception.ResourceNotFoundException;
 import com.example.iesiback.services.CursadaService;
 import com.example.iesiback.services.NotaService;
 import com.example.iesiback.services.UserService;
@@ -15,11 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -175,7 +166,8 @@ public class NotaController {
             // Actualizamos el status con el resultado de la evaluación
             String nuevoStatus = notaService.evaluarCorrelativaIndividual(
                     cursada.getLegajo().getLegajoId(),
-                    cursada.getMateriaCarrera().getMateria().getMateriaOrden()
+                    cursada.getMateriaCarrera().getMateria().getMateriaOrden(),
+                    "Cursada"
             ).getStatus();
             cursada.setStatus(nuevoStatus);
             return ResponseEntity.ok(cursada);
@@ -184,11 +176,12 @@ public class NotaController {
         }
     }
 
-    @PostMapping("/evaluar/{legajoId}/{materiaOrden}")
+    @PostMapping("/evaluar/{legajoId}/{materiaOrden}/{condicion}")
     public ResponseEntity<EvaluacionCorrelativaResponse> evaluarMateriaIndividual(
             @PathVariable String legajoId,
-            @PathVariable Integer materiaOrden) {
-        EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId,materiaOrden);
+            @PathVariable Integer materiaOrden,
+            @PathVariable String condicion) {
+        EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId,materiaOrden, condicion);
         return ResponseEntity.ok(response);
     }
 
@@ -205,6 +198,16 @@ public class NotaController {
                     .body("Error al actualizar el permiso de edición: " + e.getMessage());
         }
     }
+
+    @GetMapping("/carrera/{carreraId}")
+    public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarrera(@PathVariable String carreraId) {
+        return notaService.getAlumnosPorCarrera(carreraId);
+    }
+
+//    @PostMapping("/notas/importar")
+//    public void importarNotas(@RequestBody List<NotaImportDTO> notas) {
+//        notaService.importarNotas(notas);
+//    }
 
 }
 

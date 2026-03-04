@@ -53,6 +53,13 @@ public class CarreraServiceImpl implements CarreraService {
 
 
     @Override
+    public List<String> obtenerCarrerasNombres() {
+        return carreraRepository.findDistinctNombres();
+    }
+
+
+
+    @Override
     public Carrera findCarreraById(String id) {
         return carreraRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Carrera no encontrado con ID: " + id));
@@ -91,15 +98,24 @@ public class CarreraServiceImpl implements CarreraService {
 
     @Override
     public List<Carrera> obtenerCarreraInstcripcion(String alumnoDni) {
-        if (!this.personalService.existsByDni(alumnoDni)) {
-            List<Carrera> carreras = this.obtenerCarreras();
-            carreras.removeIf(carrera ->
-                    inscripcionService.existsByAlumnoDniAndCarreraNombre(alumnoDni, carrera.getCarreraNombre())
-            );
-            return carreras;
+
+        // 🚫 Regla 1: si es personal, no puede inscribirse
+        if (this.personalService.existsByDni(alumnoDni)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList(); // devuelve lista vacía si existe el DNI
+
+        // ✅ Regla 2: si NO es personal
+        List<Carrera> carreras = this.obtenerCarreras();
+
+        carreras.removeIf(carrera ->
+                inscripcionService.existsByAlumnoDniAndCarreraNombre(
+                        alumnoDni,
+                        carrera.getCarreraNombre()
+                )
+        );
+        return carreras;
     }
+
 
 
     @Override
@@ -155,5 +171,9 @@ public class CarreraServiceImpl implements CarreraService {
         return carreraRepository.existsByAlumnoDniAndCarreraId(dniAlumno, carrera.getCarreraNombre());
     }
 
+//    public Carrera findCarreraByIdAndYear(String carreraId, String year) {
+//        return carreraRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Carrera no encontrado con ID: " + id));
+//    }
 
 }

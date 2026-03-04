@@ -10,7 +10,6 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.logging.Logger;
 
 @Service
 public class EmailService {
@@ -24,7 +23,6 @@ public class EmailService {
     public void enviarCorreoConPlantilla(String to, String subject, String templateName,Map<String, Object> variables) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
-
         // Cargar la plantilla y reemplazar variables
         Context context = new Context();
         context.setVariables(variables);

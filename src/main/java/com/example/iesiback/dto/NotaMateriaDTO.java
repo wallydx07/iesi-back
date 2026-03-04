@@ -19,11 +19,12 @@ public class NotaMateriaDTO {
     private String notaUsuario;
     private String notaStatus;
     private String notaFinal;
-    private List<String> correlativas; // 📌 Ahora es una lista
+    private List<String> correlativas;
     private String materiaId;
     private String materiaNivel;
     private Integer cursadaId;
     private Boolean isfirma;
+    private Integer materiaCarreraId;
 
     public NotaMateriaDTO(){ }
     public NotaMateriaDTO(Long notaId, Integer materiaOrden, String materiaNombre,
@@ -31,7 +32,7 @@ public class NotaMateriaDTO {
                           String notaCondicion, String notaEstado, String notaLibro,
                           String notaFolio, LocalDate notaFecha, String notaObservaciones,
                           String notaUsuario, String materiaId, String materiaNivel,
-                          Integer cursadaId,Boolean isfirma) {
+                          Integer cursadaId, Boolean isfirma, Integer materiaCarreraId) {
         this.notaId = notaId;
         this.materiaOrden = materiaOrden;
         this.materiaNombre = materiaNombre;
@@ -48,6 +49,15 @@ public class NotaMateriaDTO {
         this.materiaNivel = materiaNivel;
         this.cursadaId = cursadaId;
         this.isfirma = isfirma;
+        this.materiaCarreraId = materiaCarreraId;
+    }
+
+    public Integer getMateriaCarreraId() {
+        return materiaCarreraId;
+    }
+
+    public void setMateriaCarreraId(Integer materiaCarreraId) {
+        this.materiaCarreraId = materiaCarreraId;
     }
 
     public Boolean getIsfirma() {

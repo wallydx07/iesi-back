@@ -9,4 +9,8 @@ public interface ReinscripcionMateriaDTO {
     Integer getCarreraYear();
     String getMateriaCorrelativas();
     String getMateriaCarreraId();
+
+    String getMateriaModalidad();
+    String getMateriaRegimen();
+
 }

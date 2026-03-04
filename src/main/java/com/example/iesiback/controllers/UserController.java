@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,8 @@ public class UserController {
 
     @Autowired
     private UserService service;
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public List<User> list() {
@@ -91,14 +94,14 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Object> getCurrentUser() {
-        Optional<User> user = service.getAuthenticatedUser();
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
-        }
+    public ResponseEntity<User> getCurrentUser() {
+        return service.getAuthenticatedUser()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
+
+
+
 
     @PutMapping("/{username}")
     public ResponseEntity<User> updateUser(@PathVariable String username, @RequestBody User user) {
@@ -113,11 +116,19 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{username}/reset-password")
-    public ResponseEntity<String> resetPassword(@PathVariable String username, @RequestBody String newPassword) {
+    public ResponseEntity<String> resetPassword(
+            @PathVariable String username,
+            @RequestBody String newPassword) {
+
         boolean success = service.resetPassword(username, newPassword);
-        if (success) return ResponseEntity.ok("Contraseña actualizada.");
-        else return ResponseEntity.notFound().build();
+
+        if (success) {
+            return ResponseEntity.ok("Contraseña actualizada.");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/request-password-reset")
@@ -138,13 +149,10 @@ public class UserController {
     @GetMapping("/personal")
     public ResponseEntity<List<User>> getPersonalUsers() {
         List<String> roles = List.of("ROLE_PERSONAL", "ROLE_ADMIN", "ROLE_TUTOR");
-
         List<User> personalUsers = service.getUsuariosPorRoles(roles);
-
         if (personalUsers.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.ok(personalUsers);
     }
 }

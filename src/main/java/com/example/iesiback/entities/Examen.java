@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -21,7 +22,8 @@ public class Examen {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cursada_examen_id")
-    @JsonIgnoreProperties("examen") // ✅ Evita referencia cíclica en CursadaExamen
+//    @JsonIgnoreProperties("examen") // ✅ Evita referencia cíclica en CursadaExamen
+    @JsonBackReference
     private CursadaExamen cursadaExamen;
 
     @Column(name = "examen_inscripto")
@@ -31,6 +33,10 @@ public class Examen {
     @JoinColumn(name = "permiso_id")
     @JsonIgnoreProperties("examen") // ✅ Evita referencia cíclica
     private Permiso permiso;
+
+//    @ManyToOne
+//    @JsonBackReference
+//    private Permiso permiso;
 
     @Size(max = 50)
     @Column(name = "examen_modalidad", length = 50)

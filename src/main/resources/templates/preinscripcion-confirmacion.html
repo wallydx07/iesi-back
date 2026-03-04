@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Preinscripción</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7fa; font-family: 'Segoe UI', Arial, sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f7fa; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px 40px; text-align: center;">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">
+                            🎓 Solicitud de Preinscripción
+                        </h1>
+                        <p style="margin: 8px 0 0; color: #bfdbfe; font-size: 14px;">
+                            Instituto de Educación Superior IESI – Jujuy
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                    <td style="padding: 40px;">
+                        <p style="margin: 0 0 20px; font-size: 16px; color: #1e293b;">
+                            Hola <strong th:text="${nombre}" style="color: #1e3a8a;"></strong>,
+                        </p>
+
+                        <p style="margin: 0 0 20px; font-size: 15px; color: #475569; line-height: 1.7;">
+                            Hemos recibido tu solicitud de <strong style="color: #1e3a8a;">preinscripción</strong> a nuestro instituto.
+                            Podés acercarte al Instituto para entregar la documentación solicitada y efectuar el pago correspondiente a la inscripción (consultar monto).
+                        </p>
+
+
+
+                        <!-- Success Box -->
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                            <tr>
+                                <td style="background-color: #ecfdf5; border-left: 4px solid #10b981; border-radius: 8px; padding: 20px;">
+                                    <p style="margin: 0 0 8px; font-size: 15px; color: #065f46; font-weight: 600;">
+                                        ✅ Tu preinscripción se ha realizado correctamente
+                                    </p>
+                                    <p style="margin: 0; font-size: 14px; color: #047857;">
+                                        <strong>Guarda este código:</strong>
+                                        <span th:text="${codigo}" style="font-size: 20px; font-weight: 700; color: #059669; margin-left: 8px;"></span>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Documentation Section -->
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 25px;">
+                            <tr>
+                                <td style="background-color: #f8fafc; border-radius: 10px; padding: 25px;">
+                                    <h3 style="margin: 0 0 15px; font-size: 16px; color: #1e3a8a;">
+                                        📄 Documentación a presentar
+                                    </h3>
+
+                                    <p style="margin: 0 0 15px; font-size: 14px; color: #475569;">
+                                        Ya podés acercarte al Instituto para presentar la siguiente documentación y realizar el
+                                        <strong>pago de la inscripción (consultar whatsapp)</strong>:
+
+                                    <p style="margin: 15px 0; font-size: 14px; color: #475569;">
+                                        📲 Consultas por WhatsApp:
+                                        <a href="https://api.whatsapp.com/send?phone=+5493883109199&text=Hola,%20Quiero%20Informacion%20del%20ingreso%202026..."
+                                           target="_blank"
+                                           style="display: inline-block; margin-top: 8px; padding: 8px 14px; background-color: #25D366; color: #ffffff; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                            💬 Escribinos por WhatsApp
+                                        </a>
+                                    </p>
+
+
+                                    <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 14px; line-height: 2;">
+                                        <li>Copia del Documento Nacional de Identidad (DNI)</li>
+                                        <li>Fotocopia del título secundario autenticado por el Departamento de Titulos del Ministerio de Educacion.</li>
+                                        <li>Certificado de nacimiento original del Registro Civil</li>
+                                        <li>Certificado de buena salud</li>
+                                        <li>Dos (2) fotos tamaño 4x4</li>
+                                    </ul>
+
+                                    <p style="margin: 15px 0 0; font-size: 13px; color: #64748b;">
+                                        Documentación correspondiente al <strong>ciclo lectivo 2026</strong>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color: #1e293b; padding: 25px 40px; text-align: center;">
+                        <p style="margin: 0 0 8px; font-size: 14px; color: #ffffff; font-weight: 600;">
+                            Instituto de Educación Superior IESI – Jujuy
+                        </p>
+                        <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                            Este es un correo automático, por favor no respondas a este mensaje.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

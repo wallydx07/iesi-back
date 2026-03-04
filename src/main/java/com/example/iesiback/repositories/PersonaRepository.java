@@ -1,4 +1,5 @@
 package com.example.iesiback.repositories;
+import com.example.iesiback.dto.PersonaDTO;
 import com.example.iesiback.entities.Persona;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -6,6 +7,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface PersonaRepository extends JpaRepository<Persona, String> {
 
@@ -28,6 +31,20 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
             "      LOWER(CONCAT(a.personaApellido, ' ', a.personaNombre)) LIKE LOWER(:busqueda)) " +
             "ORDER BY a.personaApellido ASC, a.personaNombre ASC")
     List<String> buscarPorDniApellidoNombre(@Param("busqueda") String busqueda);
+
+
+    @Query("SELECT CONCAT(a.personaApellido, ',', a.personaNombre, '-', a.personaDni) " +
+            "FROM Persona a " +
+            "JOIN Personal p ON p.id = a.personaDni " +
+            "WHERE (:busqueda IS NULL OR " +
+            "      LOWER(CAST(a.personaDni AS string)) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(a.personaApellido) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(a.personaNombre) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(CONCAT(a.personaApellido, ' ', a.personaNombre)) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(p.personalApellido) LIKE LOWER(:busqueda) OR " +
+            "      LOWER(p.personalNombre) LIKE LOWER(:busqueda)) " +
+            "ORDER BY a.personaApellido ASC, a.personaNombre ASC")
+    List<String> buscarPersonalPorDniApellidoNombre(@Param("busqueda") String busqueda);
 
 
 
@@ -53,6 +70,9 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
             "JOIN Legajo l ON l.legajoPersonaDni.personaDni = a.personaDni" +
             " WHERE l.legajoId = :legajoId")
     Persona findAlumnoByLegajoId(@Param("legajoId") String legajoId);
+
+
+
 //
 //    @Query("""
 //        SELECT new com.example.iesiback.dto.AlumnoAsistenciaDTO(
@@ -73,8 +93,28 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
 //            @Param("materiaNombre") String materiaNombre
 //    );
 
+    @Query(value = """
+    SELECT l.legajo_id
+    FROM legajo l
+    INNER JOIN inscripcion i ON l.legajo_id = i.legajo_id
+    INNER JOIN carrera c ON i.carrera_id = c.carrera_id
+    WHERE c.carrera_year = :year
+      AND l.legajo_estado = 'Activo'
+""", nativeQuery = true)
+    List<String> obtenerLegajosPorCarreraYearNative(@Param("year") Integer year);
 
 
-
+    @Query("""
+    SELECT new com.example.iesiback.dto.PersonaDTO(
+        p.personaDni,
+        p.personaApellido,
+        p.personaNombre,
+        p.personaCorreo,
+        p.personaDomicilioCelular
+    )
+    FROM Persona p
+    WHERE p.personaDni = :personaDni
+""")
+    Optional<PersonaDTO> findPersonaDTObyDNI(@Param("personaDni") Long personaDni);
 
 }

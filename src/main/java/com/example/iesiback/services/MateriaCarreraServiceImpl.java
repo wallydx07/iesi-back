@@ -142,4 +142,34 @@ public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO
     public List<ActaCursadaDTO> obtenerActasPorAnio(int anio) {
         return materiaCarreraRepository.obtenerActasPorAnio(anio);
     }
+//
+
+    @Override
+    public MateriaCarrera findMateriaCarreraByFechaAndMateriaOrden(
+            LocalDate fecha, String orden, String carreraId) {
+
+        Integer ordenNumero = Integer.valueOf(orden.trim());
+
+        return materiaCarreraRepository
+                .buscarMateriaCarreraAnterior(
+                        ordenNumero,
+                        carreraId,
+                        fecha
+                )
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+@Override
+public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
+
+        if (ordenStr == null || ordenStr.isBlank()) {
+            return null;
+        }
+
+        Integer orden = Integer.valueOf(ordenStr.trim());
+
+        return materiaCarreraRepository
+                .findFechaByCarreraIdAndOrden(carreraId, orden);
+    }
 }

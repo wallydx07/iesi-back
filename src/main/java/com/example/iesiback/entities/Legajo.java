@@ -80,6 +80,32 @@ public class Legajo {
     @Column(name = "notas_corregidas", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean notasCorregidas;
 
+    @Size(max = 10)
+    @Column(name = "titulo_entregado", length = 10)
+    private String tituloEntregado;
+
+    @Size(max = 10)
+    @Column(name = "titulo_serie", length = 10)
+    private String tituloSerie;
+
+    @Size(max = 10)
+    @Column(name = "titulo_year", length = 10)
+    private String tituloYear;
+
+    @Size(max = 10)
+    @Column(name = "titulo_fecha", length = 10)
+    private String tituloFecha;
+
+    @Size(max = 10)
+    @Column(name = "legajo_cambia", length = 10)
+    private String legajoCambia;
+
+
+
+
+
+
+
 
     // Relaciones corregidas con @JsonManagedReference y mappedBy
     @OneToMany(mappedBy = "aporteLegajo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -101,7 +127,6 @@ public class Legajo {
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Cursada> cursadas = new LinkedHashSet<>();
-
 
     public String getLegajoId() {
         return legajoId;
@@ -239,6 +264,46 @@ public class Legajo {
         this.notasCorregidas = notasCorregidas;
     }
 
+    public String getTituloEntregado() {
+        return tituloEntregado;
+    }
+
+    public void setTituloEntregado(String tituloEntregado) {
+        this.tituloEntregado = tituloEntregado;
+    }
+
+    public String getTituloSerie() {
+        return tituloSerie;
+    }
+
+    public void setTituloSerie(String tituloSerie) {
+        this.tituloSerie = tituloSerie;
+    }
+
+    public String getTituloYear() {
+        return tituloYear;
+    }
+
+    public void setTituloYear(String tituloYear) {
+        this.tituloYear = tituloYear;
+    }
+
+    public String getTituloFecha() {
+        return tituloFecha;
+    }
+
+    public void setTituloFecha(String tituloFecha) {
+        this.tituloFecha = tituloFecha;
+    }
+
+    public String getLegajoCambia() {
+        return legajoCambia;
+    }
+
+    public void setLegajoCambia(String legajoCambia) {
+        this.legajoCambia = legajoCambia;
+    }
+
     public Set<Aporte> getAportes() {
         return aportes;
     }
@@ -246,14 +311,6 @@ public class Legajo {
     public void setAportes(Set<Aporte> aportes) {
         this.aportes = aportes;
     }
-
-//    public Set<Atencion> getAtenciones() {
-//        return atenciones;
-//    }
-//
-//    public void setAtenciones(Set<Atencion> atenciones) {
-//        this.atenciones = atenciones;
-//    }
 
     public Inscripcion getInscripcion() {
         return inscripcion;

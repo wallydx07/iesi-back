@@ -9,6 +9,7 @@ import com.example.iesiback.entities.Materia;
 import com.example.iesiback.entities.MateriaCarrera;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,4 +39,9 @@ public interface MateriaCarreraService {
     List<ActaCursadaDTO> obtenerActas();
 
     List<ActaCursadaDTO> obtenerActasPorAnio(int anio);
+
+    MateriaCarrera findMateriaCarreraByFechaAndMateriaOrden(
+            LocalDate fecha, String orden, String carrera);
+
+    LocalDate obtenerFechaVigencia(String carreraId, String ordenStr);
 }

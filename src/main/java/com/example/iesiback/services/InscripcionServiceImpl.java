@@ -28,9 +28,15 @@ public class InscripcionServiceImpl implements InscripcionService {
 
 
     @Override
-    public boolean existsByAlumnoDniAndCarreraNombre(String alumnoDni, String carreraId) {
-        return inscripcionRepository.existsByAlumnoDniAndCarreraNombre(alumnoDni,carreraId);
+    public boolean existsByAlumnoDniAndCarreraNombre(String alumnoDni, String carreraNombre) {
+        return inscripcionRepository.existsByAlumnoDniAndCarreraNombre(alumnoDni,carreraNombre);
     }
+
+//    @Override
+//    public Inscripcion existsByAlumnoDniAndCarreraId(String alumnoDni, String carreraNombre) {
+//        return inscripcionRepository.f
+//                existsByAlumnoDniAndCarreraNombre(alumnoDni,carreraNombre);
+//    }
 
 @Override
 public List<String> rellenarAnyo(String legajoId) {

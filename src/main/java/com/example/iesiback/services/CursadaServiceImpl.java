@@ -1,29 +1,35 @@
 package com.example.iesiback.services;
-import com.example.iesiback.entities.Cursada;
-import com.example.iesiback.entities.Legajo;
-import com.example.iesiback.entities.Materia;
-import com.example.iesiback.entities.MateriaCarrera;
+import com.example.iesiback.entities.*;
 import com.example.iesiback.repositories.CursadaRepository;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class CursadaServiceImpl implements CursadaService {
 
+
+
     private final MateriaCarreraService materiaCarreraService;
-    @Autowired
-    private CursadaRepository cursadaRepository;
+    private final CursadaRepository cursadaRepository;
+    private final ListableBeanFactory listableBeanFactory;
+
     @Autowired
     public CursadaServiceImpl(CursadaRepository cursadaRepository,
-                              MateriaCarreraService materiaCarreraService) { // ✅ Inyectar en el constructor
+                              MateriaCarreraService materiaCarreraService, ListableBeanFactory listableBeanFactory) {
         this.cursadaRepository = cursadaRepository;
         this.materiaCarreraService = materiaCarreraService;
+        this.listableBeanFactory = listableBeanFactory;
     }
+
+
+
 
     @Transactional
     @Override
@@ -277,4 +283,78 @@ public void eliminarCursada(Integer id) {
         return cursadaRepository.save(cursada);
     }
 
+
+    @Override
+    public List<Cursada> findByMateriaCarrera_Carrera_CarreraId(String materiaCarreraId) {
+        return cursadaRepository.findByCarreraId(materiaCarreraId);
+    }
+
+    @Transactional
+    @Override
+    public Cursada obtenerORegistrarCursada(
+            Legajo legajo,
+            Long materiaCarreraId) {
+
+        return cursadaRepository.findByLegajoAndMateriaCarreraId(
+                        legajo.getLegajoId(),
+                        materiaCarreraId
+                )
+                .orElseGet(() -> {
+                    MateriaCarrera materiaCarrera =
+                            materiaCarreraService
+                                    .obtenerMateriaCarreraPorId(materiaCarreraId)
+                                    .orElseThrow(() ->
+                                            new RuntimeException("MateriaCarrera no encontrada"));
+
+                    Cursada nueva = new Cursada();
+                    nueva.setLegajo(legajo);
+                    nueva.setMateriaCarrera(materiaCarrera);
+                    nueva.setCursadaInscripto(true);
+
+                    return cursadaRepository.save(nueva);
+                });
+    }
+
+
+    @Transactional
+    @Override
+    public Cursada buscarOMasCercanaORegistrar(
+            Legajo legajo,
+            MateriaCarrera materiaCarrera) {
+
+        LocalDate hoy = LocalDate.now();
+
+        // Traemos todas las cursadas del alumno para esa materia
+        List<Cursada> cursadas = cursadaRepository.findByLegajoAndMateria(
+                legajo.getLegajoId(),
+                materiaCarrera.getMateria().getMateriaId()
+        );
+
+        Cursada masCercana = null;
+
+        if (!cursadas.isEmpty()) {
+
+            // Filtramos cursadas con al menos una nota Regular
+            List<Cursada> regulares = cursadas.stream()
+                    .filter(c -> c.getNotas().stream()
+                            .anyMatch(n -> "Regular".equalsIgnoreCase(n.getNotaEstado())))
+                    .collect(Collectors.toList());
+
+            List<Cursada> aEvaluar = regulares.isEmpty() ? cursadas : regulares;
+
+            // Obtenemos la cursada más cercana a la fecha actual
+            masCercana = aEvaluar.stream()
+                    .min(Comparator.comparing(c ->
+                            Math.abs(ChronoUnit.DAYS.between(c.getMateriaCarrera().getFechaInicio(), hoy))
+                    ))
+                    .orElse(null);
+        }
+
+        // Si no hay ninguna cursada, creamos una nueva
+        if (masCercana == null) {
+            masCercana = obtenerORegistrarCursada(legajo, materiaCarrera.getId().longValue());
+        }
+
+        return masCercana;
+    }
 }

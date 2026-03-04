@@ -21,10 +21,8 @@ public class PreinscripcionController {
 
     @Autowired
     private PreinscripcionService preinscripcionService;
-
     @Autowired
     private EmailService emailService;
-
 
     // Obtener todas las preinscripciones
     @GetMapping
@@ -32,7 +30,6 @@ public class PreinscripcionController {
         return preinscripcionService.obtenerPreinscripcion();
     }
 
-    // Obtener una preinscripción por ID
     @GetMapping("/{id}")
     public ResponseEntity<Preinscripcion> obtenerPreinscripcionPorId(@PathVariable int id) {
         Optional<Preinscripcion> preinscripcion = preinscripcionService.obtenerPreinscripcionPorId(id);
@@ -53,7 +50,7 @@ public class PreinscripcionController {
         Optional<Preinscripcion> preinscripcionExistente = preinscripcionService.obtenerPreinscripcionPorId(id);
         if (preinscripcionExistente.isPresent()) {
             preinscripcion.setId(id);  // Asegura que se actualiza el registro correcto
-            Preinscripcion preinscripcionActualizada = preinscripcionService.guardarPreinscripcion(preinscripcion);
+            Preinscripcion preinscripcionActualizada = preinscripcionService.actualizarPreinscripcion(preinscripcion);
             return ResponseEntity.ok(preinscripcionActualizada);
         } else {
             return ResponseEntity.notFound().build();

@@ -26,6 +26,7 @@ public class CursadaController {
         return cursadaService.getAllCursadas();
     }
 
+
     @PostMapping("/inscribir/{carreraId}")
     public ResponseEntity<Map<String, String>> agregarMateriasACursada(
             @PathVariable String carreraId,
@@ -124,12 +125,21 @@ public class CursadaController {
         }
     }
 
-
-
     @DeleteMapping("/{id}")
     public void deleteCursada(@PathVariable Integer id) {
         cursadaService.deleteCursada(id);
     }
+
+
+    @GetMapping("/findByCarreraId/{carreraId}")
+    public List<Cursada> getAllCursadasBymateriaCarreraId(
+            @PathVariable String carreraId) {
+        return cursadaService.findByMateriaCarrera_Carrera_CarreraId(carreraId);
+    }
+
+
+
+
 
 
 }

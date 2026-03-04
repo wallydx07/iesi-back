@@ -42,5 +42,16 @@ public interface CarreraRepository extends JpaRepository<Carrera, String> {
     boolean existsByAlumnoDniAndCarreraId(@Param("dniAlumno") String dniAlumno,
                                           @Param("carreraNombre") String carreraNombre);
 
+    @Query("""
+       SELECT DISTINCT c.carreraNombre
+       FROM Carrera c
+       WHERE UPPER(c.carreraNombre) <> 'ASISTENCIA PERSONAL'
+       ORDER BY c.carreraNombre ASC
+       """)
+    List<String> findDistinctNombres();
+
+
+
+
 }
 

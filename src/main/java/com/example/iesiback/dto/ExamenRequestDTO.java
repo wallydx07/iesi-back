@@ -1,7 +1,4 @@
 package com.example.iesiback.dto;
-
-import com.example.iesiback.entities.Cursada;
-import com.example.iesiback.entities.Examen;
 import com.example.iesiback.entities.Nota;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

@@ -45,4 +45,27 @@ public class ArchivoController {
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 
+
+
+
+    @GetMapping("/descargarPorId/{id}")
+    public ResponseEntity<InputStreamResource> descargarArchivosPorId(@PathVariable int id) {
+        byte[] pdfBytes = archivoService.descargarArchivosPorId(id); // Obtener el archivo PDF
+
+        if (pdfBytes == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // Si no hay archivos, respondemos con 404
+        }
+
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(pdfBytes);
+        InputStreamResource resource = new InputStreamResource(byteArrayInputStream);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/pdf"); // Establecer el tipo de contenido como PDF
+        headers.add("Content-Disposition", "attachment; filename=archivo_" + id + ".pdf"); // Nombre del archivo
+
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+    }
+
+
+
 }

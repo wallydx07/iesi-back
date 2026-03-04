@@ -1,14 +1,13 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.EvaluacionCorrelativaResponse;
-import com.example.iesiback.dto.NotaExamenDTO;
-import com.example.iesiback.dto.NotaCursadaDTO;
-import com.example.iesiback.dto.NotaMateriaDTO;
+import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
+import com.example.iesiback.entities.Examen;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -16,6 +15,8 @@ import java.util.List;
 public interface NotaService {
     List<Nota> obtenerNotas();
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId);
+
+    List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String legajoId);
 
     List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId);
 
@@ -33,6 +34,9 @@ public interface NotaService {
     Nota actualizarNota(Long id, Nota nota) throws ResourceNotFoundException;
 
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId);
+
+    List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnaliticoSINREF(String legajoId);
+
     List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion);
 
     @Transactional
@@ -45,29 +49,25 @@ public interface NotaService {
 
     Cursada obtenerCursadaPorNotaId(Long notaId);
 
-    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden);
-
-    //            status = "Aceptada";
-    //        } else {
-    //            status = "Aceptada";
-    //        }
-    //
-    //        if (materiasDesaprobadas.isEmpty()) {
-    //            materiasDesaprobadas.add("Ninguna");
-    //        }
-    //        if (materiasConFechaInvalida.isEmpty()) {
-    //            materiasConFechaInvalida.add("Coherente");
-    //        }
-    //
-    //        System.out.println("✅ Resultado final: " + status);
-    //        System.out.println("❌ Materias desaprobadas: " + materiasDesaprobadas);
-    //        System.out.println("📅 Materias con fecha inválida: " + materiasConFechaInvalida);
-    //
-    //        return new EvaluacionCorrelativaResponse(status, materiasDesaprobadas, materiasConFechaInvalida);
-    //    }
-
+    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden,  String condicion);
 
     void permitirEdicionMateria(String carreraId, String materiaId, boolean editable);
 
     Nota saveNotaWithCursadsa(Nota nota, Integer cursadaId);
+
+
+    NotaServiceImpl.ResultadoRegularidad evaluarRegularidad(List<Nota> notas);
+
+    List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarrera(String carreraId);
+
+    @Transactional(readOnly = true)
+    Nota findByCursadaId(Integer cursadaId);
+
+    Nota obtenerExamenPorCursadaYPermiso(Integer cursadaId, Integer permisoId);
+
+
+    @Transactional(readOnly = true)
+    Nota findByCursadaIdMateriaCondicion(Integer cursadaId, Integer permisoId);
+
+    Nota findExamenPorCursadaYTurnoId(Integer cursadaId, Integer turnoId);
 }

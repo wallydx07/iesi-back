@@ -39,7 +39,6 @@ public interface CertificadoService {
     PDDocument generaAsistenciaExamenFinal(String legajoId, String autoridades, String curso,
                                            String fechaSeleccionada, String accion, String materia);
 
-
     PDDocument crearPDFPorMes(LocalDate fechaInicio, LocalDate fechaFin);
 
     PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin);
@@ -53,4 +52,14 @@ public interface CertificadoService {
     PDDocument generaTroquelNotaIngresante(Integer atencionId) throws IOException;
 
     PDDocument generaTroquelPase(Integer paseId);
+
+    PDDocument crearPDFPorUsuario(String dni, LocalDate fechaInicio, LocalDate fechaFin);
+
+
+    PDDocument generaAsistenciaExamenFinalDocente(String dni, String autoridades, String carrera,
+                                                  String fechaSeleccionada, String accion, String materia);
+
+    PDDocument generaPermiso(String libreta, String turno, String usuarioNombre);
+
+    void enviarPermisoPorEmail(String libreta, String turno, String usuarioNombre, String destinatario);
 }

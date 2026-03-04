@@ -63,7 +63,6 @@ public class AtencionServiceImpl implements AtencionService {
             atencion.setLegajoId(null);
         }
 
-        // Guarda la atención en la base de datos
         return repository.save(atencion);
     }
 
@@ -167,6 +166,6 @@ public class AtencionServiceImpl implements AtencionService {
 
     @Override
     public List<Atencion> findAllByOrderByAtencionFechaDesc() {
-        return repository.findAllByOrderByAtencionFechaDesc();
+        return repository.findAllByOrderByAtencionFechaDescNumeroTipoDesc();
     }
 }

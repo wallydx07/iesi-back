@@ -26,53 +26,34 @@ public class PermisoController {
     }
 
 
-    @PostMapping("/enviar")
-    public ResponseEntity<String> enviarPermisoPorEmail(
-            @RequestParam String libreta,
-            @RequestParam String turno,
-            @RequestParam String usuarioNombre,
-            @RequestParam String destinatario
-    ) {
-        try {
-            permisoService.enviarPermisoPorEmail(libreta, turno, usuarioNombre, destinatario);
-            return ResponseEntity.ok("Permiso enviado por correo"); // ✅ esto es correcto
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al enviar permiso: " + e.getMessage()); // ✅ manejo de error
-        }
-    }
 
-
-    @PostMapping("/generar")
-    public ResponseEntity<ByteArrayResource> generarPermiso(
-            @RequestParam String libreta,
-            @RequestParam String turno,
-            @RequestParam String usuarioNombre
-    ) {
-        try {
-            System.out.println("✅ Recibiendo solicitud para generar PDF: Libreta=" + libreta + ", Turno=" + turno + ", Usuario=" + usuarioNombre);
-
-            // Generar el PDF en memoria
-            PDDocument documento = permisoService.generaPermiso(libreta, turno, usuarioNombre);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            documento.save(outputStream);
-            documento.close();
-
-            byte[] pdfBytes = outputStream.toByteArray();
-            System.out.println("✅ PDF generado correctamente, tamaño: " + pdfBytes.length + " bytes");
-
-            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=permiso.pdf")
-                    .body(resource);
-
-        } catch (Exception e) {
-            System.out.println("❌ Error al generar el PDF:");
-            e.printStackTrace(); // Imprime el error en la consola
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
+//    @PostMapping("/generar")
+//    public ResponseEntity<ByteArrayResource> generarPermiso(
+//            @RequestParam String libreta,
+//            @RequestParam String turno,
+//            @RequestParam String usuarioNombre
+//    ) {
+//        try {
+//            PDDocument documento = permisoService.generaPermiso(libreta, turno, usuarioNombre);
+//            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//            documento.save(outputStream);
+//            documento.close();
+//
+//            byte[] pdfBytes = outputStream.toByteArray();
+//            System.out.println("✅ PDF generado correctamente, tamaño: " + pdfBytes.length + " bytes");
+//
+//            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+//
+//            return ResponseEntity.ok()
+//                    .contentType(MediaType.APPLICATION_PDF)
+//                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=permiso.pdf")
+//                    .body(resource);
+//
+//        } catch (Exception e) {
+//            System.out.println("❌ Error al generar el PDF:");
+//            e.printStackTrace(); // Imprime el error en la consola
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//    }
 
 }

@@ -1,5 +1,7 @@
 package com.example.iesiback.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
@@ -29,8 +31,11 @@ public class Permiso {
     private String permisoLegajoId;
 
     @OneToMany(mappedBy = "permiso")
-    private Set<Examen> examen = new LinkedHashSet<>();
+//    private Set<Examen> examen = new LinkedHashSet<>();
+//@OneToMany(mappedBy = "permiso")
+//@JsonManagedReference
 
+    private Set<Examen> examen;
 
     public Set<Examen> getExamen() {
         return examen;

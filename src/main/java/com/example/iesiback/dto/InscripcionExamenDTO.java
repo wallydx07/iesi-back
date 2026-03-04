@@ -17,9 +17,18 @@ public class InscripcionExamenDTO {
     private List<String> correlativas;
     private String turnoId;
     private String hora;
+    private String justificacion; // ← agregar esto
 
     public InscripcionExamenDTO() {
 
+    }
+
+    public String getJustificacion() {
+        return justificacion;
+    }
+
+    public void setJustificacion(String justificacion) {
+        this.justificacion = justificacion;
     }
 
     public String getHora() {

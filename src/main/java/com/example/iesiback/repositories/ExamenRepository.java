@@ -50,4 +50,6 @@ public interface ExamenRepository extends JpaRepository<Examen, Long> {
     @Modifying
     @Query("UPDATE Examen e SET e.examenInscripto = true WHERE e.id = :examenId")
     void marcarPermisoExamen(@Param("examenId") Long examenId);
+
+    void deleteByNota_NotaId(Long notaId);
 }

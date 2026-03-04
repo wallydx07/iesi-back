@@ -1,5 +1,6 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.TurnoExamenDTO;
 import com.example.iesiback.entities.Turno;
 import com.example.iesiback.services.TurnoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,13 @@ public class TurnoController {
                     return ResponseEntity.ok(turnoService.save(turno));
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // --- Devuelve los turnos en formato TurnoExamenDTO ---
+    @GetMapping("/TurnoExamenDTO")  // <-- Cambié la ruta para evitar conflicto con @GetMapping principal
+    public ResponseEntity<List<TurnoExamenDTO>> obtenerTurnosExamen() {
+        List<TurnoExamenDTO> turnos = turnoService.getTurnoExamenDTO();
+        return ResponseEntity.ok(turnos);
     }
 }
 

@@ -13,6 +13,9 @@ public interface CarreraService {
     List<Carrera> findCarrerasByAlumnoDni(String alumnoDni);
 
     List<Carrera> obtenerCarreras();
+
+    List<String> obtenerCarrerasNombres();
+
     Carrera findCarreraById(String id);
     Optional<Carrera> obtenerCarreraPorId(String id);
     Carrera guardarCarrera(Carrera carrera);

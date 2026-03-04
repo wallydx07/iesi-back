@@ -5,6 +5,8 @@ public class ProcesadoReinscripcionMateriaDTO {
     private String materiaId;
     private Integer materiaOrden;
     private String materiaNivel;
+    private String materiaRegimen;
+    private String materiaModalidad;
     private String carreraNombre;
     private String materiaNombre;
     private Integer carreraYear;
@@ -13,49 +15,12 @@ public class ProcesadoReinscripcionMateriaDTO {
     private String cursadaStatus;
     private String materiaCarreraId;
 
-
-    public String getMateriaCarreraId() {
-        return materiaCarreraId;
+    public Integer getMateriaOrden() {
+        return materiaOrden;
     }
 
-    public void setMateriaCarreraId(String materiaCarreraId) {
-        this.materiaCarreraId = materiaCarreraId;
-    }
-
-    // Constructor por defecto (sin argumentos)
-    public ProcesadoReinscripcionMateriaDTO() {
-    }
-
-    public Boolean getCursadaInscripto() {
-        return cursadaInscripto;
-    }
-
-    public void setCursadaInscripto(Boolean cursadaInscripto) {
-        this.cursadaInscripto = cursadaInscripto;
-    }
-
-    public String getCarreraNombre() {
-        return carreraNombre;
-    }
-
-    public void setCarreraNombre(String carreraNombre) {
-        this.carreraNombre = carreraNombre;
-    }
-
-    public Integer getCarreraYear() {
-        return carreraYear;
-    }
-
-    public void setCarreraYear(Integer carreraYear) {
-        this.carreraYear = carreraYear;
-    }
-
-    public String getCursadaStatus() {
-        return cursadaStatus;
-    }
-
-    public void setCursadaStatus(String cursadaStatus) {
-        this.cursadaStatus = cursadaStatus;
+    public void setMateriaOrden(Integer materiaOrden) {
+        this.materiaOrden = materiaOrden;
     }
 
     public String getMateriaId() {
@@ -66,20 +31,36 @@ public class ProcesadoReinscripcionMateriaDTO {
         this.materiaId = materiaId;
     }
 
-    public String getMateriaCorrelativas() {
-        return materiaCorrelativas;
-    }
-
-    public void setMateriaCorrelativas(String materiaCorrelativas) {
-        this.materiaCorrelativas = materiaCorrelativas;
-    }
-
     public String getMateriaNivel() {
         return materiaNivel;
     }
 
     public void setMateriaNivel(String materiaNivel) {
         this.materiaNivel = materiaNivel;
+    }
+
+    public String getMateriaRegimen() {
+        return materiaRegimen;
+    }
+
+    public void setMateriaRegimen(String materiaRegimen) {
+        this.materiaRegimen = materiaRegimen;
+    }
+
+    public String getMateriaModalidad() {
+        return materiaModalidad;
+    }
+
+    public void setMateriaModalidad(String materiaModalidad) {
+        this.materiaModalidad = materiaModalidad;
+    }
+
+    public String getCarreraNombre() {
+        return carreraNombre;
+    }
+
+    public void setCarreraNombre(String carreraNombre) {
+        this.carreraNombre = carreraNombre;
     }
 
     public String getMateriaNombre() {
@@ -90,11 +71,43 @@ public class ProcesadoReinscripcionMateriaDTO {
         this.materiaNombre = materiaNombre;
     }
 
-    public Integer getMateriaOrden() {
-        return materiaOrden;
+    public Integer getCarreraYear() {
+        return carreraYear;
     }
 
-    public void setMateriaOrden(Integer materiaOrden) {
-        this.materiaOrden = materiaOrden;
+    public void setCarreraYear(Integer carreraYear) {
+        this.carreraYear = carreraYear;
+    }
+
+    public String getMateriaCorrelativas() {
+        return materiaCorrelativas;
+    }
+
+    public void setMateriaCorrelativas(String materiaCorrelativas) {
+        this.materiaCorrelativas = materiaCorrelativas;
+    }
+
+    public Boolean getCursadaInscripto() {
+        return cursadaInscripto;
+    }
+
+    public void setCursadaInscripto(Boolean cursadaInscripto) {
+        this.cursadaInscripto = cursadaInscripto;
+    }
+
+    public String getCursadaStatus() {
+        return cursadaStatus;
+    }
+
+    public void setCursadaStatus(String cursadaStatus) {
+        this.cursadaStatus = cursadaStatus;
+    }
+
+    public String getMateriaCarreraId() {
+        return materiaCarreraId;
+    }
+
+    public void setMateriaCarreraId(String materiaCarreraId) {
+        this.materiaCarreraId = materiaCarreraId;
     }
 }

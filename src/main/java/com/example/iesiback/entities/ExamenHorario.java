@@ -38,4 +38,13 @@ public class ExamenHorario {
     @Column(name = "materia_id", nullable = false, length = 50)
     private String materiaId;
 
+    @Column(name = "titular_dni", nullable = false)
+    private Long TitularDni;
+
+    @Column(name = "vocal1_dni", nullable = false)
+    private Long vocal1Dni;
+
+    @Column(name = "vocal2_dni", nullable = false)
+    private Long vocal2Dni;
+
 }

@@ -29,6 +29,8 @@ public class FichaInscripcionService {
     Carrera carrera;
 
     public byte[] generarFichaInscripcion(Persona persona, Legajo legajo, Aporte aporte, Carrera carrera) throws IOException {
+
+
         String talonario=String.valueOf(aporte.getId());
         String monto=String.valueOf(aporte.getAporteMonto());
         PDDocument Documento=new PDDocument();

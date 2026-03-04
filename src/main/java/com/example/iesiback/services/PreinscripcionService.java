@@ -9,5 +9,8 @@ public interface PreinscripcionService {
     List<Preinscripcion> obtenerPreinscripcion();
     Optional<Preinscripcion> obtenerPreinscripcionPorId(int id);
     Preinscripcion guardarPreinscripcion(Preinscripcion preinscripcion);
+
+    Preinscripcion actualizarPreinscripcion(Preinscripcion preinscripcion);
+
     boolean eliminarPreinscripcion(int id);
 }

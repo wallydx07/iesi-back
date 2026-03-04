@@ -10,6 +10,7 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,6 +24,7 @@ import com.example.iesiback.auth.filter.JwtAuthenticationFilter;
 import com.example.iesiback.auth.filter.JwtValidationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SpringSecurityConfig {
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
@@ -39,11 +41,11 @@ public class SpringSecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         return http.authorizeHttpRequests(authz -> authz
                         .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/page/{page}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/documento/descargar").authenticated() // 👈 ESTA ES CLAVE
@@ -64,6 +66,9 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/documento/upload").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/atenciones/seguimiento/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll()
+
                         // 🔥 Necesario para SockJS
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/ws").permitAll()

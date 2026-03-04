@@ -4,6 +4,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.dto.ProcesadoReinscripcionMateriaDTO;
 import com.example.iesiback.dto.ReinscripcionMateriaDTO;
+import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.repositories.MateriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +91,10 @@ public class MateriaServiceImpl implements MateriaService {
               procesado.setMateriaNivel(dto.getMateriaNivel());
               procesado.setMateriaNombre(dto.getMateriaNombre());
               procesado.setCarreraNombre(dto.getCarreraNombre());
+
+              procesado.setMateriaRegimen(dto.getMateriaRegimen());
+              procesado.setMateriaModalidad(dto.getMateriaModalidad());
+
               procesado.setCarreraYear(dto.getCarreraYear());
               procesado.setMateriaCarreraId(dto.getMateriaCarreraId());
               System.out.println("--------------------------------------------LegajoID" + legajoId + "------MateriaId" + dto.getMateriaId());
@@ -112,11 +117,19 @@ public class MateriaServiceImpl implements MateriaService {
                   procesados.add(procesado);
               }
           }
-
-
-
         return procesados;
     }
+
+    public Materia FindByNombreandCarrera(Carrera carrera, String Nombre){
+
+        return null;
+    }
+
+    @Override
+    public Optional<Materia> obtenerMateriaPorOrden(Integer orden) {
+        return materiaRepository.findByMateriaOrden(orden);
+    }
+
 
 //
 //    public List<String> correlativasCursadaId(int cursadaId) {

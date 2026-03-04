@@ -23,19 +23,27 @@ public class ArchivoServiceImpl implements ArchivoService {
         return archivoRepository.findByEtiqueta(etiqueta).isPresent();
     }
 
+
+
     @Override
     @Transactional
     public byte[] descargarArchivosPorEtiqueta(String etiqueta) {
         Optional<Archivo> archivoOptional = archivoRepository.findByEtiqueta(etiqueta); // Usamos el repositorio para obtener el archivo por etiqueta
-
-        // Si no se encuentra el archivo con la etiqueta, devolver null
         if (archivoOptional.isEmpty()) {
             return null;
         }
-
-        // Obtener el archivo
         Archivo archivo = archivoOptional.get();
+        return archivo.getDato(); // Retornar los bytes del archivo PDF directamente
+    }
 
+    @Transactional
+    @Override
+    public byte[] descargarArchivosPorId(int id) {
+        Optional<Archivo> archivoOptional = archivoRepository.findById(id); // Usamos el repositorio para obtener el archivo por etiqueta
+        if (archivoOptional.isEmpty()) {
+            return null;
+        }
+        Archivo archivo = archivoOptional.get();
         return archivo.getDato(); // Retornar los bytes del archivo PDF directamente
     }
 

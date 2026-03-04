@@ -93,7 +93,7 @@ import java.util.List;
                         (String)obj[2],
                         ((String)obj[3]),
                         ((Number)obj[4]).intValue(),
-                        ((Number)obj[5]).intValue(),
+                        ((Number)obj[5]).longValue(),
                         ((Number)obj[6]).intValue(),
                         LocalDate.parse(obj[7].toString()),
                         (String)obj[8],

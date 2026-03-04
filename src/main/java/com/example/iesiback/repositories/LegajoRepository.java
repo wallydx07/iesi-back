@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LegajoRepository extends JpaRepository<Legajo, String> {
@@ -33,5 +34,12 @@ public interface LegajoRepository extends JpaRepository<Legajo, String> {
     int actualizarAlumnoDni(@Param("dniActual") Long dniActual, @Param("nuevoDni") Long nuevoDni);
 
     List<Legajo> findByLegajoPersonaDni(Persona persona);
+
+
+    Optional<Legajo> findByLegajoPersonaDni_PersonaDniAndInscripcionCarrera_Carrera_CarreraId(
+            Long personaDni,
+            String carreraId
+    );
+
 
 }

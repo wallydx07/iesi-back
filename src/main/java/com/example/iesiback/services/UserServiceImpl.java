@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,22 +28,15 @@ import com.example.iesiback.repositories.UserRepository;
 
 @Service
 public class UserServiceImpl implements UserService {
-
     private final UserRepository repository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
-
     @Autowired
     private JavaMailSender mailSender; // Necesitás configurar esto
-
-
     @Autowired
     private EmailService emailService; // Necesitás configurar esto
-
-
 
     public UserServiceImpl(UserRepository repository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.repository = repository;
@@ -157,16 +151,29 @@ public class UserServiceImpl implements UserService {
         return roles;
     }
 
+//    @Transactional(readOnly = true)
+//    public Optional<User> getAuthenticatedUser() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication == null || !authentication.isAuthenticated()) {
+//            return Optional.empty();
+//        }
+//        String username = authentication.getName(); // Obtiene el username del token
+//        return repository.findByUsername(username);
+//    }
+
     @Transactional(readOnly = true)
     public Optional<User> getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null ||
+                !auth.isAuthenticated() ||
+                auth instanceof AnonymousAuthenticationToken) {
+
             return Optional.empty();
         }
-
-        String username = authentication.getName(); // Obtiene el username del token
-
+        String username = auth.getName();
         return repository.findByUsername(username);
     }
 
@@ -190,7 +197,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean resetPassword(String username, String newPassword) {
         return repository.findByUsername(username).map(user -> {
-            user.setPassword(newPassword);
+            user.setPassword(passwordEncoder.encode(newPassword));
             repository.save(user);
             return true;
         }).orElse(false);
@@ -256,5 +263,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getUsuariosPorRoles(List<String> roles) {
         return repository.findByRolesNombreIn(roles);
+    }
+@Override
+public boolean isAdmin(User user) {
+        return user.getRoles()
+                .stream()
+                .anyMatch(role -> role.getRoleNombre().equals("ROLE_ADMIN"));
     }
 }

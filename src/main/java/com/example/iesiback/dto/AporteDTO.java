@@ -9,7 +9,7 @@ public class AporteDTO {
     private String alumnoNombre;
     private String legajoId;
     private Integer aporteMonto;
-    private Integer aporteNroRecibo;
+    private Long aporteNroRecibo;
     private Integer aporteTalonarioRecibo;
     private LocalDate aporteFecha;
     private String aporteObs;
@@ -24,7 +24,7 @@ public class AporteDTO {
                      String alumnoNombre,
                      String legajoId,
                      Integer aporteMonto,
-                     Integer aporteNroRecibo,
+                     Long aporteNroRecibo,
                      Integer aporteTalonarioRecibo,
                      LocalDate aporteFecha,
                      String aporteObs,
@@ -93,11 +93,11 @@ public class AporteDTO {
         this.aporteMonto = aporteMonto;
     }
 
-    public Integer getAporteNroRecibo() {
+    public Long getAporteNroRecibo() {
         return aporteNroRecibo;
     }
 
-    public void setAporteNroRecibo(Integer aporteNroRecibo) {
+    public void setAporteNroRecibo(Long aporteNroRecibo) {
         this.aporteNroRecibo = aporteNroRecibo;
     }
 

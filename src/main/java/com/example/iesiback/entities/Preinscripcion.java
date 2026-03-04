@@ -1,8 +1,6 @@
 package com.example.iesiback.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
@@ -11,10 +9,12 @@ import java.time.Instant;
 
 @Entity
 public class Preinscripcion {
+
     @Id
-    @ColumnDefault("nextval('preinscripcion_id_seq')")
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
+
 
     @Size(max = 15)
     @NotNull
@@ -66,9 +66,30 @@ public class Preinscripcion {
     @Column(name = "fecha")
     private Instant fecha;
 
+//    @Column(
+//            name = "fecha",
+//            nullable = false,
+//            updatable = false
+//    )
+//    @ColumnDefault("CURRENT_TIMESTAMP")
+//    private Instant fecha;
+
+
     @Size(max = 500)
     @Column(name = "obs", length = 500)
     private String obs;
+
+    @Size(max = 50)
+    @Column(name = "Turno", length = 500)
+    private String turno;
+
+    public String getTurno() {
+        return turno;
+    }
+
+    public void setTurno(String turno) {
+        this.turno = turno;
+    }
 
     public Integer getId() {
         return id;

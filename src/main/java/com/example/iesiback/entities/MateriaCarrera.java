@@ -56,6 +56,10 @@ public class MateriaCarrera {
     @Column(name = "fin", length = 10)
     private String fin;
 
+
+    @Column(name = "fecha_inicio")
+    private LocalDate fechaInicio;
+
     @Column(name = "fecha_limite")
     private LocalDate fechaLimite;
 
@@ -84,44 +88,12 @@ public class MateriaCarrera {
     @JsonIgnore
     private Set<com.example.iesiback.entities.PersonalHorario> personalHorarios = new LinkedHashSet<>();
 
-    public Set<com.example.iesiback.entities.PersonalHorario> getPersonalHorarios() {
-        return personalHorarios;
+    public LocalDate getFechaInicio() {
+        return fechaInicio;
     }
 
-    public void setPersonalHorarios(Set<com.example.iesiback.entities.PersonalHorario> personalHorarios) {
-        this.personalHorarios = personalHorarios;
-    }
-
-    public Set<com.example.iesiback.entities.LibroTema> getLibroTemas() {
-        return libroTemas;
-    }
-
-    public void setLibroTemas(Set<com.example.iesiback.entities.LibroTema> libroTemas) {
-        this.libroTemas = libroTemas;
-    }
-
-    public Set<com.example.iesiback.entities.InformeAsistenciaAlumno> getInformeAsistenciaAlumnos() {
-        return informeAsistenciaAlumnos;
-    }
-
-    public void setInformeAsistenciaAlumnos(Set<com.example.iesiback.entities.InformeAsistenciaAlumno> informeAsistenciaAlumnos) {
-        this.informeAsistenciaAlumnos = informeAsistenciaAlumnos;
-    }
-
-    public Set<Cursada> getCursadas() {
-        return cursadas;
-    }
-
-    public void setCursadas(Set<Cursada> cursadas) {
-        this.cursadas = cursadas;
-    }
-
-    public com.example.iesiback.entities.Materia getMateria() {
-        return materia;
-    }
-
-    public void setMateria(com.example.iesiback.entities.Materia materia) {
-        this.materia = materia;
+    public void setFechaInicio(LocalDate fechaInicio) {
+        this.fechaInicio = fechaInicio;
     }
 
     public Integer getId() {
@@ -130,14 +102,6 @@ public class MateriaCarrera {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Carrera getCarrera() {
-        return carrera;
-    }
-
-    public void setCarrera(Carrera carrera) {
-        this.carrera = carrera;
     }
 
     public String getLibro() {
@@ -212,6 +176,14 @@ public class MateriaCarrera {
         this.inicio = inicio;
     }
 
+    public LocalDate getFechaLimite() {
+        return fechaLimite;
+    }
+
+    public void setFechaLimite(LocalDate fechaLimite) {
+        this.fechaLimite = fechaLimite;
+    }
+
     public String getFin() {
         return fin;
     }
@@ -220,4 +192,51 @@ public class MateriaCarrera {
         this.fin = fin;
     }
 
+    public Set<Cursada> getCursadas() {
+        return cursadas;
+    }
+
+    public void setCursadas(Set<Cursada> cursadas) {
+        this.cursadas = cursadas;
+    }
+
+    public Materia getMateria() {
+        return materia;
+    }
+
+    public void setMateria(Materia materia) {
+        this.materia = materia;
+    }
+
+    public Carrera getCarrera() {
+        return carrera;
+    }
+
+    public void setCarrera(Carrera carrera) {
+        this.carrera = carrera;
+    }
+
+    public Set<InformeAsistenciaAlumno> getInformeAsistenciaAlumnos() {
+        return informeAsistenciaAlumnos;
+    }
+
+    public void setInformeAsistenciaAlumnos(Set<InformeAsistenciaAlumno> informeAsistenciaAlumnos) {
+        this.informeAsistenciaAlumnos = informeAsistenciaAlumnos;
+    }
+
+    public Set<LibroTema> getLibroTemas() {
+        return libroTemas;
+    }
+
+    public void setLibroTemas(Set<LibroTema> libroTemas) {
+        this.libroTemas = libroTemas;
+    }
+
+    public Set<PersonalHorario> getPersonalHorarios() {
+        return personalHorarios;
+    }
+
+    public void setPersonalHorarios(Set<PersonalHorario> personalHorarios) {
+        this.personalHorarios = personalHorarios;
+    }
 }

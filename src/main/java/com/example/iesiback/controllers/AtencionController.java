@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -29,8 +30,6 @@ public class AtencionController {
         return service.findAllByOrderByAtencionFechaDesc();
     }
 
-
-
     @GetMapping("/{id}")
     public ResponseEntity<Atencion> getById(@PathVariable Integer id) {
         return service.findById(id)
@@ -40,7 +39,7 @@ public class AtencionController {
 
     @PostMapping
     public Atencion create(@RequestBody Atencion atencion) {
-        atencion.setAtencionFecha(LocalDate.now());
+        atencion.setAtencionFecha(LocalDateTime.now());
         return service.save(atencion);
     }
 
@@ -132,7 +131,4 @@ public class AtencionController {
         List<Atencion> lista = service.findByAtencionReferencia(id);
         return ResponseEntity.ok(lista);
     }
-
-
-
 }

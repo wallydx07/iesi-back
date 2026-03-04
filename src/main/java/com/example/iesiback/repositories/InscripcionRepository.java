@@ -11,18 +11,24 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Intege
     // Se asume que la entidad Legajo tiene una propiedad 'legajoId' (puede ser String o Integer según corresponda)
     Inscripcion findByLegajo_LegajoId(String legajoId);
     //===================================================================
-    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
-                  "FROM Inscripcion i " +
-                  "JOIN i.legajo l " +
-                  "JOIN l.legajoPersonaDni a " +
-                  "JOIN i.carrera c " +
-                  "WHERE a.personaDni = :alumnoDni " +
-                  "AND c.carreraNombre = :carreraNombre")
-    boolean existsByAlumnoDniAndCarreraNombre(@Param("alumnoDni") String alumnoDni,
-                                              @Param("carreraNombre") String carreraNombre);
+    @Query("""
+    SELECT COUNT(i) > 0
+    FROM Inscripcion i
+    JOIN i.legajo l
+    JOIN l.legajoPersonaDni p
+    JOIN i.carrera c
+    WHERE p.personaDni = :alumnoDni
+    AND c.carreraNombre = :carreraNombre
+""")
+    boolean existsByAlumnoDniAndCarreraNombre(
+            String alumnoDni,
+            String carreraNombre
+    );
+
 
     @Query("SELECT i FROM Inscripcion i WHERE i.legajo.legajoId = :legajoId")
     Inscripcion findInscripcionByLegajoId(@Param("legajoId") String legajoId);
+
 
 
 //    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +

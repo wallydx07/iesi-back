@@ -218,7 +218,55 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
             ")")
     List<ActaCursadaDTO> obtenerActasPorAnio(@Param("anio") int anio);
 
+    @Query("""
+    SELECT mc
+    FROM MateriaCarrera mc
+    JOIN mc.materia m
+    WHERE m.materiaOrden = :orden
+      AND mc.carrera.carreraId = :carrera
+      AND mc.fecha >= :fechaDesde
+      AND mc.fecha < :fechaHasta
+    ORDER BY mc.fecha DESC
+""")
+    MateriaCarrera buscarPorOrdenCarreraYAño(
+            @Param("orden") Integer orden,
+            @Param("carrera") String carrera,
+            @Param("fechaDesde") LocalDate fechaDesde,
+            @Param("fechaHasta") LocalDate fechaHasta
+    );
 
+    @Query("""
+    SELECT mc
+    FROM MateriaCarrera mc
+    JOIN mc.materia m
+    JOIN mc.carrera c
+    WHERE m.materiaOrden = :orden
+      AND c.carreraNombre = (
+            SELECT c2.carreraNombre
+            FROM Carrera c2
+            WHERE c2.carreraId = :carreraId
+      )
+      AND mc.fechaInicio <= :fecha
+    ORDER BY mc.fechaInicio DESC
+""")
+    List<MateriaCarrera> buscarMateriaCarreraAnterior(
+            @Param("orden") Integer orden,
+            @Param("carreraId") String carreraId,
+            @Param("fecha") LocalDate fecha
+    );
+
+    @Query(value = """
+     SELECT mc.fecha
+     FROM materia m
+     INNER JOIN materia_carrera mc ON m.materia_id = mc.materia_id
+     WHERE mc.carrera_id = :carreraId 
+       AND m.materia_orden = :orden
+     ORDER BY m.materia_orden ASC
+""", nativeQuery = true)
+    LocalDate findFechaByCarreraIdAndOrden(
+            @Param("carreraId") String carreraId,
+            @Param("orden") Integer orden
+    );
 
 }
 

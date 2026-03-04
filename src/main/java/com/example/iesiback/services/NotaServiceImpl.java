@@ -1,47 +1,46 @@
 package com.example.iesiback.services;
-
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import com.example.iesiback.repositories.NotaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
+@Slf4j
 public class NotaServiceImpl implements NotaService {
 
     private final CursadaService cursadaService;
-    @Autowired
+    private final NotaRepository notaRepository;
+
     public NotaServiceImpl(
-            CursadaService cursadaService) {
+            CursadaService cursadaService,
+            NotaRepository notaRepository
+    ) {
         this.cursadaService = cursadaService;
+        this.notaRepository = notaRepository;
     }
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); // ⚠️ Define el formato esperado
 
-    @Autowired
-    private NotaRepository notaRepository;
     @Override
     public List<Nota> obtenerNotas() {
         return List.of();
     }
 
-        public String correlativasCursadaId(int cursadaId) {
+    public String correlativasCursadaId(int cursadaId) {
         Cursada cursada = cursadaService.getCursadaById(cursadaId).orElse(null);
         return cursadaService.obtenerCorrelativasPendientes(cursada.getMateriaCarrera().getMateria().getMateriaId(), cursada.getLegajo().getLegajoId());
-
-
     }
-
-
 
 
     public List<NotaMateriaDTO> mapResultsToDTO(List<Object[]> results) {
@@ -92,7 +91,6 @@ public class NotaServiceImpl implements NotaService {
     }
 
 
-
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId) {
         List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
         System.out.println(results.size());
@@ -110,6 +108,29 @@ public class NotaServiceImpl implements NotaService {
                 })
                 .collect(Collectors.toList());
     }
+
+
+@Override
+public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String legajoId) {
+
+        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+        System.out.println(results.size());
+
+        return mapResultsToDTO(results)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -145,8 +166,8 @@ public class NotaServiceImpl implements NotaService {
 //    }
 
 
-@Override
-public List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId) {
+    @Override
+    public List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId) {
         List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
         List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
         return resultados.stream()
@@ -177,41 +198,43 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId) {
                     return obj;
                 }).collect(Collectors.toList());
     }
-@Override
-public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
-    List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-    List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
-    return resultados.stream()
-            .filter(obj -> {
-                String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
-                return !estadoNota.equalsIgnoreCase("Aprobado")
-                        && !estadoNota.equalsIgnoreCase("Cursando");
-            })
-            .map(obj -> {
-                // 📌 Manejamos la fecha de forma más segura
-                LocalDate fechaNota = null;
-                try {
-                    if (obj.getNotaFecha() != null) {
-                        fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
+
+    @Override
+    public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
+        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+        return resultados.stream()
+                .filter(obj -> {
+                    String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
+                    return !estadoNota.equalsIgnoreCase("Aprobado")
+                            && !estadoNota.equalsIgnoreCase("Cursando");
+                })
+                .map(obj -> {
+                    // 📌 Manejamos la fecha de forma más segura
+                    LocalDate fechaNota = null;
+                    try {
+                        if (obj.getNotaFecha() != null) {
+                            fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
+                        }
+                    } catch (DateTimeParseException e) {
+                        System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
                     }
-                } catch (DateTimeParseException e) {
-                    System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
-                }
-                // 📌 Obtener cursadaId correctamente
-                Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
-                List<String> correlativas = (cursadaId != null) ?
-                        // Convertir el string separado por comas en una lista de String
-                        Arrays.asList(correlativasCursadaId(cursadaId).split(",")) :
-                        List.of(); // Evitar null
-                // Retornar el objeto NotaMateriaDTO con las correlativas
-                obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
-                return obj;
-            }).collect(Collectors.toList());
-}
+                    // 📌 Obtener cursadaId correctamente
+                    Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
+                    List<String> correlativas = (cursadaId != null) ?
+                            // Convertir el string separado por comas en una lista de String
+                            Arrays.asList(correlativasCursadaId(cursadaId).split(",")) :
+                            List.of(); // Evitar null
+                    // Retornar el objeto NotaMateriaDTO con las correlativas
+                    obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
+                    return obj;
+                }).collect(Collectors.toList());
+    }
+
     @Override
     public boolean isMateriaAprobada(String legajoId, String materiaId) {
         List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
+        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
         return resultados.stream()
                 .anyMatch(obj -> {
                     String thisMateriaId = obj.getMateriaId(); // Accedemos directamente al materiaId
@@ -237,7 +260,6 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 
     @Override
     public List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, boolean cursadaInscripto) {
-
         List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "Cursada");
         return todasLasNotas;
     }
@@ -246,8 +268,51 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
     @Override
     public List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
             Long cursadaExamenId, Boolean examenInscripto) {
-        List<NotaExamenDTO> todosLosExamenes = notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto);
-        return todosLosExamenes;
+        List<NotaExamenDTO> todosLosExamenes = obtenerNotasPorCondicionDTO(cursadaExamenId, examenInscripto);
+        List<NotaExamenDTO> aux = new ArrayList<>();
+        for (NotaExamenDTO dto : todosLosExamenes) {
+            System.out.println("DTO: " + dto);
+            String status = evaluarCorrelativaIndividual(dto.getLegajoId(), dto.getMateriaOrden(), "Examen")
+                    .getStatus();
+            dto.setStatus(status);
+            aux.add(dto);
+        }
+        return aux;
+    }
+
+    public List<NotaExamenDTO> obtenerNotasPorCondicionDTO(Long cursadaExamenId, boolean examenInscripto) {
+
+        List<Map<String, Object>> rows =
+                notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto);
+
+        List<NotaExamenDTO> salida = new ArrayList<>();
+
+        for (Map<String, Object> r : rows) {
+
+            NotaExamenDTO dto = new NotaExamenDTO(
+                    String.valueOf(r.get("personaDni")),
+                    (String) r.get("personaNombre"),
+                    (String) r.get("legajoId"),
+                    (String) r.get("personaApellido"),
+                    ((Number) r.get("notaId")).longValue(),
+                    r.get("notaCalificacionNotaNumero") != null ? ((Number) r.get("notaCalificacionNotaNumero")).intValue() : null,
+                    (String) r.get("notaCalificacionNotaLetra"),
+                    (String) r.get("notaCondicion"),
+                    (String) r.get("notaEstado"),
+                    (String) r.get("notaLibro"),
+                    (String) r.get("notaFolio"),
+                    r.get("notaFechaNota") != null ? ((java.sql.Date) r.get("notaFechaNota")).toLocalDate() : null,
+                    (String) r.get("notaObservaciones"),
+                    (String) r.get("notaUsuario"),
+                    ((Number) r.get("permisoId")).longValue(),
+                    (String) r.get("status"),
+                    r.get("materiaOrden") != null ? ((Number) r.get("materiaOrden")).intValue() : null
+            );
+
+            salida.add(dto);
+        }
+
+        return salida;
     }
 
 
@@ -326,6 +391,27 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         return notasRefinadas;
     }
 
+    @Override
+    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnaliticoSINREF(String legajoId) {
+        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
+        Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>(); // Evita duplicados y almacena la mejor nota
+        boolean checkCorrelativas = false;
+        for (NotaMateriaDTO nota : notasOrigen) {
+            nota.setNotaFinal(definirNotaFinal(nota));
+            int ordenMateria = nota.getMateriaOrden();
+            if (materiasMap.containsKey(ordenMateria)) {
+                NotaMateriaDTO mejorNota = validadorAnalitico(materiasMap.get(ordenMateria), nota);
+                materiasMap.put(ordenMateria, mejorNota);
+            } else {
+                materiasMap.put(ordenMateria, nota);
+            }
+        }
+        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>(materiasMap.values());
+        if (checkCorrelativas) {
+            validarCorrelativas(notasRefinadas);
+        }
+        return notasRefinadas;
+    }
 
 
     private void validarCorrelativas(List<NotaMateriaDTO> notasRefinadas) {
@@ -405,8 +491,6 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 //            }
 //        }
 //    }
-
-
     public boolean correlativas(int materia_orden, List<NotaMateriaDTO> analitico, String tipo) {
         boolean aux = false;
         if (analitico != null && !analitico.isEmpty() && materia_orden >= 0 && materia_orden < analitico.size()) {
@@ -590,30 +674,56 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
             throw new IllegalArgumentException("Las notas no pueden ser nulas");
         }
 
-        String cond1 = nota1.getNotaEstado();
-        String cond2 = nota2.getNotaEstado();
-        // Validar que los estados sean válidos
+        // NORMALIZAMOS ANTES DE TODO
+        String cond1 = normalizarEstado(nota1.getNotaEstado());
+        String cond2 = normalizarEstado(nota2.getNotaEstado());
+
+        System.out.println("Estado recibido cond1: " + cond1);
+        System.out.println("Estado recibido cond2: " + cond2);
+
+        // VALIDAMOS
         if (!esEstadoValido(cond1) || !esEstadoValido(cond2)) {
             throw new IllegalArgumentException("Estado de la nota no válido");
         }
-        // Obtener la prioridad de los estados
+
+        // PRIORIDADES
         int prioridad1 = obtenerPrioridad(cond1);
         int prioridad2 = obtenerPrioridad(cond2);
 
         if (prioridad1 < prioridad2) {
-         return nota1;
+            return nota1;
         }
         if (prioridad2 < prioridad1) {
-         return nota2;
+            return nota2;
         }
         return nota2;
     }
 
-    // Método para validar si el estado es uno de los valores esperados
-    private boolean esEstadoValido(String estado) {
-        return estado.equals("Aprobado") || estado.equals("Regular") || estado.equals("Cursando") ||
-               estado.equals("Desaprobado") || estado.equals("Ausente") || estado.equals("Pendiente") || estado.equals("Libre");
+
+    private String normalizarEstado(String estado) {
+        if (estado == null || estado.trim().isEmpty()) {
+            return "Pendiente";
+        }
+        return estado.trim();
     }
+
+    // Método para validar si el estado es uno de los valores esperados
+//    private boolean esEstadoValido(String estado) {
+//        return estado.equals("Aprobado") || estado.equals("Regular") || estado.equals("Cursando") ||
+//               estado.equals("Desaprobado") || estado.equals("Ausente") || estado.equals("Pendiente") || estado.equals("Libre");
+//    }
+
+
+    private boolean esEstadoValido(String estado) {
+        return estado.equals("Aprobado") ||
+                estado.equals("Regular") ||
+                estado.equals("Cursando") ||
+                estado.equals("Desaprobado") ||
+                estado.equals("Ausente") ||
+                estado.equals("Pendiente") ||
+                estado.equals("Libre");
+    }
+
 
     // Método para obtener la prioridad del estado (cuanto menor es el número, más alta es la prioridad)
     private int obtenerPrioridad(String estado) {
@@ -637,10 +747,67 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         }
     }
 
+//
+//    @Override
+//    public List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion) {
+//
+//
+//
+//        return notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto, notaCondicion);
+//    }
+
 
     @Override
     public List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion) {
-        return notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto, notaCondicion);
+        List<NotaExamenDTO> aux = new ArrayList<>();
+        List<NotaExamenDTO> lista =
+                findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto, notaCondicion);
+
+        // Iteramos la lista y procesamos cada item
+        for (NotaExamenDTO dto : lista) {
+            String status = evaluarCorrelativaIndividual(dto.getLegajoId(), dto.getMateriaOrden(),"Examen").getStatus();
+            if (status.equals("Aceptada")) {
+                aux.add(dto);
+            }
+        }
+        return aux;
+    }
+
+    public List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
+            Long cursadaExamenId,
+            boolean examenInscripto,
+            String notaCondicion
+    ) {
+
+        List<Object[]> rows = notaRepository.findExamenesRaw(cursadaExamenId, examenInscripto, notaCondicion);
+
+        List<NotaExamenDTO> lista = new ArrayList<>();
+
+        for (Object[] r : rows) {
+
+            NotaExamenDTO dto = new NotaExamenDTO(
+                    r[3].toString(),       // personaDni
+                    (String) r[5],       // personaNombre
+                    r[2].toString(),     // legajoId (Long → String)
+                    (String) r[4],       // personaApellido
+                    ((Number) r[0]).longValue(),   // notaId
+                    r[6] != null ? ((Number) r[6]).intValue() : null,
+                    (String) r[7],       // calificacion letra
+                    (String) r[8],       // nota condicion
+                    (String) r[9],       // nota estado
+                    (String) r[10],      // libro
+                    (String) r[11],      // folio
+                    (r[12] != null ? ((java.sql.Date) r[12]).toLocalDate() : null), // fecha
+                    (String) r[13],      // observaciones
+                    (String) r[15],      // usuario
+                    ((Number) r[1]).longValue(), // permisoId
+                    (String) r[14],      // status examen
+                    (Integer) r[16]      // materiaOrden
+            );
+            lista.add(dto);
+        }
+
+        return lista;
     }
 
 
@@ -649,10 +816,7 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
     public void eliminarNota(Long id) {
         Nota nota = notaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Nota no encontrada con ID: " + id));
-        if (!nota.getExamen().isEmpty()) {
-            throw new RuntimeException("No se puede eliminar la Nota porque tiene Exámenes asociados.");
-        }
-        Long cursadaId = Long.valueOf(nota.getCursada().getId()); // Guardamos el ID de la cursada antes de eliminar la nota
+           Long cursadaId = Long.valueOf(nota.getCursada().getId()); // Guardamos el ID de la cursada antes de eliminar la nota
         // Eliminar la nota
         notaRepository.delete(nota);
         // Verificar si hay otras notas con la misma cursada_id
@@ -679,18 +843,19 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         return todas.isEmpty() ? null : todas.get(0); // Solo la más reciente
     }
 
+
+
     @Override
     public Cursada obtenerCursadaPorNotaId(Long notaId) {
         return notaRepository.findCursadaByNotaId(notaId);
     }
 
-
-//evalua columna regularizada para cursar;
+    //evalua columna regularizada para cursar;
     @Override
-    public EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden) {
+    public EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden, String condicion) {
         List<NotaCursandoProjection> notas = notaRepository.findNotaCursandoByLegajoAndMateria(legajoId, materiaOrden);
         if (notas == null || notas.isEmpty()) {
-            System.out.println("❌ No se encontró la materia para este alumno.-"+legajoId+"-"+materiaOrden);
+            System.out.println("❌ No se encontró la materia para este alumno.-" + legajoId + "-" + materiaOrden);
             List<String> correlativas = new ArrayList<>();
             correlativas.add("Ninguna");
             List<String> fechas = new ArrayList<>();
@@ -700,17 +865,14 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         Optional<NotaCursandoProjection> optNotaSeleccionada = notas.stream()
                 .filter(n -> n.getNotaFechaNota() != null)
                 .max(Comparator.comparing(NotaCursandoProjection::getNotaFechaNota));
-
         NotaCursandoProjection notaSeleccionada = optNotaSeleccionada.orElseThrow(() ->
                 new RuntimeException("No se encontró ninguna nota con fecha válida.")
         );
-        System.out.println("===========================================================");
-        System.out.println("===========================================================");
-        System.out.println("===========================================================");
-        System.out.println("✅ Nota selecionada: " + notaSeleccionada.getMateriaNombre()+"-"+notaSeleccionada.getMateriaOrden());
-
+        System.out.println("✅ Nota selecionada: " +
+                notaSeleccionada.getMateriaNombre() +
+                "-" + notaSeleccionada.getMateriaOrden() +"-"
+            + notaSeleccionada.getNotaCondicion());
         String listaCorrelativas;
-
         switch (notaSeleccionada.getNotaCondicion()) {
             case "Cursada":
                 listaCorrelativas = notaSeleccionada.getMateriaCursada();
@@ -727,12 +889,10 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
             case "Examen":
                 listaCorrelativas = notaSeleccionada.getMateriaExamen();
                 break;
-
             default:
                 listaCorrelativas = "-"; // o null, según lo que necesites
                 break;
         }
-
         if (listaCorrelativas.equals("-")) {
             System.out.println("✅ No tiene correlativas, se acepta directamente.");
             List<String> correlativas = new ArrayList<>();
@@ -743,7 +903,7 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         } else {
             // Procesar correlativas
             System.out.println("⚙️ Procesando correlativas para la materia: " + notaSeleccionada.getMateriaCursada());
-            return procesarCorrelativasIndividual(notaSeleccionada,listaCorrelativas);
+            return procesarCorrelativasIndividual(notaSeleccionada, listaCorrelativas);
         }
     }
 
@@ -766,22 +926,17 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
             numero = numero.trim();
             List<NotaCursandoProjection> correlativasNotas = notasMap.get(numero);
             System.out.println("➡️ Evaluando correlativa: " + numero);
-
             if (correlativasNotas != null && !correlativasNotas.isEmpty()) {
                 boolean correlativaAprobadaValida = false;
-
                 for (NotaCursandoProjection correlativa : correlativasNotas) {
                     System.out.println("🔍 Analizando correlativa: " + correlativa);
-
                     boolean estaAprobada = "Aprobado".equalsIgnoreCase(correlativa.getNotaEstado());
-
                     if (correlativa.getNotaFechaNota() == null || nota.getNotaFechaNota() == null) {
                         System.out.println("⚠️ Una de las fechas es nula. Se considera fecha incoherente.");
                         tieneFechaIncoherente = true;
                         materiasConFechaInvalida.add(numero + " (fecha nula)");
                         continue;
                     }
-
 //                    boolean fechaCoherente = correlativa.getNotaFechaNota().isBefore(nota.getNotaFechaNota())
 //                            || correlativa.getNotaFechaNota().isEqual(nota.getNotaFechaNota());
 //                    System.out.println("📌 Estado: " + correlativa.getNotaEstado() + ", Fecha coherente: " + fechaCoherente);
@@ -791,7 +946,7 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 //                    }
 
 
-                  //  if (estaAprobada && fechaCoherente) {
+                    //  if (estaAprobada && fechaCoherente) {
                     if (estaAprobada) {
                         correlativaAprobadaValida = true;
                         System.out.println("✅ Correlativa válida encontrada para: " + numero);
@@ -799,7 +954,7 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
                                 || correlativa.getNotaFechaNota().isEqual(nota.getNotaFechaNota());
                         System.out.println("📌 Estado: " + correlativa.getNotaEstado() + ", Fecha coherente: " + fechaCoherente);
 
-                        if(!fechaCoherente){
+                        if (!fechaCoherente) {
                             materiasConFechaInvalida.add(numero + " (fecha adelantada)");
                         }
                         break; // Ya encontramos una válida, no seguimos buscando
@@ -837,7 +992,6 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         System.out.println("📅 Materias con fecha inválida: " + materiasConFechaInvalida);
         return new EvaluacionCorrelativaResponse(status, materiasDesaprobadas, materiasConFechaInvalida);
     }
-
 
 
 //    private EvaluacionCorrelativaResponse procesarCorrelativasIndividual(NotaCursandoProjection nota) {
@@ -925,7 +1079,8 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 //        if (tieneDesaprobadas) {
 //            status = "Provisoria";
 //        } else if (tieneFechaIncoherente) {
-////            status = "Verificar fecha";
+
+    /// /            status = "Verificar fecha";
 //            status = "Aceptada";
 //        } else {
 //            status = "Aceptada";
@@ -944,26 +1099,160 @@ public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
 //
 //        return new EvaluacionCorrelativaResponse(status, materiasDesaprobadas, materiasConFechaInvalida);
 //    }
-
-
-@Override
-public void permitirEdicionMateria(String carreraId, String materiaId, boolean editable) {
-    List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, "Cursada");
-    for (NotaCursadaDTO n : todasLasNotas) {
-        Optional<Nota> notaOpt = notaRepository.findById(n.getNotaId());
-        if (notaOpt.isPresent()) {
-            Nota nota = notaOpt.get();
-            nota.setEditable(editable); // Suponiendo que Nota tiene este campo
-            notaRepository.save(nota);  // Persistir el cambio
+    @Override
+    public void permitirEdicionMateria(String carreraId, String materiaId, boolean editable) {
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, "Cursada");
+        for (NotaCursadaDTO n : todasLasNotas) {
+            Optional<Nota> notaOpt = notaRepository.findById(n.getNotaId());
+            if (notaOpt.isPresent()) {
+                Nota nota = notaOpt.get();
+                nota.setEditable(editable); // Suponiendo que Nota tiene este campo
+                notaRepository.save(nota);  // Persistir el cambio
+            }
         }
     }
-}
 
     @Override
     public Nota saveNotaWithCursadsa(Nota nota, Integer cursadaId) {
-    Cursada cursada= cursadaService.getCursadaById(cursadaId).get();
-    nota.setCursada(cursada);
+        Cursada cursada = cursadaService.getCursadaById(cursadaId).get();
+        nota.setCursada(cursada);
         return notaRepository.save(nota);
+    }
+
+
+
+    @Override
+    public ResultadoRegularidad evaluarRegularidad(List<Nota> notas) {
+
+        Nota cursada = null;
+        List<Nota> examenes = new ArrayList<>();
+
+        for (Nota nota : notas) {
+            if ("Cursada".equalsIgnoreCase(nota.getNotaCondicion())) {
+                cursada = nota;
+            } else if (nota.getNotaCondicion() != null &&
+                    nota.getNotaCondicion().toLowerCase().contains("examen")) {
+                examenes.add(nota);
+            }
+        }
+
+        if (cursada == null) {
+            return new ResultadoRegularidad("Libre", "No se encontró registro de cursada.");
+        }
+
+        if ("Libre".equalsIgnoreCase(cursada.getNotaEstado())) {
+            return new ResultadoRegularidad("Libre", "La cursada tiene estado 'Libre'.");
+        }
+
+        LocalDate fechaCursada = cursada.getNotaFechaNota();
+        long anios = ChronoUnit.YEARS.between(fechaCursada, LocalDate.now());
+
+        if (anios > 3) {
+            return new ResultadoRegularidad("Libre",
+                    String.format("Cursada vencida: fue el %s, pasaron %d años (máximo: 3).", fechaCursada, anios));
+        }
+
+        boolean aprobado = examenes.stream()
+                .anyMatch(e -> "Aprobado".equalsIgnoreCase(e.getNotaEstado()));
+
+        if (aprobado) {
+            return new ResultadoRegularidad("Regular", "Examen final aprobado.");
+        }
+
+        long desaprobados = examenes.stream()
+                .filter(e -> "Desaprobado".equalsIgnoreCase(e.getNotaEstado()))
+                .count();
+
+        long pendientes = examenes.stream()
+                .filter(e -> "Pendiente".equalsIgnoreCase(e.getNotaEstado()))
+                .count();
+
+        long totalIntentos = desaprobados + pendientes;
+
+        if (totalIntentos >= 3) {
+            return new ResultadoRegularidad("Libre",
+                    String.format("Agotó los 3 intentos. Desaprobados: %d, Pendientes: %d. Debe recursar.",
+                            desaprobados, pendientes));
+        }
+
+        long restantes = 3 - totalIntentos;
+
+        return new ResultadoRegularidad("Regular",
+                String.format("Regular vigente. Cursada: %s. Intentos usados: %d/3 (%d restantes, %d pendiente/s de nota). Vence: %s.",
+                        fechaCursada, totalIntentos, restantes, pendientes, fechaCursada.plusYears(3)));
+    }
+
+    record ResultadoRegularidad(String condicion, String justificacion) {}
+
+
+
+        @Override
+        public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarrera(String carreraId) {
+            List<AlumnoCursadaMateriaNotaDTO> alumnos = notaRepository.findAlumnosPorCarrera(carreraId);
+        for (AlumnoCursadaMateriaNotaDTO alumno : alumnos) {
+            List<NotaMateriaDTO> notas = notaRepository.findBylegajoId(alumno.getLegajoId());
+            alumno.setNotaMateriaDTO(notas);
+        }
+            return alumnos;
+        }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public Nota findByCursadaId(Integer cursadaId) {
+
+        return notaRepository.findByCursadaId(cursadaId)
+                .orElseThrow(() ->
+                        new RuntimeException("Nota no encontrada para la cursada ID: " + cursadaId));
+    }
+
+    @Override
+    public Nota obtenerExamenPorCursadaYPermiso(Integer cursadaId, Integer permisoId) {
+
+        Optional<Nota> optionalNota =
+                notaRepository.findExamenPorCursadaYPermiso(cursadaId, permisoId);
+
+        if (optionalNota.isPresent()) {
+            Nota nota = optionalNota.get();
+            log.info("Examen encontrado: ID {}", nota.getNotaId());
+            return nota;
+        }
+
+        log.info("No se encontró examen para cursadaId {} y permisoId {}",
+                cursadaId, permisoId);
+
+        return null;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Nota findByCursadaIdMateriaCondicion(Integer cursadaId, Integer permisoId) {
+
+        return notaRepository.findExamenPorCursadaYPermiso(cursadaId, permisoId)
+                .orElseThrow(() ->
+                        new RuntimeException("Nota no encontrada para la cursada ID: " + cursadaId
+                                + " y permiso: " + permisoId));
+    }
+
+
+
+
+    @Override
+    public Nota findExamenPorCursadaYTurnoId(Integer cursadaId, Integer turnoId) {
+
+        Optional<Nota> optionalNota =
+                notaRepository.findExamenPorCursadaYTurnoId(cursadaId, turnoId);
+
+        if (optionalNota.isPresent()) {
+            Nota nota = optionalNota.get();
+            log.info("Examen encontrado: ID {}", nota.getNotaId());
+            return nota;
+        }
+
+        log.info("No se encontró examen para cursadaId {} y permisoId {}",
+                cursadaId, turnoId);
+
+        return null;
     }
 
 }

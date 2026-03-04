@@ -38,6 +38,12 @@ public class CarreraController {
         return ResponseEntity.ok(carreras);
     }
 
+    @GetMapping("/nombres")
+    public ResponseEntity<List<String>> obtenerCarrerasNombres() {
+        List<String> nombres = carreraService.obtenerCarrerasNombres();
+        return ResponseEntity.ok(nombres);
+    }
+
 
     @GetMapping("/legajo/{legajoId}")
     public Carrera obtenerCarreraPorLegajo(@PathVariable String legajoId) {

@@ -6,6 +6,8 @@ import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Examen;
 import com.example.iesiback.services.ExamenService;
+import com.example.iesiback.services.MateriaService;
+import com.example.iesiback.services.TurnoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,12 @@ public class ExamenController {
 
     @Autowired
     private ExamenService examenService;
+
+    @Autowired
+    private MateriaService materiaService;
+
+    @Autowired
+    private TurnoService turnoService;
 
     @GetMapping
     public ResponseEntity<List<Examen>> getAllExamenes() {
@@ -79,22 +87,11 @@ public class ExamenController {
     @PostMapping("/cursadas/registrar")
     public ResponseEntity<Examen> registrarExamen(@RequestBody ExamenRequestDTO request) {
 
-        Logger logger = LoggerFactory.getLogger(ExamenController.class);
-        logger.info("📌 Recibiendo solicitud de inscripción:");
-       // logger.info("   🔹 Examen: {}", request.getExamen());
-        logger.info("   🔹 Legajo ID: {}", request.getLegajoId());
-        logger.info("   🔹 Turno ID: {}", request.getTurnoId());
-        logger.info("   🔹 Materia ID: {}", request.getMateriaId());
-        logger.info("   🔹 Nota ID: {}", request.getNota());
-        logger.info("   🔹 condicion ID: {}", request.getExamenCondicion());
-        logger.info("   🔹 cursada ID: {}", request.getCursadaId());
-
-
         Examen nuevoExamen = examenService.registrarExamen(
            //     request.getExamen(),
                 request.getLegajoId(),
-                request.getTurnoId(),
-                request.getMateriaId(),
+                turnoService.obtenerTurnoPorId(request.getTurnoId()),
+                materiaService.findMateriaById( request.getMateriaId()),
                 request.getExamenCondicion(),
                 request.getCursadaId()
         );

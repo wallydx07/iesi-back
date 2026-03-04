@@ -55,10 +55,14 @@ public class CursadaExamenController {
             @RequestParam String turnoId,
             @RequestParam String materiaId,
             @RequestParam String fecha,
-            @RequestParam String hora // ahora como String directamente
+            @RequestParam String hora, // ahora como String directamente
+            @RequestParam Long docenteDni, // ahora como String directamente
+            @RequestParam Long vocal1Dni, // ahora como String directamente
+            @RequestParam Long vocal2Dni // ahora como String directamente // ahora como String directamente
     ) {
         LocalDate fechaExamen = LocalDate.parse(fecha); // esto sigue siendo LocalDate
-        CursadaExamen nuevaCursada = cursadaExamenService.crearCursadaExamen(turnoId, materiaId, fechaExamen, hora);
+        CursadaExamen nuevaCursada = cursadaExamenService.crearCursadaExamen(
+                turnoId, materiaId, fechaExamen, hora, docenteDni, vocal1Dni, vocal2Dni);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCursada);
     }
 
@@ -72,6 +76,12 @@ public class CursadaExamenController {
     @GetMapping("/ordenadas")
     public ResponseEntity<List<ExamenCursadaDTO>> obtenerCursadasPorTurno(@RequestParam String turnoId) {
         List<ExamenCursadaDTO> cursadas = cursadaExamenService.obtenerCursadasPorTurno(turnoId);
+        return ResponseEntity.ok(cursadas);
+    }
+
+    @GetMapping("/ordenadasFecha")
+    public ResponseEntity<List<ExamenCursadaDTO>> obtenerCursadasPorTurnoFecha(@RequestParam String turnoId) {
+        List<ExamenCursadaDTO> cursadas = cursadaExamenService.obtenerCursadasPorTurnoFechaDesc(turnoId);
         return ResponseEntity.ok(cursadas);
     }
 

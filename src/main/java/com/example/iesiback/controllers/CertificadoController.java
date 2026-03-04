@@ -22,20 +22,67 @@ import java.time.LocalDate;
 @RequestMapping("/api/certificado")
 public class CertificadoController {
 
-    @Autowired
-    private CertificadoService certificadoService;
+    private final CertificadoService certificadoService;
     private final MateriaService materiaService;
     private final CarreraService carreraService;
     private final CursadaExamenService cursadaExamenService;
 
 
 
-    public CertificadoController(MateriaService materiaService,
+    public CertificadoController(CertificadoService certificadoService, MateriaService materiaService,
                                  CarreraService carreraService,
                                  CursadaExamenService cursadaExamenService) {
+        this.certificadoService = certificadoService;
         this.materiaService = materiaService;
         this.carreraService = carreraService;
         this.cursadaExamenService = cursadaExamenService;
+    }
+
+    @PostMapping("/enviar")
+    public ResponseEntity<String> enviarPermisoPorEmail(
+            @RequestParam String libreta,
+            @RequestParam String turno,
+            @RequestParam String usuarioNombre,
+            @RequestParam String destinatario
+    ) {
+        try {
+            certificadoService.enviarPermisoPorEmail(libreta, turno, usuarioNombre, destinatario);
+            return ResponseEntity.ok("Permiso enviado por correo"); // ✅ esto es correcto
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al enviar permiso: " + e.getMessage()); // ✅ manejo de error
+        }
+    }
+
+
+
+    @PostMapping("/generar")
+    public ResponseEntity<ByteArrayResource> generarPermiso(
+            @RequestParam String libreta,
+            @RequestParam String turno,
+            @RequestParam String usuarioNombre
+    ) {
+        try {
+            PDDocument documento = certificadoService.generaPermiso(libreta, turno, usuarioNombre);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            documento.save(outputStream);
+            documento.close();
+
+            byte[] pdfBytes = outputStream.toByteArray();
+            System.out.println("✅ PDF generado correctamente, tamaño: " + pdfBytes.length + " bytes");
+
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=permiso.pdf")
+                    .body(resource);
+
+        } catch (Exception e) {
+            System.out.println("❌ Error al generar el PDF:");
+            e.printStackTrace(); // Imprime el error en la consola
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
 
@@ -442,6 +489,33 @@ public class CertificadoController {
         }
     }
 
+    @GetMapping("/generaAsistenciaExamenFinalPersonal")
+    public ResponseEntity<ByteArrayResource> generaAsistenciaExamenFinalPersonal(
+            @RequestParam String dni,
+            @RequestParam String autoridades,
+            @RequestParam String carrera,
+            @RequestParam String fecha,
+            @RequestParam String accion,
+            @RequestParam String materia
+    ) {
+        try {
+            PDDocument document = certificadoService.generaAsistenciaExamenFinalDocente(dni,autoridades,carrera,fecha, accion,materia);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
 
     @GetMapping("/reporte-mensual")
     public ResponseEntity<ByteArrayResource> descargarReportePorMes(
@@ -477,6 +551,31 @@ public class CertificadoController {
             document.save(baos);
             byte[] pdfBytes = baos.toByteArray();
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/reporte-rango-dni")
+    public ResponseEntity<ByteArrayResource> descargarReportePorFechasDNI(
+            @RequestParam("dni") String dni,
+            @RequestParam("desde") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam("hasta") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta) {
+
+        try (PDDocument document = certificadoService.crearPDFPorUsuario(dni, fechaDesde, fechaHasta);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            document.save(baos);
+
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=generaCertificadoAsistencia.pdf")
                     .contentType(MediaType.APPLICATION_PDF)

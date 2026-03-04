@@ -1,6 +1,7 @@
 package com.example.iesiback.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -9,6 +10,8 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Getter
@@ -48,9 +51,10 @@ public class Atencion {
     @Column(name = "atencion_problema", length = Integer.MAX_VALUE)
     private String atencionProblema;
 
-    @ColumnDefault("CURRENT_DATE")
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "atencion_fecha")
-    private LocalDate atencionFecha;
+    private LocalDateTime atencionFecha;
+
 
     @Column(name = "atencion_respuesta", length = Integer.MAX_VALUE)
     private String atencionRespuesta;
@@ -112,6 +116,22 @@ public class Atencion {
     @Column(name = "atencion_Referencia")
     private Integer atencionReferencia;
 
+
+    public LocalDateTime getAtencionFecha() {
+        return atencionFecha;
+    }
+
+    public void setAtencionFecha(LocalDateTime atencionFecha) {
+        this.atencionFecha = atencionFecha;
+    }
+
+    public Integer getAtencionReferencia() {
+        return atencionReferencia;
+    }
+
+    public void setAtencionReferencia(Integer atencionReferencia) {
+        this.atencionReferencia = atencionReferencia;
+    }
 
     public String getAtencionCanal() {
         return atencionCanal;
@@ -225,13 +245,7 @@ public class Atencion {
         this.atencionObservaciones = atencionObservaciones;
     }
 
-    public LocalDate getAtencionFecha() {
-        return atencionFecha;
-    }
 
-    public void setAtencionFecha(LocalDate atencionFecha) {
-        this.atencionFecha = atencionFecha;
-    }
 
     public String getAtencionRespuesta() {
         return atencionRespuesta;
@@ -304,6 +318,16 @@ public class Atencion {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    @JsonIgnore
+    public String getAtencionFechaFormateada() {
+        if (atencionFecha == null) return "";
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return "Fecha: " + atencionFecha.format(f) +
+                "   Hora: " + atencionFecha.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+
+    }
+
 
 
     //    @Transient

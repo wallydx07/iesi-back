@@ -9,6 +9,6 @@ import java.util.List;
 public interface InscripcionService {
     Inscripcion crearInscripcion(Inscripcion inscripcion);
     Inscripcion findByLegajoId(String legajoId);
-    boolean existsByAlumnoDniAndCarreraNombre(String alumnoDni, String carreraId);
+    boolean existsByAlumnoDniAndCarreraNombre(String alumnoDni, String carreraNombre);
     List<String> rellenarAnyo(String legajoId);
 }

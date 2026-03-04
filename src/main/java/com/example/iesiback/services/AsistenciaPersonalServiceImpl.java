@@ -5,6 +5,7 @@ import com.example.iesiback.entities.AsistenciaPersonal;
 import com.example.iesiback.entities.PersonalHorario;
 import com.example.iesiback.repositories.AsistenciaPersonalRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class AsistenciaPersonalServiceImpl implements AsistenciaPersonalService {
+
+    @Autowired
+    private FeriadosService feriadosService;
 
     private final AsistenciaPersonalRepository repository;
     private final HorarioService horarioService;
@@ -499,7 +503,8 @@ public List<AsistenciaPersonal> obtenerPorDniYFecha(Long dni, LocalDate fecha) {
 
     @Override
     public List<DetalleAsistenciaPersonalDTO> obtenerDetallePorDNI(Long dni) {
-        List<Object[]> resultados = repository.obtenerDetallePorDniYAnio(dni,2025);
+        int anioActual = LocalDate.now().getYear();
+        List<Object[]> resultados = repository.obtenerDetallePorDniYAnio(dni, anioActual);
         List<DetalleAsistenciaPersonalDTO> lista = new ArrayList<>();
 
         for (Object[] fila : resultados) {
@@ -522,6 +527,89 @@ public List<AsistenciaPersonal> obtenerPorDniYFecha(Long dni, LocalDate fecha) {
         }
         return lista;
     }
+
+
+//@Override
+//public List<DetalleAsistenciaPersonalDTO> obtenerDetallePorDNI(Long dni) {
+//
+//    List<DetalleAsistenciaPersonalDTO> lista = new ArrayList<>();
+//
+//    int anio = LocalDate.now().getYear();
+//
+//
+//
+//    LocalDate inicio = LocalDate.of(anio, 1, 1);
+//    LocalDate fin = LocalDate.now();
+//
+//    Random random = new Random();
+//    LocalDate fecha = inicio;
+//
+//    while (!fecha.isAfter(fin)) {
+//
+//        DayOfWeek day = fecha.getDayOfWeek();
+//
+//        // ❌ Saltar sábado y domingo
+//        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+//            fecha = fecha.plusDays(1);
+//            continue;
+//        }
+//
+//        // 🔥 Obtener feriados con motivo desde API gobierno
+//        Map<LocalDate, String> feriados = feriadosService.obtenerFeriadosConMotivo(anio);
+//        // 🎉 Día feriado -> agregar registro especial
+//        if (feriados.containsKey(fecha)) {
+//
+//            String motivo = feriados.get(fecha);
+//
+//            DetalleAsistenciaPersonalDTO dtoFeriado = new DetalleAsistenciaPersonalDTO(
+//                    null,       // asistenciaId
+//                    null,       // horarioId
+//                    "-",       // carreraId
+//                    "-",       // materiaNombre
+//                    dni,        // dni real
+//                    "FERIADO",  // apellido
+//                    motivo,     // nombre = motivo del feriado
+//                    "-",       // horaEntrada
+//                    "-",       // horaSalida
+//                    motivo,  // observaciones
+//                    8,          // estado 0 = no laboral
+//                    fecha       // fecha del feriado
+//            );
+//
+//            lista.add(dtoFeriado);
+//            fecha = fecha.plusDays(1);
+//            continue;
+//        }
+//
+//        // ✔ Día normal -> generar asistencia falsa
+//        int vEntrada = random.nextInt(41) - 20;
+//        int vSalida = random.nextInt(41) - 20;
+//
+//        LocalTime entrada = LocalTime.of(14, 0).plusMinutes(vEntrada);
+//        LocalTime salida = LocalTime.of(20, 0).plusMinutes(vSalida);
+//
+//        DetalleAsistenciaPersonalDTO dto = new DetalleAsistenciaPersonalDTO(
+//                random.nextLong(1_000_000),
+//                random.nextLong(1_000_000),
+//                "TUR-01",
+//                "Asistencia Personal",
+//                dni,
+//                "Pérez",
+//                "Juan",
+//                entrada.toString(),
+//                salida.toString(),
+//                "",
+//                0,
+//                fecha
+//        );
+//
+//        lista.add(dto);
+//
+//        fecha = fecha.plusDays(1);
+//    }
+//
+//    return lista;
+//}
 
 
     @Override
@@ -553,6 +641,8 @@ public List<AsistenciaPersonal> obtenerPorDniYFecha(Long dni, LocalDate fecha) {
         }).toList();
         return asistencias;
     }
+
+
 
 
     @Override

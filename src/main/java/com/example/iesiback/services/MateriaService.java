@@ -18,4 +18,5 @@ public interface MateriaService {
     List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo, String legajoId);
     Materia findMateriaById(String materiaId);
 
+    Optional<Materia> obtenerMateriaPorOrden(Integer orden);
 }

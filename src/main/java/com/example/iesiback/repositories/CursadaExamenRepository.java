@@ -53,22 +53,24 @@ public interface CursadaExamenRepository extends JpaRepository<CursadaExamen, In
 
 
     @Query(value = """
-    SELECT 
-        ce.cursada_examen_id, 
+    SELECT
+        ce.cursada_examen_id,
         ce.fecha,
         ce.hora,
         ce.libro,
         ce.folio,
         ce.firma,
         ce.docente_dni,
-        m.materia_id, 
+        m.materia_id,
         m.materia_nombre,
         m.materia_nivel,
-        (SELECT c.carrera_nombre 
-         FROM carrera c 
-         JOIN materia_carrera mc ON c.carrera_id = mc.carrera_id 
-         WHERE mc.materia_id = ce.materia_id 
-         LIMIT 1) AS carrera_nombre
+        (SELECT c.carrera_nombre
+         FROM carrera c
+         JOIN materia_carrera mc ON c.carrera_id = mc.carrera_id
+         WHERE mc.materia_id = ce.materia_id
+         LIMIT 1) AS carrera_nombre,
+        ce.vocal1_dni,
+        ce.vocal2_dni
     FROM cursada_examen ce
     INNER JOIN materia m ON ce.materia_id = m.materia_id
     WHERE ce.turno_id = :turnoId
@@ -77,10 +79,55 @@ public interface CursadaExamenRepository extends JpaRepository<CursadaExamen, In
 """, nativeQuery = true)
     List<Object[]> findByTurno(@Param("turnoId") String turnoId);
 
+//
+//    @Query("""
+//SELECT ce
+//FROM CursadaExamen ce
+//LEFT JOIN FETCH ce.docente
+//WHERE ce.turno.turnoId = :turnoId
+//""")
+//    List<CursadaExamen> findByTurno(@Param("turnoId") Integer turnoId);
+//
+
+    @Query(value = """
+                SELECT DISTINCT
+                    ce.cursada_examen_id, 
+                    ce.fecha,
+                    ce.hora,
+                    ce.libro,
+                    ce.folio,
+                    ce.firma,
+                    ce.docente_dni,
+                    m.materia_id, 
+                    m.materia_nombre,
+                                m.materia_nivel,
+                                c.carrera_nombre,
+                                        ce.vocal1_dni,
+                                ce.vocal2_dni
+                            FROM cursada_examen ce
+                            INNER JOIN materia m 
+                                ON ce.materia_id = m.materia_id
+                            LEFT JOIN materia_carrera mc 
+                                ON mc.materia_id = m.materia_id
+                            LEFT JOIN carrera c 
+                    ON c.carrera_id = mc.carrera_id
+                WHERE ce.turno_id = :turnoId
+                ORDER BY ce.fecha ASC
+            """, nativeQuery = true)
+    List<Object[]> findByTurnoFechaDesc(@Param("turnoId") String turnoId);
 
 
 
+    @Query("""
+       SELECT ce
+       FROM CursadaExamen ce
+       WHERE ce.turno.turnoId = :turnoId
+         AND ce.materiaId = :materiaId
+       """)
+    Optional<CursadaExamen> findByTurnoIdAndMateriaId(
+            @Param("turnoId") String turnoId,
+            @Param("materiaId") String materiaId
+    );
     Optional<CursadaExamen> findByTurnoAndMateriaId(Turno turno, String materiaId);
-
 
 }

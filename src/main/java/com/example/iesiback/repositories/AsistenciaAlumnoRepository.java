@@ -30,6 +30,8 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
     List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(
             @Param("idInforme") Integer idInforme
     );
+
+
     //AQUI SE OBTIENE LOS ALUMNOS DE CURSADA///////
 
 

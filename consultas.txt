@@ -76,7 +76,7 @@ WHERE materia_carrera.materia_id = materia.materia_id
   AND materia.materia_regimen = '2DO CUATRIMESTRE';
 
 
-  UPDATE materia_carrera
+UPDATE materia_carrera
 SET fecha = DATE '2025-12-05'
 FROM materia, carrera
 WHERE materia_carrera.materia_id = materia.materia_id
@@ -116,3 +116,79 @@ WHERE EXTRACT(YEAR FROM CURRENT_DATE) BETWEEN CAST(ca.carrera_year AS INTEGER) A
     OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
   )
  and materia_regimen='1ER CUATRIMESTRE'
+
+ WITH alumnos_iniciales AS (
+     SELECT
+         c.cursada_legajo_id AS legajo_id,
+         mc.carrera_id,
+         ca.carrera_nombre,
+         ca.carrera_year
+     FROM cursada c
+     INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+     INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+     INNER JOIN nota n ON n.nota_cursada_id = c.cursada_id
+     WHERE EXTRACT(YEAR FROM n.nota_fecha_nota) = EXTRACT(YEAR FROM CURRENT_DATE)
+     GROUP BY c.cursada_legajo_id, mc.carrera_id, ca.carrera_nombre, ca.carrera_year
+ ),
+ alumnos_aprobados AS (
+     SELECT
+         c.cursada_legajo_id AS legajo_id,
+         mc.carrera_id
+     FROM nota n
+     INNER JOIN cursada c ON n.nota_cursada_id = c.cursada_id
+     INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
+     INNER JOIN materia m ON mc.materia_id = m.materia_id
+     INNER JOIN carrera ca ON mc.carrera_id = ca.carrera_id
+     WHERE n.nota_estado = 'Aprobado'
+       AND EXTRACT(YEAR FROM n.nota_fecha_nota) = EXTRACT(YEAR FROM CURRENT_DATE)
+       AND (
+             (m.materia_nivel = '1ro' AND CAST(ca.carrera_year AS INTEGER) = EXTRACT(YEAR FROM CURRENT_DATE))
+          OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
+          OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
+          )
+     GROUP BY c.cursada_legajo_id, mc.carrera_id
+     HAVING COUNT(n.nota_id) >= 2
+ )
+ SELECT
+     i.carrera_nombre,
+     i.carrera_year,
+     COUNT(*) AS alumnos_iniciales,
+     COUNT(a.legajo_id) AS alumnos_aprobados,
+     COUNT(*) - COUNT(a.legajo_id) AS alumnos_libres,
+     ROUND((COUNT(*) - COUNT(a.legajo_id))::numeric / COUNT(*) * 100, 2) AS porcentaje_desercion
+ FROM alumnos_iniciales i
+ LEFT JOIN alumnos_aprobados a
+     ON i.legajo_id = a.legajo_id
+    AND i.carrera_id = a.carrera_id
+ GROUP BY i.carrera_nombre, i.carrera_year
+ ORDER BY i.carrera_nombre, i.carrera_year;
+
+
+UPDATE materia_carrera mc
+SET fecha = CASE
+    WHEN m.materia_regimen = '1ER CUATRIMESTRE'
+         THEN make_date(
+             c.carrera_year::int
+             + CASE
+                   WHEN m.materia_nivel = '1ro' THEN 0
+                   WHEN m.materia_nivel = '2do' THEN 1
+                   WHEN m.materia_nivel = '3ro' THEN 2
+               END,
+             7, 11
+         )
+
+    WHEN m.materia_regimen IN ('2DO CUATRIMESTRE', 'ANUAL')
+         THEN make_date(
+             c.carrera_year::int
+             + CASE
+                   WHEN m.materia_nivel = '1ro' THEN 0
+                   WHEN m.materia_nivel = '2do' THEN 1
+                   WHEN m.materia_nivel = '3ro' THEN 2
+               END,
+             12, 5
+         )
+END
+FROM materia m, carrera c
+WHERE mc.materia_id = m.materia_id
+  AND mc.carrera_id = c.carrera_id
+  AND c.carrera_year::int BETWEEN 2010 AND 2024;

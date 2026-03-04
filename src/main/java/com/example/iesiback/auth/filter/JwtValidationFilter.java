@@ -28,44 +28,116 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
     public JwtValidationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
     }
+//
+//    @Override
+//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+//            throws IOException, ServletException {
+//
+//        String header = request.getHeader(HEADER_AUTHORIZATION);
+//
+//        if (header == null || !header.startsWith(PREFIX_TOKEN)) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
+//
+//        String token = header.replace(PREFIX_TOKEN, "");
+//        try {
+//            Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
+//            String username = claims.getSubject();
+//            // String username2 = (String) claims.get("username");
+//            Object authoritiesClaims = claims.get("authorities");
+//
+//            Collection<? extends GrantedAuthority> roles = Arrays.asList(new ObjectMapper()
+//            .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityJsonCreator.class)
+//                    .readValue(authoritiesClaims.toString().getBytes(), SimpleGrantedAuthority[].class));
+//
+//            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null,
+//                    roles);
+//            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+//            chain.doFilter(request, response);
+//
+//        } catch (JwtException e) {
+//            Map<String, String> body = new HashMap<>();
+//            body.put("error", e.getMessage());
+//            body.put("message", "El token es invalido!");
+//
+//            response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+//            response.setStatus(401);
+//            response.setContentType(CONTENT_TYPE);
+//        }
+//
+//    }
+
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain)
             throws IOException, ServletException {
 
+        System.out.println("════════════════ JWT FILTER INICIO ════════════════");
+
         String header = request.getHeader(HEADER_AUTHORIZATION);
+        System.out.println("HEADER Authorization = " + header);
 
         if (header == null || !header.startsWith(PREFIX_TOKEN)) {
+            System.out.println("❌ No hay token o no empieza con Bearer");
             chain.doFilter(request, response);
             return;
         }
 
         String token = header.replace(PREFIX_TOKEN, "");
+        System.out.println("TOKEN = " + token.substring(0, Math.min(40, token.length())) + "...");
+
         try {
-            Claims claims = Jwts.parser().verifyWith(SECRET_KEY).build().parseSignedClaims(token).getPayload();
+            Claims claims = Jwts.parser()
+                    .verifyWith(SECRET_KEY)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            System.out.println("CLAIMS = " + claims);
+
             String username = claims.getSubject();
-            // String username2 = (String) claims.get("username");
+            System.out.println("USERNAME = " + username);
+
             Object authoritiesClaims = claims.get("authorities");
+            System.out.println("AUTHORITIES RAW = " + authoritiesClaims);
 
-            Collection<? extends GrantedAuthority> roles = Arrays.asList(new ObjectMapper()
-            .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityJsonCreator.class)
-                    .readValue(authoritiesClaims.toString().getBytes(), SimpleGrantedAuthority[].class));
+            Collection<? extends GrantedAuthority> roles =
+                    Arrays.stream(new ObjectMapper()
+                                    .addMixIn(SimpleGrantedAuthority.class,
+                                            SimpleGrantedAuthorityJsonCreator.class)
+                                    .readValue(authoritiesClaims.toString(),
+                                            SimpleGrantedAuthority[].class))
+                            .toList();
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, 
-                    roles);
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            System.out.println("AUTHORITIES PARSED = " + roles);
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(username, null, roles);
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            System.out.println("AUTH SET EN CONTEXT = " + authentication);
+
             chain.doFilter(request, response);
 
         } catch (JwtException e) {
+            System.out.println("❌ JWT ERROR: " + e.getMessage());
+
             Map<String, String> body = new HashMap<>();
             body.put("error", e.getMessage());
             body.put("message", "El token es invalido!");
 
-            response.getWriter().write(new ObjectMapper().writeValueAsString(body));
-            response.setStatus(401);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(CONTENT_TYPE);
+            response.getWriter().write(
+                    new ObjectMapper().writeValueAsString(body)
+            );
         }
 
+        System.out.println("════════════════ JWT FILTER FIN ════════════════");
     }
 
 }

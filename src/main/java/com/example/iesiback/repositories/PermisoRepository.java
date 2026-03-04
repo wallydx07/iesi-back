@@ -29,12 +29,16 @@ public interface PermisoRepository extends JpaRepository<Permiso, Long> {
     @Query("SELECT a.personaApellido FROM Persona a WHERE a.personaDni = :dni")
     String obtenerApellidoPorDni(@Param("dni") int dni);
 
-    @Query(value = "SELECT DISTINCT p.* " +
-            "FROM permiso p " +
-            "INNER JOIN examen e ON p.permiso_id = e.permiso_id " +
-            "INNER JOIN cursada_examen c ON e.cursada_examen_id = c.cursada_examen_id " +
-            "WHERE p.permiso_legajo_id = :legajoId " +
-            "AND c.turno_id = :turnoId", nativeQuery = true)
+    @Query(value = """
+    SELECT p.*
+    FROM permiso p
+    INNER JOIN examen e ON p.permiso_id = e.permiso_id
+    INNER JOIN cursada_examen c ON e.cursada_examen_id = c.cursada_examen_id
+    WHERE p.permiso_legajo_id = :legajoId
+    AND c.turno_id = :turnoId
+    ORDER BY p.permiso_id DESC
+    LIMIT 1
+""", nativeQuery = true)
     Optional<Permiso> findPermisoByLegajoAndTurnoOrdered(@Param("legajoId") String legajoId,
                                                          @Param("turnoId") String turnoId);
 

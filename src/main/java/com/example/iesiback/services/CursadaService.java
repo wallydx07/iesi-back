@@ -13,10 +13,14 @@ import java.util.Optional;
 public interface CursadaService {
     @Transactional
     void agregarMateriasACursadaPorCarrera(String carreraId, Legajo legajo);
+
+
     List<Cursada> getAllCursadas();
     Optional<Cursada> getCursadaById(Integer id);
-    Optional<Cursada> obtenerCursadaPorLegajoMateriaCarrera(String legajoId, String materiaId, String carreraId);
     Cursada saveCursada(Cursada cursada);
+
+    Optional<Cursada> obtenerCursadaPorLegajoMateriaCarrera(String legajoId, String materiaId, String carreraId);
+
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, int materiaCarreraId);
     void deleteCursada(Integer id);
     List<Cursada> findByLegajoId(String legajoId);
@@ -35,4 +39,18 @@ public interface CursadaService {
     Optional<Cursada> buscarPorId(Integer cursadaId);
 
     Cursada actualizarCursada(Cursada cursada, Cursada cursadaPost);
+
+
+    List<Cursada> findByMateriaCarrera_Carrera_CarreraId(String carreraId);
+
+    @Transactional
+    Cursada obtenerORegistrarCursada(
+            Legajo legajo,
+            Long materiaCarreraId);
+
+
+    @Transactional
+    Cursada buscarOMasCercanaORegistrar(
+            Legajo legajo,
+            MateriaCarrera materiaCarrera);
 }
