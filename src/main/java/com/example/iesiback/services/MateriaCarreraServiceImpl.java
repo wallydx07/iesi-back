@@ -32,22 +32,54 @@ public class MateriaCarreraServiceImpl implements MateriaCarreraService {
         return materiaCarreraRepository.findAll();
     }
 
-@Override
-public int obtenerCantidadMateriasPorNivel(String carreraId, String nivel) {
+    @Override
+    public int obtenerCantidadMateriasPorNivel(String carreraId, String nivel) {
         return materiaCarreraRepository.countMateriasPorNivel(carreraId, nivel) - 1;
     }
 
+//    @Override
+//    public MateriaCarrera obtenerMateriaCarrera(String carreraId, String materiaId) {
+//        return materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId)
+//                .orElseThrow(() -> new RuntimeException("MateriaCarrera no encontrada para carreraId: "
+//                        + carreraId + " y materiaId: " + materiaId));
+//    }
+
+
     @Override
-    public MateriaCarrera obtenerMateriaCarrera(String carreraId, String materiaId) {
-        return materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId)
-                .orElseThrow(() -> new RuntimeException("MateriaCarrera no encontrada para carreraId: "
-                        + carreraId + " y materiaId: " + materiaId));
+    public List<MateriaCarrera> obtenerMateriaCarrera(String carreraId, String materiaId) {
+
+        List<MateriaCarrera> lista = materiaCarreraRepository
+                .findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId);
+
+        if (lista.isEmpty()) {
+            throw new RuntimeException(
+                    "MateriaCarrera no encontrada [carreraId=" + carreraId + ", materiaId=" + materiaId + "]"
+            );
+        }
+        return lista;
     }
+
+
+    @Override
+    public List<MateriaCarrera> obtenerMateriaCarreraDivision(String carreraId, String materiaId, String division) {
+
+        List<MateriaCarrera> lista = materiaCarreraRepository
+                .findByCarrera_CarreraIdAndMateria_MateriaIdAndDivision(carreraId, materiaId, division);
+
+        if (lista.isEmpty()) {
+            throw new RuntimeException(
+                    "MateriaCarrera no encontrada [carreraId=" + carreraId + ", materiaId=" + materiaId + "]"
+            );
+        }
+        return lista;
+    }
+
 
     @Override
     public List<MateriaCarrera> obtenerMateriasPorCarrera(String carreraId) {
         return materiaCarreraRepository.findByCarrera_CarreraId(carreraId);
     }
+
     // 🔹 Nuevo método para buscar por ID
     public Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id) {
         return materiaCarreraRepository.findById(id);
@@ -129,7 +161,7 @@ public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO
     public List<MateriaDTO> obtenerMateriasPorCarreraYDocente(Long fmcDocente, String carreraId) {
 //        return materiaCarreraRepository.findMateriasByCarreraAndFmcDocente(fmcDocente, carreraId);
         int anioActual = LocalDate.now().getYear();
-        return materiaCarreraRepository.findMateriasDictadasEsteAnio(fmcDocente, carreraId,anioActual);
+        return materiaCarreraRepository.findMateriasDictadasEsteAnio(fmcDocente, carreraId, anioActual);
 
     }
 
@@ -160,6 +192,26 @@ public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO
                 .findFirst()
                 .orElse(null);
     }
+
+//
+//@Override
+//public MateriaCarrera findMateriaCarreraByMateriaOrdenCarreraId(
+//        String orden, String carreraId) {
+//
+//    Integer ordenNumero = Integer.valueOf(orden.trim());
+//
+//    return materiaCarreraRepository
+//            .buscarMateriaCarreraOrden(
+//                    ordenNumero,
+//                    carreraId )
+//            .stream()
+//            .findFirst()
+//            .orElse(null);
+//}
+//
+
+
+
 @Override
 public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
 

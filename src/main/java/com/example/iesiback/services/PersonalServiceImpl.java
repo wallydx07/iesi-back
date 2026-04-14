@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.PersonaDTO;
 import com.example.iesiback.entities.Personal;
 import com.example.iesiback.repositories.PersonalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,5 +125,9 @@ public class PersonalServiceImpl implements PersonalService {
         return personalRepository.buscarPorTextoLibre(texto);
     }
 
+    @Override
+    public List<PersonaDTO> findPersonaOrdeando(String tipo) {
+        return personalRepository.findPersonalOrdenado(tipo);
+    }
 
 }

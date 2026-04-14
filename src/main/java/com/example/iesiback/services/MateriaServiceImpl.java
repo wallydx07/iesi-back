@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 
+import com.example.iesiback.dto.CorrelativasFaltantesEstadoDTO;
 import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.dto.ProcesadoReinscripcionMateriaDTO;
 import com.example.iesiback.dto.ReinscripcionMateriaDTO;
@@ -21,11 +22,12 @@ public class MateriaServiceImpl implements MateriaService {
     private final CursadaService cursadaService;
     private final InscripcionService inscripcionService;
 
+
     @Autowired
     public MateriaServiceImpl(
-            NotaService notaService,
-            CursadaService cursadaService, InscripcionService inscripcionService) {
+            NotaService notaService, CursadaService cursadaService, InscripcionService inscripcionService) {
         this.notaService = notaService;
+
         this.cursadaService= cursadaService;
         this.inscripcionService = inscripcionService;
     }
@@ -75,15 +77,15 @@ public class MateriaServiceImpl implements MateriaService {
 
 
     @Override
-    public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo,String legajoId) {
+    public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo,String legajoId, String division) {
 
         List<ReinscripcionMateriaDTO> reinscripciones = new ArrayList<>();
         List<ProcesadoReinscripcionMateriaDTO> procesados = new ArrayList<>();
         String carreraNombre = inscripcionService.findByLegajoId(legajoId).getCarrera().getCarreraNombre();
-
-       reinscripciones=materiaRepository.findReinscripciones(cicloLectivo, carreraNombre);
+       reinscripciones=materiaRepository.findReinscripciones(cicloLectivo, carreraNombre,division);
 
         for (ReinscripcionMateriaDTO dto : reinscripciones) {
+
           if(!notaService.isMateriaAprobada(legajoId,dto.getMateriaId())) {
               ProcesadoReinscripcionMateriaDTO procesado = new ProcesadoReinscripcionMateriaDTO();
               procesado.setMateriaId(dto.getMateriaId());
@@ -97,15 +99,16 @@ public class MateriaServiceImpl implements MateriaService {
 
               procesado.setCarreraYear(dto.getCarreraYear());
               procesado.setMateriaCarreraId(dto.getMateriaCarreraId());
+              procesado.setDivision(dto.getDivision());
               System.out.println("--------------------------------------------LegajoID" + legajoId + "------MateriaId" + dto.getMateriaId());
               Materia materia=this.findMateriaById(dto.getMateriaId());
-              List<String> correlativas = cursadaService.obtenerCorrelativasPendientesMateriaId(legajoId, materia);
+              List<CorrelativasFaltantesEstadoDTO> correlativas = cursadaService.obtenerCorrelativasPendientesMateriaId(legajoId, materia);
               System.out.println("--------------------------------------------" + correlativas.size());
-              String C = "";
-              for (String aux : correlativas) {
-                  C = C + aux + ",";
-              }
-                  Optional<Boolean> estadoOpt = cursadaService.obtenerEstadoCursada(legajoId, dto.getMateriaId(), String.valueOf(dto.getCarreraYear()));
+//              String C = "";
+//              for (String aux : correlativas) {
+//                  C = C + aux + ",";
+//              }
+                  Optional<Boolean> estadoOpt = cursadaService.obtenerEstadoCursada(legajoId, dto.getMateriaId(), String.valueOf(dto.getCarreraYear()),division);
 
                   if (estadoOpt.isPresent()) {
                       Boolean estado = estadoOpt.get();
@@ -113,7 +116,7 @@ public class MateriaServiceImpl implements MateriaService {
                   } else {
                       procesado.setCursadaInscripto(false);
                   }
-                  procesado.setMateriaCorrelativas(C);//correlativas pendientes
+                  procesado.setCorrelativas(correlativas);
                   procesados.add(procesado);
               }
           }
@@ -129,6 +132,7 @@ public class MateriaServiceImpl implements MateriaService {
     public Optional<Materia> obtenerMateriaPorOrden(Integer orden) {
         return materiaRepository.findByMateriaOrden(orden);
     }
+
 
 
 //

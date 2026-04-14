@@ -168,4 +168,9 @@ public class AtencionServiceImpl implements AtencionService {
     public List<Atencion> findAllByOrderByAtencionFechaDesc() {
         return repository.findAllByOrderByAtencionFechaDescNumeroTipoDesc();
     }
+
+    @Override
+    public List<Atencion> findByAtencionLegajoId(String legajoId) {
+        return repository.findByLegajoId(legajoId);
+    }
 }

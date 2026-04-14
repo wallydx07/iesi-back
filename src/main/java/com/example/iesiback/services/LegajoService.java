@@ -27,4 +27,5 @@ public interface LegajoService {
     Legajo crearLegajoDesdeRequest(Map<String, Object> request);
 
     List<Legajo> findLegajosByDNI(String dni);
+
 }

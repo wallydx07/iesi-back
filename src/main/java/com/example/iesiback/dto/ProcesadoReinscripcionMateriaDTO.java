@@ -1,5 +1,7 @@
 package com.example.iesiback.dto;
 
+import java.util.List;
+
 public class ProcesadoReinscripcionMateriaDTO {
 
     private String materiaId;
@@ -14,6 +16,24 @@ public class ProcesadoReinscripcionMateriaDTO {
     private Boolean cursadaInscripto;
     private String cursadaStatus;
     private String materiaCarreraId;
+    private String division;
+    private List<CorrelativasFaltantesEstadoDTO> correlativas;
+
+    public List<CorrelativasFaltantesEstadoDTO> getCorrelativas() {
+        return correlativas;
+    }
+
+    public void setCorrelativas(List<CorrelativasFaltantesEstadoDTO> correlativas) {
+        this.correlativas = correlativas;
+    }
+
+    public String getDivision() {
+        return division;
+    }
+
+    public void setDivision(String division) {
+        this.division = division;
+    }
 
     public Integer getMateriaOrden() {
         return materiaOrden;

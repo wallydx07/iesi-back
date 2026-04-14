@@ -22,7 +22,8 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
                     m.materia_cursada,
                     m.materia_modalidad,
                     m.materia_examen,
-                    m.catedras
+                    m.catedras,
+                    mc.division
              FROM materia m
              INNER JOIN materia_carrera mc ON m.materia_id = mc.materia_id
              WHERE mc.carrera_id = :carreraId
@@ -41,7 +42,8 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
                 c.carrera_year     AS carreraYear,
                 m.materia_cursada  AS materiaCursada,
                 m.materia_modalidad AS materiaModalidad,
-                m.materia_regimen  AS materiaRegimen
+                m.materia_regimen  AS materiaRegimen,   
+                mc.division  AS division
             FROM materia m
             INNER JOIN materia_carrera mc ON m.materia_id = mc.materia_id
             INNER JOIN carrera c ON mc.carrera_id = c.carrera_id
@@ -52,12 +54,14 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
                  OR (m.materia_nivel = '3ro' AND (CAST(c.carrera_year AS INTEGER) + 2) = :cicloLectivo)
               )
               AND c.carrera_nombre = :carreraNombre
+              AND mc.division = :division
             ORDER BY m.materia_nivel, m.materia_orden ASC
             """,
             nativeQuery = true)
     List<ReinscripcionMateriaDTO> findReinscripciones(
             @Param("cicloLectivo") Integer cicloLectivo,
-            @Param("carreraNombre") String carreraNombre
+            @Param("carreraNombre") String carreraNombre,
+            @Param("division") String division
     );
 
 

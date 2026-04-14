@@ -12,5 +12,6 @@ public interface ReinscripcionMateriaDTO {
 
     String getMateriaModalidad();
     String getMateriaRegimen();
+    String getDivision();
 
 }

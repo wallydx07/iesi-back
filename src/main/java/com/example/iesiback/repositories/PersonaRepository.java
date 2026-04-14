@@ -2,9 +2,11 @@ package com.example.iesiback.repositories;
 import com.example.iesiback.dto.PersonaDTO;
 import com.example.iesiback.entities.Persona;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -116,5 +118,12 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
     WHERE p.personaDni = :personaDni
 """)
     Optional<PersonaDTO> findPersonaDTObyDNI(@Param("personaDni") Long personaDni);
+
+        @Modifying
+        @Transactional
+        @Query(value = "UPDATE persona SET persona_dni = :nuevo WHERE persona_dni = :actual", nativeQuery = true)
+        int actualizarDni(@Param("actual") Long actual,
+                          @Param("nuevo") Long nuevo);
+
 
 }

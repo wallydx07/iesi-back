@@ -15,7 +15,7 @@ public interface MateriaService {
     Materia actualizarMateria(String id, Materia materia);
     void eliminarMateria(String id);
     List<MateriaDTO> obtenerMateriasPorCarrera(String carreraId);
-    List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo, String legajoId);
+    List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo, String legajoId, String division);
     Materia findMateriaById(String materiaId);
 
     Optional<Materia> obtenerMateriaPorOrden(Integer orden);

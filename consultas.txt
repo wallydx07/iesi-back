@@ -192,3 +192,60 @@ FROM materia m, carrera c
 WHERE mc.materia_id = m.materia_id
   AND mc.carrera_id = c.carrera_id
   AND c.carrera_year::int BETWEEN 2010 AND 2024;
+
+
+
+  select*from legajo where legajo_id='EYEC301';
+
+  delete from aporte where aporte_legajo_id='EYEC301';
+  DELETE FROM nota
+  USING cursada
+  WHERE cursada.cursada_id = nota.nota_cursada_id
+  ND cursada.cursada_legajo_id = 'EYEC301';
+  DELETE FROM cursada
+  WHERE cursada_legajo_id = 'EYEC301';
+
+
+  delete from inscripcion where legajo_id='EYEC301';
+  delete from observaciones where legajo_id='EYEC301';
+  delete from legajo where legajo_id='EYEC301';
+
+  SELECT
+      a.aporte_id,
+      a.aporte_nro_recibo as recibo,
+      a.aporte_talonario_recibo as talonario,
+      a.aporte_monto,
+      a.aporte_fecha,
+      p.persona_apellido,
+      p.persona_nombre,
+      c.carrera_nombre,
+      CASE
+          WHEN c.carrera_year = 2024 THEN '3ER AÑO'
+          WHEN c.carrera_year = 2025 THEN '2DO AÑO'
+          WHEN c.carrera_year = 2026 THEN '1ER AÑO'
+          ELSE 'RECURSANTE'
+      END AS curso,
+  		a.usuario
+  FROM aporte a
+  INNER JOIN legajo l
+      ON a.aporte_legajo_id = l.legajo_id
+  INNER JOIN inscripcion i
+      ON l.legajo_id = i.legajo_id
+  INNER JOIN persona p
+      ON l.legajo_alumno_dni = p.persona_dni
+  INNER JOIN carrera c
+      ON i.carrera_id = c.carrera_id
+  WHERE l.legajo_estado = 'Activo'
+    AND a.aporte_fecha > '2025-12-22'
+  ORDER BY a.aporte_fecha DESC;
+
+
+
+
+
+
+
+
+
+
+

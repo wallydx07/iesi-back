@@ -131,4 +131,9 @@ public class AtencionController {
         List<Atencion> lista = service.findByAtencionReferencia(id);
         return ResponseEntity.ok(lista);
     }
+
+    @GetMapping("/findByLegajoId/{legajoId}")
+    public List<Atencion> findByLegajoId(@PathVariable String legajoId) {
+        return service.findByAtencionLegajoId(legajoId);
+    }
 }

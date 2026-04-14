@@ -24,16 +24,14 @@ public class LegajoServiceImpl implements LegajoService {
     private final UserService userService;
     private final CarreraService carreraService;
     private final InscripcionService inscripcionService;
-    private final CursadaService cursadaService;
 
-    public LegajoServiceImpl(ObjectMapper objectMapper, LegajoRepository legajoRepository , PersonaService personaService, UserService userService, CarreraService carreraService, InscripcionService inscripcionService, CursadaService cursadaService) {
+    public LegajoServiceImpl(ObjectMapper objectMapper, LegajoRepository legajoRepository , PersonaService personaService, UserService userService, CarreraService carreraService, InscripcionService inscripcionService) {
         this.objectMapper = objectMapper;
         this.legajoRepository = legajoRepository;
         this.personaService = personaService;
         this.userService = userService;
         this.carreraService = carreraService;
         this.inscripcionService = inscripcionService;
-        this.cursadaService = cursadaService;
     }
 
     @Override
@@ -161,6 +159,8 @@ public Legajo findOrCreateLegajo(Persona persona, String carreraId) {
         Inscripcion inscripcion=new Inscripcion();
         inscripcion.setLegajo(legajo);
         inscripcion.setCarrera(carrera);
+
+
         inscripcionService.crearInscripcion(inscripcion);
 //        cursadaService.agregarMateriasACursadaPorCarrera(carrera.getCarreraId(),legajo);
 
@@ -197,5 +197,6 @@ public Legajo findOrCreateLegajo(Persona persona, String carreraId) {
 
         return legajoRepository.findByLegajoPersonaDni(persona);
     }
+
 
 }

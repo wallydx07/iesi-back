@@ -21,6 +21,7 @@ public class AlumnoLegajoInscripcionCarreraDTO {
     LocalDate alumnoFechaNacimiento;
     String domicilioAlumnoCorreo;
     String domicilioAlumnoCelular;
+    String legajoComision;
 
     public AlumnoLegajoInscripcionCarreraDTO(
             String legajoId,
@@ -39,7 +40,8 @@ public class AlumnoLegajoInscripcionCarreraDTO {
             String usuario,
             LocalDate  alumnoFechaNacimiento,
             String domicilioAlumnoCorreo,
-            String domicilioAlumnoCelular
+            String domicilioAlumnoCelular,
+            String legajoComision
     ) {
         this.legajoId = legajoId;
         this.alumnoDni = alumnoDni;
@@ -58,7 +60,16 @@ public class AlumnoLegajoInscripcionCarreraDTO {
         this.alumnoFechaNacimiento = alumnoFechaNacimiento;
         this.domicilioAlumnoCorreo = domicilioAlumnoCorreo;
         this.domicilioAlumnoCelular = domicilioAlumnoCelular;
+        this.legajoComision = legajoComision;
 
+    }
+
+    public String getLegajoComision() {
+        return legajoComision;
+    }
+
+    public void setLegajoComision(String legajoComision) {
+        this.legajoComision = legajoComision;
     }
 
     public LocalDate  getAlumnoFechaNacimiento() {

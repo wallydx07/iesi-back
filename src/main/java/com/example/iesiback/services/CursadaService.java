@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.CorrelativasFaltantesEstadoDTO;
 import com.example.iesiback.dto.NotaCursadaDTO;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Legajo;
@@ -13,25 +14,21 @@ import java.util.Optional;
 public interface CursadaService {
     @Transactional
     void agregarMateriasACursadaPorCarrera(String carreraId, Legajo legajo);
-
-
     List<Cursada> getAllCursadas();
     Optional<Cursada> getCursadaById(Integer id);
     Cursada saveCursada(Cursada cursada);
-
     Optional<Cursada> obtenerCursadaPorLegajoMateriaCarrera(String legajoId, String materiaId, String carreraId);
-
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, int materiaCarreraId);
     void deleteCursada(Integer id);
     List<Cursada> findByLegajoId(String legajoId);
 
     List<Cursada> getCursadasNoAprobadas(String legajoId);
     List<Cursada> findByLegajoAndMateria(String legajo, String materia);
-    Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear);
+    Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear, String division);
 
     String obtenerCorrelativasPendientes(String materiaId, String legajoId);
 
-    List<String> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia);
+    List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia);
 
     @Transactional
     void eliminarCursada(Integer id);

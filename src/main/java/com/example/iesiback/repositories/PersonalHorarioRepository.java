@@ -67,5 +67,6 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
     List<PersonalHorarioDTO> findPersonalHorariosDelAnio(@Param("year") Integer year);
 
 
+    List<PersonalHorario> findByMateriaCarreraId(long materiaId);
 
 }

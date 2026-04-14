@@ -15,15 +15,10 @@ import java.util.Map;
 @RequestMapping("/api/legajos")
 public class LegajoController {
 
-    private final UserService userService;
-
     private final LegajoService legajoService;
 
-    private final PersonaService alumnoService;
 
-    public LegajoController(PersonaService alumnoService, UserService userService, LegajoService legajoService) {
-        this.userService = userService;
-        this.alumnoService = alumnoService;
+    public LegajoController(LegajoService legajoService) {
         this.legajoService = legajoService;
     }
 
@@ -44,6 +39,7 @@ public class LegajoController {
         UpdateLegajo.setLegajoEstado(legajo.getLegajoEstado());
         UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
         UpdateLegajo.setNotasCorregidas(legajo.isNotasCorregidas());
+        UpdateLegajo.setLegajoComision(legajo.getLegajoComision());
         //UpdateLegajo.setLegajoCarpetaColgante(legajo.getLegajoCarpetaColgante());
         Legajo updatedLegajo = legajoService.updateLegajo(UpdateLegajo);
         return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);
@@ -135,6 +131,8 @@ public class LegajoController {
 
         return ResponseEntity.ok(legajos);
     }
+
+
 
 
 }

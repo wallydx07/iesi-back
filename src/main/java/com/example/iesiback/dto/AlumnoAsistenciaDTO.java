@@ -5,18 +5,18 @@ public class AlumnoAsistenciaDTO {
     private Integer idInforme;
     private String legajoId;
     private Boolean estado;
-    private Long alumnoDni;
-    private String alumnoApellido;
-    private String alumnoNombre;
+    private Long personaDni;
+    private String personaApellido;
+    private String personaNombre;
 
-    public AlumnoAsistenciaDTO(Integer idAsistencia, Integer idInforme, String legajoId, Boolean estado,Long alumnoDni,String alumnoApellido,String alumnoNombre) {
+    public AlumnoAsistenciaDTO(Integer idAsistencia, Integer idInforme, String legajoId, Boolean estado,Long personaDni,String personaApellido,String personaNombre) {
         this.idAsistencia = idAsistencia;
         this.idInforme = idInforme;
         this.legajoId = legajoId;
         this.estado = estado;
-        this.alumnoDni = alumnoDni;
-        this.alumnoApellido = alumnoApellido;
-        this.alumnoNombre = alumnoNombre;
+        this.personaDni = personaDni;
+        this.personaApellido = personaApellido;
+        this.personaNombre = personaNombre;
 
     }
 
@@ -52,27 +52,27 @@ public class AlumnoAsistenciaDTO {
         this.estado = estado;
     }
 
-    public Long getAlumnoDni() {
-        return alumnoDni;
+    public Long getPersonaDni() {
+        return personaDni;
     }
 
-    public void setAlumnoDni(Long alumnoDni) {
-        this.alumnoDni = alumnoDni;
+    public void setPersonaDni(Long personaDni) {
+        this.personaDni = personaDni;
     }
 
-    public String getAlumnoNombre() {
-        return alumnoNombre;
+    public String getPersonaApellido() {
+        return personaApellido;
     }
 
-    public void setAlumnoNombre(String alumnoNombre) {
-        this.alumnoNombre = alumnoNombre;
+    public void setPersonaApellido(String personaApellido) {
+        this.personaApellido = personaApellido;
     }
 
-    public String getAlumnoApellido() {
-        return alumnoApellido;
+    public String getPersonaNombre() {
+        return personaNombre;
     }
 
-    public void setAlumnoApellido(String alumnoApellido) {
-        this.alumnoApellido = alumnoApellido;
+    public void setPersonaNombre(String personaNombre) {
+        this.personaNombre = personaNombre;
     }
 }

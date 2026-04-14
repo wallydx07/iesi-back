@@ -100,6 +100,10 @@ public class Legajo {
     @Column(name = "legajo_cambia", length = 10)
     private String legajoCambia;
 
+    @Column(name = "legajo_comision", length = 50, columnDefinition = "varchar(50) default 'A'")
+    private String legajoComision;
+
+
 
 
 
@@ -127,6 +131,14 @@ public class Legajo {
 
     @OneToMany(mappedBy = "legajo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Cursada> cursadas = new LinkedHashSet<>();
+
+    public String getLegajoComision() {
+        return legajoComision;
+    }
+
+    public void setLegajoComision(String legajoComision) {
+        this.legajoComision = legajoComision;
+    }
 
     public String getLegajoId() {
         return legajoId;

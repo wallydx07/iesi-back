@@ -278,10 +278,11 @@ public class CertificadoController {
     public ResponseEntity<ByteArrayResource> generaPlanillaTutores(
             @RequestParam String carreraId,
             @RequestParam String estado,
-            @RequestParam String apellido) {
+            @RequestParam String apellido,
+            @RequestParam String comision) {
 
         try {
-          PDDocument document = certificadoService.generaPlanillaTutores(carreraId,estado,apellido);
+          PDDocument document = certificadoService.generaPlanillaTutores(carreraId,estado,apellido, comision);
             // Convertir PDDocument a byte[]
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
@@ -323,16 +324,18 @@ public class CertificadoController {
 
     @GetMapping("/planillaSeguimiento")
     public ResponseEntity<ByteArrayResource> planillaSeguimiento(
-            @RequestParam String materiaId,
-            @RequestParam String carreraId,
-            @RequestParam Boolean cursadaInscripto) {
+//            @RequestParam String materiaId,
+//            @RequestParam String carreraId,
+//            @RequestParam Boolean cursadaInscripto
+            @RequestParam Long materiaCarreraId
+    ) {
         try {
-            System.out.println("Materia ID: " + materiaId);
-            System.out.println("carreraId: " + carreraId);
-            System.out.println("cursadaInscripto: " + cursadaInscripto);
-
             // 🔴 POSIBLE ERROR 1: certificadoService.generaPlanilla() puede retornar null o lanzar una excepción
-            PDDocument document = certificadoService.generaPlanilla(carreraId, materiaId, cursadaInscripto);
+//            PDDocument document = certificadoService.generaPlanilla(carreraId, materiaId, cursadaInscripto);
+//
+            PDDocument document = certificadoService.generaPlanilla(materiaCarreraId);
+
+
             if (document == null) {
                 // Buen control defensivo
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -383,9 +386,10 @@ public class CertificadoController {
     public ResponseEntity<byte[]> exportarPlanillaExcel(
             @RequestParam String carreraId,
             @RequestParam String materiaId,
+            @RequestParam String division,
             @RequestParam(defaultValue = "true") Boolean inscripto) {
 
-        ByteArrayInputStream in = certificadoService.generaPlanillaExcel(carreraId, materiaId, inscripto);
+        ByteArrayInputStream in = certificadoService.generaPlanillaExcel(carreraId, materiaId, inscripto, division);
         byte[] contenido;
         contenido = in.readAllBytes();
 
@@ -428,8 +432,6 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
 
 
     @GetMapping("/generaAsistenciaSalidaCampo")
@@ -675,10 +677,12 @@ public class CertificadoController {
 
     @GetMapping("/generarCalificador")
     public ResponseEntity<ByteArrayResource> generarCalificador(
-            @RequestParam String legajoId
+            @RequestParam String legajoId,
+            @RequestParam boolean enBlanco
     ) {
+        System.out.println("enBlanco = " + enBlanco);
         try {
-            PDDocument document = certificadoService.generaCalificador(legajoId);
+            PDDocument document = certificadoService.generaCalificador(legajoId,enBlanco);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             byte[] pdfBytes = baos.toByteArray();

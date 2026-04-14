@@ -5,6 +5,7 @@ import com.example.iesiback.entities.PersonalHorario;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface PersonalHorariosService {
     List<PersonalHorario> findByDiaHoraEntradaEnRangoYAnio(String dia, LocalTime horaInicio, LocalTime horaFin, Integer anio);
     List<PersonalHorario> findByDiaYAnio(String dia, Integer anio);
     List<PersonalHorarioDTO> getPersonalHorarios(Integer year);
+
+    List<LocalDateTime> obtenerClasesDelMes(long razon);
 }

@@ -27,17 +27,19 @@ public class PersonaController {
         this.alumnoService = alumnoService;
         this.personalService = personalService;
     }
+
+
     @GetMapping
     public List<Persona> obtenerAlumno() {
         return alumnoService.obtenerAlumnos();
     }
+
 
     @PostMapping
     public ResponseEntity<Persona> createAlumno(@RequestBody Persona persona) {
         Persona nuevoPersona = alumnoService.createAlumno(persona);
         return ResponseEntity.ok(nuevoPersona);
     }
-
 
     @GetMapping("/buscar")
     public List<String> buscarAlumnos(@RequestParam String apellido) {
@@ -63,6 +65,8 @@ public class PersonaController {
     public List<Persona> buscarAlumnosDni(@RequestParam String dni) {
         return alumnoService.buscarPorDni(dni);
     }
+
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Persona> actualizarAlumno(@PathVariable String id, @RequestBody Persona persona) {
@@ -157,22 +161,24 @@ public class PersonaController {
 
     @PutMapping("/cambio-dni")
     public ResponseEntity<String> cambioDni(
-            @RequestParam String dniActual,
+            @RequestParam Long dniActual,
             @RequestParam Long dniNuevo) {
 
-        alumnoService.cambioDNI(dniActual, dniNuevo);
+        alumnoService.cambiarDni(dniActual, dniNuevo);
         return ResponseEntity.ok("DNI actualizado correctamente");
     }
 
-    @GetMapping("/promedios/{year}")
-    public ResponseEntity<List<PromedioEgresadoDTO>> obtenerEgresados(
-            @PathVariable Integer year
-    ) {
-        List<PromedioEgresadoDTO> egresados =
-                alumnoService.obtenerEgresados(year);
+//    @GetMapping("/promedios/{year}")
+//    public ResponseEntity<List<PromedioEgresadoDTO>> obtenerEgresados(
+//            @PathVariable Integer year
+//    ) {
+//        List<PromedioEgresadoDTO> egresados =
+//                alumnoService.obtenerEgresados(year);
+//
+//        return ResponseEntity.ok(egresados);
+//    }
 
-        return ResponseEntity.ok(egresados);
-    }
+
 
 //    @GetMapping("/api/AlumnoExamenDTO")
 //    public List<AlumnoExamenDTO> AlumnoExamenDTO(@RequestParam String apellido, @RequestParam String carreraNombre) {

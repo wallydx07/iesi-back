@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class TurnoServiceImpl implements TurnoService {
@@ -52,10 +49,35 @@ public class TurnoServiceImpl implements TurnoService {
 //        return turnos;
 //    }
 
+//    @Override
+//    public List<TurnoExamenDTO> getTurnoExamenDTO() {
+//
+//        List<TurnoExamenDTO> turnos = turnoRepository.findAllTurnoExamenDTO();
+//
+//        String userRol = userService.getAuthenticatedUser()
+//                .get()
+//                .getRoles()
+//                .get(0)
+//                .getRoleNombre();
+//
+//        // 🔐 Si es docente → devolver solo el más reciente
+//        if ("ROLE_DOCENTE".equalsIgnoreCase(userRol) && !turnos.isEmpty()) {
+//            return Collections.singletonList(turnos.get(0));
+//        }
+//
+//        // 👥 Otros roles → devolver todos
+//        return turnos;
+//    }
+
+
     @Override
     public List<TurnoExamenDTO> getTurnoExamenDTO() {
 
         List<TurnoExamenDTO> turnos = turnoRepository.findAllTurnoExamenDTO();
+
+        if (turnos.isEmpty()) {
+            return turnos;
+        }
 
         String userRol = userService.getAuthenticatedUser()
                 .get()
@@ -63,12 +85,43 @@ public class TurnoServiceImpl implements TurnoService {
                 .get(0)
                 .getRoleNombre();
 
-        // 🔐 Si es docente → devolver solo el más reciente
-        if ("ROLE_DOCENTE".equalsIgnoreCase(userRol) && !turnos.isEmpty()) {
-            return Collections.singletonList(turnos.get(0));
+        // 🔐 Si es docente → filtrar por último mes y año, devolver todos los llamados de ese mes
+//        if ("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
+//
+//            TurnoExamenDTO ultimo = turnos.stream()
+//                    .max(Comparator.comparing(TurnoExamenDTO::getTurnoAnio)
+//                            .thenComparing(TurnoExamenDTO::getTurnoMes))
+//                    .orElse(turnos.get(0));
+//
+//            // Filtrar todos los turnos del mismo mes y año que el último
+//            List<TurnoExamenDTO> turnosDelUltimoMes = turnos.stream()
+//                    .filter(t -> t.getTurnoMes().equalsIgnoreCase(ultimo.getTurnoMes())
+//                            && t.getTurnoAnio().equalsIgnoreCase(ultimo.getTurnoAnio()))
+//                    .sorted(Comparator.comparing(TurnoExamenDTO::getTurnoLimite)) // ordenar por fecha límite
+//                    .toList();
+//
+//            return turnosDelUltimoMes;
+//        }
+
+        // 🔐 Si es docente → filtrar por último mes y año, devolver todos los llamados de ese mes
+        if ("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
+
+            // Tomar el turno con la fecha límite más reciente
+            TurnoExamenDTO ultimo = turnos.stream()
+                    .max(Comparator.comparing(TurnoExamenDTO::getTurnoLimite))
+                    .orElse(turnos.get(0));
+
+            // Filtrar todos los turnos del mismo mes y año que el último
+            List<TurnoExamenDTO> turnosDelUltimoMes = turnos.stream()
+                    .filter(t -> t.getTurnoMes().equalsIgnoreCase(ultimo.getTurnoMes())
+                            && t.getTurnoAnio().equalsIgnoreCase(ultimo.getTurnoAnio()))
+                    .sorted(Comparator.comparing(TurnoExamenDTO::getTurnoLimite).reversed())
+                    .toList();
+
+            return turnosDelUltimoMes;
         }
 
-        // 👥 Otros roles → devolver todos
+        // 👥 Otros roles → devolver todos los turnos sin filtrar
         return turnos;
     }
 

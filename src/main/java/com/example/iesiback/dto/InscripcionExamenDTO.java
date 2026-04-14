@@ -18,9 +18,18 @@ public class InscripcionExamenDTO {
     private String turnoId;
     private String hora;
     private String justificacion; // ← agregar esto
+    private Boolean sancion;
 
     public InscripcionExamenDTO() {
 
+    }
+
+    public Boolean getSancion() {
+        return sancion;
+    }
+
+    public void setSancion(Boolean sancion) {
+        this.sancion = sancion;
     }
 
     public String getJustificacion() {

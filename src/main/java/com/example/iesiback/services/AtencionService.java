@@ -23,4 +23,7 @@ public interface AtencionService {
     String getSecuenciaPorTipo(String tipo);
     List<Atencion> obtenerPorGestor(Long gestorDni);
     List<Atencion> findByAtencionReferencia(Integer referencia);
+
+    List<Atencion> findByAtencionLegajoId(String legajoId);
+
 }

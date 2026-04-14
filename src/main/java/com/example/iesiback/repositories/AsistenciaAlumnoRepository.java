@@ -87,6 +87,9 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
 //""")
 //    List<AsistenciaResumenDTO> obtenerResumenAsistencia(@Param("legajoId") String legajoId);
 
+
+
+
     @Query("""
     SELECT new com.example.iesiback.dto.AsistenciaResumenDTO(
         m.materiaNombre,

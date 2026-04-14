@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,6 +75,8 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final PermisoService permisoService;
     private final ExamenService examenService;
 
+    private final PersonalHorariosService personalHorariosService;
+
     @Autowired
     public CertificadoServiceImpl(@Lazy PersonaService alumnoService,
                                   CarreraService carreraService,
@@ -81,7 +84,7 @@ public class CertificadoServiceImpl implements CertificadoService {
                                   MateriaCarreraRepository materiaCarreraRepository, DocumentoService documentoService,
                                   LegajoService legajoService,
                                   AlumnoLegajoService alumnoLegajoService,
-                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, AtencionService atencionService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService) {
+                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, AtencionService atencionService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, PersonalHorariosService personalHorariosService) {
         this.alumnoService = alumnoService;
         this.carreraService = carreraService;
         this.notaService = notaService;
@@ -101,6 +104,7 @@ public class CertificadoServiceImpl implements CertificadoService {
         this.turnoService = turnoService;
         this.permisoService = permisoService;
         this.examenService = examenService;
+        this.personalHorariosService = personalHorariosService;
     }
 
     @Override
@@ -946,29 +950,6 @@ public class CertificadoServiceImpl implements CertificadoService {
         int contProm = 0;
         List<NotaMateriaDTO> listaMaterias = new ArrayList<NotaMateriaDTO>();
         listaMaterias = this.notaService.obtenerTodasNotasPorLegajoAnalitico(legajoId);
-//            System.out.println("Lista de Materias:");
-//            for (NotaMateriaDTO notaMateria : listaMaterias) {
-//                System.out.println("Nota ID: " + notaMateria.getNotaId());
-//                System.out.println("Materia Orden: " + notaMateria.getMateriaOrden());
-//                System.out.println("Materia Nombre: " + notaMateria.getMateriaNombre());
-//                System.out.println("Nota Calificación Número: " + notaMateria.getNotaCalificacionNumero());
-//                System.out.println("Nota Calificación Letra: " + notaMateria.getNotaCalificacionLetra());
-//                System.out.println("Nota Condición: " + notaMateria.getNotaCondicion());
-//                System.out.println("Nota Estado: " + notaMateria.getNotaEstado());
-//                System.out.println("Nota Libro: " + notaMateria.getNotaLibro());
-//                System.out.println("Nota Folio: " + notaMateria.getNotaFolio());
-//                System.out.println("Nota Fecha: " + notaMateria.getNotaFecha());
-//                System.out.println("Nota Observaciones: " + notaMateria.getNotaObservaciones());
-//                System.out.println("Nota Usuario: " + notaMateria.getNotaUsuario());
-//                System.out.println("Nota Status: " + notaMateria.getNotaStatus());
-//                System.out.println("Nota Final: " + notaMateria.getNotaFinal());
-//                System.out.println("Correlativas: " + notaMateria.getCorrelativas());
-//                System.out.println("Materia ID: " + notaMateria.getMateriaId());
-//                System.out.println("Materia Nivel: " + notaMateria.getMateriaNivel());
-//                System.out.println("Cursada ID: " + notaMateria.getCursadaId());
-//                System.out.println("-----------------------------");
-//            }
-        System.out.println(listaMaterias.size() + "Tamaño 1");
         PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
         PDDocument Documento = new PDDocument();
         try {
@@ -1208,34 +1189,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             for (int i = 0; i < año; i++) {// primer for, este genera los años, es decir las materias que llevan cada año
 //                System.out.println("*-*-*-*-*-*-**--*-" + i);
                 List<NotaMateriaDTO> listaMateriasyear = materiasyear(listaMaterias, i);
-//                System.out.println("Lista de Materias=======================================:"+i);
-//                for (NotaMateriaDTO notaMateria : listaMateriasyear) {
-//                    System.out.println("Nota ID: " + notaMateria.getNotaId());
-//                    System.out.println("Materia Orden: " + notaMateria.getMateriaOrden());
-//                    System.out.println("Materia Nombre: " + notaMateria.getMateriaNombre());
-//                    System.out.println("Nota Calificación Número: " + notaMateria.getNotaCalificacionNumero());
-//                    System.out.println("Nota Calificación Letra: " + notaMateria.getNotaCalificacionLetra());
-//                    System.out.println("Nota Condición: " + notaMateria.getNotaCondicion());
-//                    System.out.println("Nota Estado: " + notaMateria.getNotaEstado());
-//                    System.out.println("Nota Libro: " + notaMateria.getNotaLibro());
-//                    System.out.println("Nota Folio: " + notaMateria.getNotaFolio());
-//                    System.out.println("Nota Fecha: " + notaMateria.getNotaFecha());
-//                    System.out.println("Nota Observaciones: " + notaMateria.getNotaObservaciones());
-//                    System.out.println("Nota Usuario: " + notaMateria.getNotaUsuario());
-//                    System.out.println("Nota Status: " + notaMateria.getNotaStatus());
-//                    System.out.println("Nota Final: " + notaMateria.getNotaFinal());
-//                    System.out.println("Correlativas: " + notaMateria.getCorrelativas());
-//                    System.out.println("Materia ID: " + notaMateria.getMateriaId());
-//                    System.out.println("Materia Nivel: " + notaMateria.getMateriaNivel());
-//                    System.out.println("Cursada ID: " + notaMateria.getCursadaId());
-//                    System.out.println("-----------------------------");
-//                }
-//
-//                System.out.println(listaMateriasyear.size());
-//                System.out.println(listaMateriasyear);
                 int materias = listaMateriasyear.size();
-                System.out.println("*-*-*-*-*se va a cargar el año-*-**--*-");
-                // Recorre la lista y muestra los elementos por pantalla
                 String x = "1ro";
                 Row<PDPage> raw = Cursoaño.createRow(materias * 19);
                 if (i == 1) {
@@ -1251,37 +1205,30 @@ public class CertificadoServiceImpl implements CertificadoService {
                 cell.setFont(PDType1Font.HELVETICA);
                 cell.setTextRotated(true);
                 for (int j = 0; j < listaMateriasyear.size(); j++) {
-                    // Suponiendo que tienes una variable llamada notaFinal que contiene la nota final
-                    System.out.println("*-*-*-*-*se va a recorrer las materia*-**--*-" + j);
                     int nk = 6;
                     NotaMateriaDTO mat = listaMateriasyear.get(j);
                     Row<PDPage> rew = Materiasaño.createRow(5);//19
                     // Celda para la columna "Orden"
-                    System.out.println("Materia Orden" + mat.getMateriaOrden().toString());
                     Cell<PDPage> cellOrden = rew.createCell(5.2f, mat.getMateriaOrden().toString());
                     cellOrden.setAlign(HorizontalAlignment.CENTER);
                     cellOrden.setValign(VerticalAlignment.MIDDLE);
                     cellOrden.setFont(PDType1Font.HELVETICA);
                     cellOrden.setFontSize(nk);
                     // Celda para la columna "Nombre Materia"
-                    System.out.println("Materia Nombre" + mat.getMateriaNombre());
                     Cell<PDPage> cellNombreMateria = rew.createCell(60, mat.getMateriaNombre());
                     cellNombreMateria.setFontSize(nk);
                     cellNombreMateria.setValign(VerticalAlignment.MIDDLE);
                     cellNombreMateria.setFont(PDType1Font.HELVETICA);
                     // Celda para la columna "Nota Final"
-                    System.out.println("Materia Nota final" + mat.getNotaFinal() + ", " + mat.getNotaId());
                     Cell<PDPage> cellNotaFinal = rew.createCell(25, mat.getNotaFinal());
 
                     cellNotaFinal.setFontSize(nk);
                     cellNotaFinal.setAlign(HorizontalAlignment.CENTER);
                     cellNotaFinal.setValign(VerticalAlignment.MIDDLE);
                     cellNotaFinal.setFont(PDType1Font.HELVETICA);
-                    System.out.println("Aca esta el error de siempre" + mat.getNotaFecha());
                     LocalDate fecha = mat.getNotaFecha();  // Asumiendo que getNotaFecha devuelve LocalDate
                     int year = fecha.getYear();
 // Ahora puedes usar `year` como el año extraído de la fecha
-                    System.out.println("Materia año" + String.valueOf(year));
                     Cell<PDPage> cellyear = rew.createCell(10, String.valueOf(year));
                     //    Cell<PDPage> cellyear = rew.createCell(10, mat.getNotaFecha();
                     cellyear.setFontSize(nk);
@@ -1352,6 +1299,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             // Documento.save(dir + ".pdf");
             // Documento.close();
         } catch (Exception e) {
+            e.printStackTrace(); // al menos que se vea el error real
 
         }
         return Documento;
@@ -1373,9 +1321,7 @@ public class CertificadoServiceImpl implements CertificadoService {
                 break;
         }
         for (NotaMateriaDTO materia : listaMaterias) {
-            System.out.println(materia.getMateriaNivel() + "-" + H);
             if (materia.getMateriaNivel().equals(H)) {
-                System.out.println("agregado");
                 materiasFiltradas.add(materia);
             }
         }
@@ -2458,9 +2404,9 @@ public class CertificadoServiceImpl implements CertificadoService {
 
 
     @Override
-    public PDDocument generaPlanillaTutores(String carreraId, String estado, String ape) {
+    public PDDocument generaPlanillaTutores(String carreraId, String estado, String ape,String comision) {
         Carrera carrera = this.carreraService.findCarreraById(carreraId);
-        List<AlumnoLegajoInscripcionCarreraDTO> listado = this.alumnoLegajoService.obtenerAlumnosConCursadas(carreraId, estado, ape);
+        List<AlumnoLegajoInscripcionCarreraDTO> listado = this.alumnoLegajoService.obtenerAlumnosConCursadas(carreraId, estado, ape,comision );
         PDImageXObject Iesc1, Iesc2;
         String año = carrera.getCarreraYear().toString();
         String tecnicatura = carrera.getCarreraNombre();
@@ -2701,7 +2647,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             n = -18;//distancia entre lineas
             regular.beginText();
             regular.setFont(PDType1Font.HELVETICA_BOLD, 15);
-            regular.newLineAtOffset(40, 740);//titulo
+            regular.newLineAtOffset(30, 740);//titulo
             regular.showText("Planilla de Asistencia");
             regular.newLineAtOffset(0, n);
             regular.setFont(PDType1Font.HELVETICA, 10);
@@ -2755,19 +2701,27 @@ public class CertificadoServiceImpl implements CertificadoService {
             cell.setValign(VerticalAlignment.MIDDLE);
             cell.setFontSize(8);
             int celdas = 4;
-
+            float anchoColumna=0;
             if (celdas == 1) {
                 cell = headerRow.createCell(15, "Firma");//30
                 cell.setAlign(HorizontalAlignment.CENTER);
                 cell.setValign(VerticalAlignment.MIDDLE);
                 cell.setFontSize(8);
             } else {
-                for (int i = 0; i < celdas; i++) {
-                    cell = headerRow.createCell(15, "___/___/_____");//30
+                List<LocalDateTime> horarios = personalHorariosService.obtenerClasesDelMes(id);
+                celdas = horarios.size();
+                anchoColumna = (float) 65 / celdas;
+
+                for (LocalDateTime fecha : horarios) {
+                    String texto = fecha.format(DateTimeFormatter.ofPattern("dd/MM"));
+
+                    cell = headerRow.createCell(anchoColumna, texto);
                     cell.setAlign(HorizontalAlignment.CENTER);
                     cell.setValign(VerticalAlignment.MIDDLE);
                     cell.setFontSize(8);
                 }
+
+
 
             }
 
@@ -2858,7 +2812,7 @@ public class CertificadoServiceImpl implements CertificadoService {
                 cellApellidoNombre.setFontSize(8);
 
                 for (int m = 0; m < celdas; m++) {
-                    Cell<PDPage> cellFirma = rew.createCell(15, "");
+                    Cell<PDPage> cellFirma = rew.createCell(anchoColumna, "");
                     cellFirma.setAlign(HorizontalAlignment.LEFT);
                     cellFirma.setValign(VerticalAlignment.MIDDLE);
                     cellFirma.setFont(PDType1Font.HELVETICA);
@@ -2891,7 +2845,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             cellDocNombre.setFontSize(8);
 
             for (int m = 0; m < celdas; m++) {
-                Cell<PDPage> cellFirma = filaDocente.createCell(15, "");
+                Cell<PDPage> cellFirma = filaDocente.createCell(anchoColumna, "");
                 cellFirma.setAlign(HorizontalAlignment.LEFT);
                 cellFirma.setValign(VerticalAlignment.MIDDLE);
                 cellFirma.setFont(PDType1Font.HELVETICA);
@@ -2904,10 +2858,11 @@ public class CertificadoServiceImpl implements CertificadoService {
             PDPageContentStream pie = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
             n = -17;//distancia entre lineas
             pie.beginText();
-            pie.setFont(PDType1Font.HELVETICA_BOLD, 12);
-            pie.newLineAtOffset(40, yStart - H - 70 - 20);
+//            pie.setFont(PDType1Font.HELVETICA_BOLD, 12);
+//            pie.newLineAtOffset(30, yStart - H - 70 - 20);
+            pie.newLineAtOffset(30, yStart - H - 70);
             pie.setFont(PDType1Font.HELVETICA, 9);
-            pie.showText("* El estudiante que no se encuentre en la lista deben dirigirse a Mesa de Entrada para rectificar su inscripcion en esta materia.");
+            pie.showText("El estudiante que no se encuentre en la lista deben ingresar a gestionacademica.iesijujuy.edu.ar y matricularse en esta materia");
             //pie.newLineAtOffset(0, -20);
             //pie.showText("Aclartacion__________________________");
             pie.endText();
@@ -2934,10 +2889,22 @@ public class CertificadoServiceImpl implements CertificadoService {
     }
 
 
+//    @Override
+//    public PDDocument generaPlanilla(String carreraId, String materiaId, Boolean inscripto) {
+//
+//
+
+
+
     @Override
-    public PDDocument generaPlanilla(String carreraId, String materiaId, Boolean inscripto) {
+    public PDDocument generaPlanilla(Long materiaCarreraId) {
         PDImageXObject Iesc1, Iesc2;
-        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get();
+
+//        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get();
+//
+
+        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findById(materiaCarreraId).get();
+
         String materia = materiaCarrera.getMateria().getMateriaNombre();
         String profe = String.valueOf(materiaCarrera.getFmcDocente());
         String modalidad = materiaCarrera.getMateria().getMateriaModalidad();
@@ -2949,9 +2916,9 @@ public class CertificadoServiceImpl implements CertificadoService {
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
         List<NotaCursadaDTO> cursadas;
         if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
-            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, inscripto);
+            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(materiaCarrera.getCarrera().getCarreraId(),materiaCarrera.getMateria().getMateriaNombre(), division,true);
         } else {
-            cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
+            cursadas = this.notaService.findNotasByCarreraAndMateria(materiaCarrera.getCarrera().getCarreraId(), materiaCarrera.getMateria().getMateriaNombre(), division,true);
         }
 //        List<NotaCursadaDTO> cursadas=this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
         PDDocument Documento = new PDDocument();
@@ -4706,7 +4673,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
 
 
     @Override
-    public ByteArrayInputStream generaPlanillaExcel(String carreraId, String materiaId, Boolean inscripto) {
+    public ByteArrayInputStream generaPlanillaExcel(String carreraId, String materiaId, Boolean inscripto, String division) {
         try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Planilla");
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
@@ -4714,12 +4681,12 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
             headerRow.createCell(1).setCellValue("Apellido y Nombre");
             headerRow.createCell(2).setCellValue("DNI");
             MateriaCarrera materiaCarrera = this.materiaCarreraRepository
-                    .findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get();
+                    .findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get(0);
             List<NotaCursadaDTO> cursadas;
             if ("1ro".equals(materiaCarrera.getMateria().getMateriaNivel())) {
-                cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, inscripto);
+                cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, division, inscripto);
             } else {
-                cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
+                cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId,  division, inscripto);
             }
 
             int rowIdx = 1;
@@ -5676,7 +5643,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
     @Override
     public PDDocument generaPlanillaSeguimiento(String carreraId, String materiaId, Boolean inscripto) {
         PDImageXObject Iesc1, Iesc2;
-        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get();
+        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get(0);
         String materia = materiaCarrera.getMateria().getMateriaNombre();
         String profe = String.valueOf(materiaCarrera.getFmcDocente());
         String modalidad = materiaCarrera.getMateria().getMateriaModalidad();
@@ -5688,9 +5655,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
         List<NotaCursadaDTO> cursadas;
         if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
-            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, inscripto);
+            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId,division, inscripto);
         } else {
-            cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
+            cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId,division, inscripto);
         }
 //        List<NotaCursadaDTO> cursadas=this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
         PDDocument Documento = new PDDocument();
@@ -5926,7 +5893,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
 
     public PDDocument generaPlanillaSeguimientoLegal(String carreraId, String materiaId, Boolean inscripto) {
         PDImageXObject Iesc1, Iesc2;
-        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get();
+        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get(0);
         String materia = materiaCarrera.getMateria().getMateriaNombre();
         String profe = String.valueOf(materiaCarrera.getFmcDocente());
         String modalidad = materiaCarrera.getMateria().getMateriaModalidad();
@@ -5938,9 +5905,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
         List<NotaCursadaDTO> cursadas;
         if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
-            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, inscripto);
+            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, division,inscripto);
         } else {
-            cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
+            cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId,division, inscripto);
         }
 //        List<NotaCursadaDTO> cursadas=this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
         PDDocument Documento = new PDDocument();
@@ -6676,9 +6643,8 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
 
 
 @Override
-public PDDocument generaCalificador(String legajoId) {
+public PDDocument generaCalificador(String legajoId,boolean enBlanco) {
 
-    Boolean LF=false;
         Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
         Legajo legajo=this.legajoService.findLegajoById(legajoId);
@@ -6962,19 +6928,12 @@ public PDDocument generaCalificador(String legajoId) {
 //            if (legajo.getLegajoCertificadoNacimiento().equals("Si")) {
 //            if (legajo.getLegajoCarnetSanitario().equals("Si")) {
 //             legajo.getLegajoFotocopiaTitulo();
-//
             //=================================
 
 
             //  cellL7.setBorderStyle(null);
             cuadro.endText();
             tablel8.draw();
-
-
-
-
-
-
 
 
             yStart=yStart-10-l8.getHeight();
@@ -7116,13 +7075,12 @@ public PDDocument generaCalificador(String legajoId) {
                     String fecha = "";
                     String not = "";
                     String fol = "";
-                    if (mat.getNotaEstado().equals("Aprobado")) {
-                        fecha = mat.getNotaFecha().toString();
-                        not = String.valueOf(mat.getNotaCalificacionNumero());
+                    System.out.println("ESTADO: "+mat.getNotaEstado());
+//                    if (mat.getNotaEstado().equals("Aprobado")) {
+                        if(!enBlanco) {
+                            fecha = mat.getNotaFecha().toString();
+                            not = String.valueOf(mat.getNotaCalificacionNumero());
 
-
-
-                        if(LF) {
                             fol = mat.getNotaFolio();
                             if (mat.getNotaCondicion().equals("Cursada")) {
                                 vf = mat.getNotaLibro();
@@ -7130,9 +7088,7 @@ public PDDocument generaCalificador(String legajoId) {
                                 vv = mat.getNotaLibro();
                             }
 
-                        }
-
-
+//                        }
                     }
                     // Celda para la columna "Nota numero"
                     Cell<PDPage> cellNotaNumer = rew.createCell(5.8f, not);
@@ -7164,6 +7120,7 @@ public PDDocument generaCalificador(String legajoId) {
                     cellFolio.setAlign(HorizontalAlignment.CENTER);
                     cellFolio.setValign(VerticalAlignment.MIDDLE);
                     cellFolio.setFont(PDType1Font.HELVETICA);
+
                     // Celda para la columna "Nota Fecha"
 
 //                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");

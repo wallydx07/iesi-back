@@ -22,6 +22,7 @@ public interface AtencionRepository extends JpaRepository<Atencion, Integer> {
     List<Atencion> findByGestorDni(Long gestorDni);
     List<Atencion> findByAtencionReferencia(Integer atencionReferencia);
     List<Atencion> findAllByOrderByAtencionFechaDescNumeroTipoDesc();
+    List<Atencion> findByLegajoId(String atencionLegajo);
 
 
 

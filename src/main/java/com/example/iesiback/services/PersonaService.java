@@ -15,7 +15,7 @@ public interface PersonaService {
     Optional<Persona> findById(String id);
     Persona save(Persona persona);
     boolean delete(String id);
-
+    boolean existsById(String id);
     List<String> buscarPorDniApellidoNombre(String busqueda);
 
     List<String> buscarPersonalPorDniApellidoNombre(String busqueda);
@@ -24,12 +24,14 @@ public interface PersonaService {
     Persona createAlumno(Persona persona);
     List<String> buscarPorApellidoYCarrera(String apellido, String carreraNombre);
 
-    @Transactional
-    void cambioDNI(String dniActual, Long dniCorrecto);
 
-    List<PromedioEgresadoDTO> obtenerEgresados(Integer year);
+//    List<PromedioEgresadoDTO> obtenerEgresados(Integer year);
 
     PersonaDTO findPersonaDTOById(Long id);
+
+    @Transactional
+    void cambiarDni(Long dniActual, Long dniNuevo);
+
 
 //    List<AlumnoExamenDTO> AlumnoExamenDTO(String apellido, String carreraNombre);
 

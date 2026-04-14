@@ -111,13 +111,15 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
       AND materia.materia_id = :materiaId
       AND (cursada.cursada_inscripto = TRUE OR (:cursadaInscripto = FALSE))
       AND nota.nota_condicion = :notaCondicion
+       AND materia_carrera.division= :division
     ORDER BY persona.persona_apellido, persona.persona_nombre ASC
    """, nativeQuery = true)
     List<NotaCursadaDTO> findNotasByCarreraAndMateria(
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
             @Param("cursadaInscripto") boolean cursadaInscripto,
-            @Param("notaCondicion") String notaCondicion
+            @Param("notaCondicion") String notaCondicion,
+            @Param("division") String division
     );
 
     @Query(value = """
@@ -190,12 +192,14 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
     WHERE carrera.carrera_id = :carreraId
       AND materia.materia_id = :materiaId
       AND nota.nota_condicion = :notaCondicion
+             AND materia_carrera.division = :division
     ORDER BY persona.persona_apellido, persona.persona_nombre ASC
    """, nativeQuery = true)
     List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
-            @Param("notaCondicion") String notaCondicion
+            @Param("notaCondicion") String notaCondicion,
+            @Param("division") String division
     );
 
 
@@ -423,6 +427,30 @@ JOIN mc.carrera c
             "AND materia.materia_orden = :materiaOrden", nativeQuery = true)
     List<NotaCursandoProjection> findNotaCursandoByLegajoAndMateria(@Param("legajoId") String legajoId,
                                                                     @Param("materiaOrden") Integer materiaOrden);
+
+
+
+    @Query(value = "SELECT " +
+            "legajo.legajo_id AS legajoId, " +
+            "nota.nota_id AS notaId, " +
+            "nota.nota_fecha_nota AS notaFechaNota, " +
+            "materia.materia_id AS materiaId, " +
+            "materia.materia_nombre AS materiaNombre, " +
+            "materia.materia_orden AS materiaOrden, " +
+            "nota.nota_estado AS notaEstado, " +
+            "materia.materia_cursada AS materiaCursada, " +
+            "materia.materia_examen AS materiaExamen, " +
+            "cursada.cursada_id AS cursadaId, " +
+            "nota.nota_condicion AS notaCondicion " +
+            "FROM nota " +
+            "INNER JOIN cursada ON nota.nota_cursada_id = cursada.cursada_id " +
+            "INNER JOIN materia_carrera ON cursada.cursada_materia_carrera_id = materia_carrera.id " +
+            "INNER JOIN materia ON materia_carrera.materia_id = materia.materia_id " +
+            "INNER JOIN legajo ON cursada.cursada_legajo_id = legajo.legajo_id " +
+            "WHERE nota.nota_id = :notaId", nativeQuery = true)
+    List<NotaCursandoProjection> findNotaNotaCursandoProjectionbyNotyaId(@Param("notaId") Long  notaId);
+
+
     @Query(value = "SELECT " +
             "legajo.legajo_id AS legajoId, " +
             "nota.nota_id AS notaId, " +

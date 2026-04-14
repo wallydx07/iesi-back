@@ -44,7 +44,7 @@ public class NotaController {
 
     @GetMapping("/obtenerTodasNotasPorLegajo/{legajoId}")
     public ResponseEntity<List<NotaMateriaDTO>> obtenerTodasNotasPorLegajo(@PathVariable String legajoId) {
-        return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId));
+        return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId,"Examen"));
     }
 
 //    @GetMapping("/obtenerTodasNotasPorMateria")
@@ -62,11 +62,13 @@ public class NotaController {
     public ResponseEntity<?> obtenerTodasNotasPorMateria(
             @RequestParam String carreraId,
             @RequestParam String materiaId,
+            @RequestParam String division,
             @RequestParam(required = false) Boolean cursadaInscripto
+
     ) {
         try {
             List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(
-                    carreraId, materiaId, cursadaInscripto != null ? cursadaInscripto : true
+                    carreraId, materiaId,division, cursadaInscripto != null ? cursadaInscripto : true
             );
             return ResponseEntity.ok(notas);
         } catch (Exception e) {
@@ -185,13 +187,25 @@ public class NotaController {
         return ResponseEntity.ok(response);
     }
 
+
+        @PostMapping("/evaluarCorrelativaNotaId/{notaId}/{condicion}")
+        public ResponseEntity<EvaluacionCorrelativaResponse> evaluarCorrelativaNotaId(
+                @PathVariable Long  notaId,
+                @PathVariable String condicion) {
+            EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaNotaId(notaId, condicion);
+            return ResponseEntity.ok(response);
+        }
+
     @PutMapping("/permitir-edicion")
     public ResponseEntity<String> permitirEdicionMateria(
             @RequestParam String carreraId,
             @RequestParam String materiaId,
-            @RequestParam boolean editable) {
+            @RequestParam boolean editable,
+            @RequestParam String division
+
+    ) {
         try {
-            notaService.permitirEdicionMateria(carreraId, materiaId, editable);
+            notaService.permitirEdicionMateria(carreraId, materiaId, editable, division);
             return ResponseEntity.ok("Permiso de edición actualizado correctamente");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

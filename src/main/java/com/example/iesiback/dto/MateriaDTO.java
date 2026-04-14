@@ -10,4 +10,5 @@ public interface MateriaDTO {
     String getMateriaCursada();
     String getMateriaExamen();
     String getCatedras();
+    String getDivision();
 }

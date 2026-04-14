@@ -26,6 +26,7 @@ public class NotaMateriaDTO {
     private Boolean isfirma;
     private Integer materiaCarreraId;
 
+
     public NotaMateriaDTO(){ }
     public NotaMateriaDTO(Long notaId, Integer materiaOrden, String materiaNombre,
                           Double notaCalificacionNumero, String notaCalificacionLetra,

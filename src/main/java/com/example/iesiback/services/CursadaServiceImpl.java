@@ -1,4 +1,5 @@
 package com.example.iesiback.services;
+import com.example.iesiback.dto.CorrelativasFaltantesEstadoDTO;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.repositories.CursadaRepository;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -14,18 +15,16 @@ import java.util.stream.Collectors;
 @Service
 public class CursadaServiceImpl implements CursadaService {
 
-
-
     private final MateriaCarreraService materiaCarreraService;
     private final CursadaRepository cursadaRepository;
-    private final ListableBeanFactory listableBeanFactory;
+    private final LegajoService legajoService;
 
     @Autowired
     public CursadaServiceImpl(CursadaRepository cursadaRepository,
-                              MateriaCarreraService materiaCarreraService, ListableBeanFactory listableBeanFactory) {
+                              MateriaCarreraService materiaCarreraService, LegajoService legajoService, LegajoService legajoService1) {
         this.cursadaRepository = cursadaRepository;
         this.materiaCarreraService = materiaCarreraService;
-        this.listableBeanFactory = listableBeanFactory;
+        this.legajoService = legajoService1;
     }
 
 
@@ -67,22 +66,47 @@ public class CursadaServiceImpl implements CursadaService {
         return cursadaRepository.findByLegajo_LegajoIdAndMateriaCarrera_Id(legajoId, materiaCarreraId);
     }
 
+//    @Override
+//    public Cursada saveCursada(Cursada cursada) {
+//    //public Cursada saveCursada(String legajoId, String materiaCarreraId, Cursada cursada) {
+//
+//        //Optional<Cursada> cursadaOpt = cursadaRepository.findByLegajo_LegajoIdAndMateriaCarrera_Id(legajoId, materiaCarreraId);
+//        Optional<Cursada> cursadaOpt = cursadaRepository.findByLegajo_LegajoIdAndMateriaCarrera_Id(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getId());
+//        if (cursadaOpt.isPresent()) {
+//            Cursada cursadaExistente = cursadaOpt.get();
+//            cursadaExistente.setCursadaInscripto(!cursadaExistente.getCursadaInscripto());
+//            return cursadaRepository.save(cursadaExistente);
+//        } else {
+//            return cursadaRepository.save(cursada);
+//
+//        }
+//    }
+
     @Override
     public Cursada saveCursada(Cursada cursada) {
-    //public Cursada saveCursada(String legajoId, String materiaCarreraId, Cursada cursada) {
+        // 1. EL PASO CLAVE: Recuperar el legajo real desde la base de datos de producción
+        // Esto hace que Hibernate pase el objeto de "Transient" a "Managed"
+        Legajo legajoPersistido = legajoService.findById(cursada.getLegajo().getLegajoId())
+                .orElseThrow(() -> new RuntimeException("Error: El Legajo no existe en la base de datos"));
 
-        //Optional<Cursada> cursadaOpt = cursadaRepository.findByLegajo_LegajoIdAndMateriaCarrera_Id(legajoId, materiaCarreraId);
-        Optional<Cursada> cursadaOpt = cursadaRepository.findByLegajo_LegajoIdAndMateriaCarrera_Id(cursada.getLegajo().getLegajoId(), cursada.getMateriaCarrera().getId());
+        // 2. Usar el legajo que Hibernate SÍ conoce
+        cursada.setLegajo(legajoPersistido);
+
+        // 3. Ahora sí, buscar o guardar
+        Optional<Cursada> cursadaOpt = cursadaRepository.findByLegajo_LegajoIdAndMateriaCarrera_Id(
+                cursada.getLegajo().getLegajoId(),
+                cursada.getMateriaCarrera().getId()
+        );
+
         if (cursadaOpt.isPresent()) {
             Cursada cursadaExistente = cursadaOpt.get();
             cursadaExistente.setCursadaInscripto(!cursadaExistente.getCursadaInscripto());
             return cursadaRepository.save(cursadaExistente);
         } else {
+            // Al haber hecho el 'setLegajo' con una entidad persistida, esto ya no fallará
             return cursadaRepository.save(cursada);
-
         }
     }
-
 
 
     @Override
@@ -102,8 +126,8 @@ public class CursadaServiceImpl implements CursadaService {
     }
 
     @Override
-    public Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear) {
-        return cursadaRepository.findEstadoByLegajoAndMateria(legajoId, materiaId, Integer.parseInt(materiaYear));
+    public Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear, String division) {
+        return cursadaRepository.findEstadoByLegajoAndMateria(legajoId, materiaId, Integer.parseInt(materiaYear),division);
     }
 
 //    @Override
@@ -157,47 +181,35 @@ public class CursadaServiceImpl implements CursadaService {
         return new ArrayList<>(cursadaMasRecientePorMateria.values());
     }
 
+
+    //llega desde modoHistoria dfeberia llamarse regular poara
     @Override
     public String obtenerCorrelativasPendientes(String materiaId, String legajoId) {
-        // Verificar que la cursada exista
-        System.out.println("Buscando cursada con legajo: " + legajoId + " y materia: " + materiaId);
         List<Cursada> cursadas = this.cursadaRepository.findByLegajoAndMateria(legajoId, materiaId);
         if (cursadas.isEmpty()) {
-            System.out.println("No se encontró cursada para este legajo y materia.");
             return "Sin cursada";  // Si no se encuentra la cursada, retornar "Sin cursada"
         }
 
         Cursada cursada = cursadas.get(0);
-        System.out.println("Cursada encontrada: " + cursada);
 
         String correlativas = cursada.getMateriaCarrera().getMateria().getMateriaCursada();
-        System.out.println("Correlativas obtenidas: " + correlativas);
-
-        // Si no hay correlativas, retornar "Aprobadas"
+           // Si no hay correlativas, retornar "Aprobadas"
         if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
-            System.out.println("No hay correlativas pendientes, todas las materias están aprobadas.");
             return "Aprobadas";
         }
-
         StringBuilder correlativasPendientes = new StringBuilder();
         String[] correlativasArray = correlativas.split("-");
-        System.out.println("Correlativas divididas: " + Arrays.toString(correlativasArray));
 
         // Recorremos las correlativas
         for (String materiaOrden : correlativasArray) {
-            System.out.println("Verificando correlativa: " + materiaOrden);
 
             // Obtener cursadas de la correlativa actual
             List<Cursada> correlativaCursadas = cursadaRepository.findByMateriaOrdenAndLegajoId(
                     String.valueOf(Integer.parseInt(materiaOrden)), cursada.getLegajo().getLegajoId());
 
-            System.out.println("Cursadas encontradas para la correlativa " + materiaOrden + ": " + correlativaCursadas);
-
             // Se considera aprobada si está en estado "Aprobada" o "Regular"
             boolean aprobadaORegular = correlativaCursadas.stream()
                     .anyMatch(this::tieneNotaAprobadaORegular);
-
-            System.out.println("Estado de la correlativa " + materiaOrden + " (Aprobada o Regular): " + aprobadaORegular);
 
             // Si no está aprobada o regular, la agregamos a la lista de correlativas pendientes
             if (correlativaCursadas.isEmpty() || !aprobadaORegular) {
@@ -205,47 +217,79 @@ public class CursadaServiceImpl implements CursadaService {
                     correlativasPendientes.append(", ");
                 }
                 correlativasPendientes.append(materiaOrden);
-                System.out.println("Correlativa pendiente agregada: " + materiaOrden);
             }
         }
 
         // Si no hay correlativas pendientes, devolver "Aprobadas"
         if (correlativasPendientes.length() == 0) {
-            System.out.println("Todas las correlativas están aprobadas.");
             return "Aprobadas";
         }
 
-        // Devolver las correlativas pendientes concatenadas
-        System.out.println("Correlativas pendientes: " + correlativasPendientes.toString());
         return correlativasPendientes.toString();
     }
 
 
     @Override
-    public List<String> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia) {
-       String correlativas = materia.getMateriaCursada();
+    public List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia) {
+
+        String correlativas = materia.getMateriaCursada();
+
         if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
             return Collections.emptyList();
         }
-        List<String> correlativasFaltantes = new ArrayList<>();
+
+        List<CorrelativasFaltantesEstadoDTO> resultado = new ArrayList<>();
+
         String[] correlativasArray = correlativas.split("-");
+
         for (String materiaOrden : correlativasArray) {
-            List<Cursada> correlativaCursadas = cursadaRepository.findByMateriaOrdenAndLegajoId(
-                    String.valueOf(Integer.parseInt(materiaOrden)),legajoId);
-            boolean aprobadaORegular = correlativaCursadas.stream().anyMatch(this::tieneNotaAprobadaORegular);
-            if (correlativaCursadas.isEmpty() || !aprobadaORegular) {
-                correlativasFaltantes.add(materiaOrden);
+
+
+            List<Cursada> cursadas = cursadaRepository
+                    .findByMateriaOrdenAndLegajoId(materiaOrden, legajoId);
+
+//            Materia materiaM=materiaCarreraService.findMateriaCarreraByMateriaOrdenCarreraId(materiaOrden)
+
+            boolean estaAprobada = cursadas.stream()
+                    .flatMap(c -> c.getNotas().stream())
+                    .anyMatch(n -> "APROBADO".equalsIgnoreCase(n.getNotaEstado()));
+
+            // 👉 Si está aprobada, NO la agregamos
+            if (estaAprobada) {
+                continue;
             }
+
+            boolean estaRegular = cursadas.stream()
+                    .flatMap(c -> c.getNotas().stream())
+                    .anyMatch(n -> "REGULAR".equalsIgnoreCase(n.getNotaEstado()));
+
+            CorrelativasFaltantesEstadoDTO dto = new CorrelativasFaltantesEstadoDTO();
+            dto.setMateriaOrden(materiaOrden);
+//            dto.setMateriaNombre(materiaM.getMateriaNombre());
+//            dto.setMateriaId(materiaM.getMateriaId());
+
+            if (estaRegular) {
+                dto.setStatus("regular");
+            } else {
+                dto.setStatus("libre");
+            }
+
+            resultado.add(dto);
         }
-        // Si no hay correlativas pendientes, se retorna la lista original de correlativas
-        return correlativasFaltantes.isEmpty() ? Arrays.asList(correlativasArray) : correlativasFaltantes;
+
+        return resultado;
     }
 
+//    private boolean tieneNotaAprobadaORegular(Cursada cursada) {
+//        return cursada.getNotas().stream()
+//                .peek(nota -> System.out.println("Estado de la nota: " + nota.getNotaEstado()))  // Imprime el estado de cada nota
+//                .anyMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()));
+//    }
 
+    private static final Set<String> ESTADOS_VALIDOS = Set.of("APROBADO", "REGULAR");
     private boolean tieneNotaAprobadaORegular(Cursada cursada) {
         return cursada.getNotas().stream()
-                .peek(nota -> System.out.println("Estado de la nota: " + nota.getNotaEstado()))  // Imprime el estado de cada nota
-                .anyMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()));
+                .anyMatch(nota -> ESTADOS_VALIDOS.contains(nota.getNotaEstado().toUpperCase()));
     }
 
 

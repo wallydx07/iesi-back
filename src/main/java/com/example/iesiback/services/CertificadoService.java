@@ -19,9 +19,12 @@ public interface CertificadoService {
     PDDocument generaTramite(String carreraId, String legajoId, String Autoridades);
     PDDocument generaCertificadoAsistencia(String alumnoDNI, String legajoId, String autoridades, String curso, String entrada, String salida, String fecT, String accion);
     PDDocument generaFichaActualizacion(String legajoId) throws IOException;
-    PDDocument generaPlanillaTutores(String carreraId, String estado, String ape);
+    PDDocument generaPlanillaTutores(String carreraId, String estado, String ape, String comision);
     PDDocument generaPlanillaAsistencia(Long id);
-    PDDocument generaPlanilla(String carreraId, String materiaId, Boolean inscripto);
+
+    PDDocument generaPlanilla(Long materiaCarreraId);
+
+    //    PDDocument generaPlanilla(String carreraId, String materiaId, Boolean inscripto);
     byte[] generarCredencialEstudiantil(String legajoId);
 
 
@@ -34,7 +37,7 @@ public interface CertificadoService {
 
     PDDocument generaUltimaMateria(String legajoId, String autoridades);
 
-    ByteArrayInputStream generaPlanillaExcel(String carreraId, String materiaId, Boolean inscripto);
+    ByteArrayInputStream generaPlanillaExcel(String carreraId, String materiaId, Boolean inscripto, String division);
 
     PDDocument generaAsistenciaExamenFinal(String legajoId, String autoridades, String curso,
                                            String fechaSeleccionada, String accion, String materia);
@@ -45,7 +48,7 @@ public interface CertificadoService {
 
     PDDocument generaPlanillaSeguimiento(String carreraId, String materiaId, Boolean inscripto);
 
-    PDDocument generaCalificador(String legajoId);
+    PDDocument generaCalificador(String legajoId, boolean enBlanco);
 
     PDDocument generaTroquelTramite(String legajoId, Integer atencionId);
 

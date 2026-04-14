@@ -1,14 +1,12 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.HorarioDTO;
 import com.example.iesiback.dto.PersonalHorarioDTO;
 import com.example.iesiback.entities.PersonalHorario;
 import com.example.iesiback.repositories.PersonalHorarioRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.Month;
+import java.time.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -124,4 +122,41 @@ public class PersonalHorariosServiceImpl implements PersonalHorariosService {
                         || h.getMateriaRegimen().equalsIgnoreCase("FULL"))
                 .collect(Collectors.toList());
     }
+
+
+@Override
+public List<LocalDateTime> obtenerClasesDelMes(long razon) {
+        List<PersonalHorario> horarios = repository.findByMateriaCarreraId(razon);
+        List<LocalDateTime> clases = new ArrayList<>();
+
+        YearMonth yearMonth = YearMonth.now();
+
+        for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
+            LocalDate fecha = LocalDate.of(yearMonth.getYear(), yearMonth.getMonth(), day);
+            DayOfWeek diaSemana = fecha.getDayOfWeek();
+
+            for (PersonalHorario h : horarios) {
+                if (coincideDia(h.getDia(), diaSemana)) {
+                    clases.add(LocalDateTime.of(fecha, h.getEntrada()));
+                }
+            }
+        }
+
+        return clases;
+    }
+    private boolean coincideDia(String diaBD, DayOfWeek diaJava) {
+        return switch (diaBD.toUpperCase()) {
+            case "LUNES" -> diaJava == DayOfWeek.MONDAY;
+            case "MARTES" -> diaJava == DayOfWeek.TUESDAY;
+            case "MIERCOLES" -> diaJava == DayOfWeek.WEDNESDAY;
+            case "JUEVES" -> diaJava == DayOfWeek.THURSDAY;
+            case "VIERNES" -> diaJava == DayOfWeek.FRIDAY;
+            case "SABADO" -> diaJava == DayOfWeek.SATURDAY;
+            case "DOMINGO" -> diaJava == DayOfWeek.SUNDAY;
+            default -> false;
+        };
+    }
+
+
+
 }

@@ -1,5 +1,7 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.PersonaDTO;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Personal;
 import com.example.iesiback.services.PersonalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,5 +157,9 @@ public class PersonalController {
         return ResponseEntity.ok(personalService.buscarPorTextoLibre(texto));
     }
 
+    @GetMapping("/personas")
+    public List<PersonaDTO> obtenerPersonasPorTipo(@RequestParam String tipo) {
+        return personalService.findPersonaOrdeando(tipo);
+    }
 
 }

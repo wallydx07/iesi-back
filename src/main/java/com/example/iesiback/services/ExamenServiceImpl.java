@@ -75,7 +75,6 @@ public class ExamenServiceImpl implements ExamenService {
     public List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno) {
         List<Cursada> cursadas = cursadaService.getCursadasNoAprobadas(legajoId);
         List<InscripcionExamenDTO> inscripciones = new ArrayList<>();
-
         cursadas.forEach(cursada -> {
             InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
             inscripcion.setCursadaId(cursada.getId());
@@ -84,17 +83,15 @@ public class ExamenServiceImpl implements ExamenService {
             inscripcion.setCurso(cursada.getMateriaCarrera().getMateria().getMateriaNivel());
             inscripcion.setMateriaId(cursada.getMateriaCarrera().getMateria().getMateriaId());
             inscripcion.setMateriaNombre(cursada.getMateriaCarrera().getMateria().getMateriaNombre());
-
             List<Nota> notas = new ArrayList<>(cursada.getNotas());
-
             // ── REEMPLAZÁS ESTE BLOQUE ──────────────────────────────────────
             List<Map<String, Object>> notasMapeadas = notas.stream()
                     .map(n -> Map.<String, Object>of(
-                            "cursadaId",              cursada.getId(),
-                            "materiaNombre",          cursada.getMateriaCarrera().getMateria().getMateriaNombre(),
-                            "notaCondicion",          n.getNotaCondicion(),
-                            "notaEstado",             n.getNotaEstado(),
-                            "notaFecha",              n.getNotaFechaNota() != null ? n.getNotaFechaNota().toString() : "",
+                            "cursadaId", cursada.getId(),
+                            "materiaNombre", cursada.getMateriaCarrera().getMateria().getMateriaNombre(),
+                            "notaCondicion", n.getNotaCondicion(),
+                            "notaEstado", n.getNotaEstado(),
+                            "notaFecha", n.getNotaFechaNota() != null ? n.getNotaFechaNota().toString() : "",
                             "notaCalificacionNumero", n.getNotaCalificacionNotaNumero() != null ? n.getNotaCalificacionNotaNumero() : 0.0
                     ))
                     .toList();
@@ -105,7 +102,10 @@ public class ExamenServiceImpl implements ExamenService {
             inscripcion.setJustificacion(resultado.justificacion());
             // ────────────────────────────────────────────────────────────────
 
+            Boolean sancion = notaService.evaluarSancion(cursada.getId(), Integer.valueOf(turno));
+            inscripcion.setSancion(sancion);
             Boolean estado = examenRepository.getEstadoExamen(turno, cursada.getMateriaId(), legajoId);
+
             boolean inscripto = estado != null && estado;
             inscripcion.setInscripto(inscripto);
 
@@ -125,19 +125,20 @@ public class ExamenServiceImpl implements ExamenService {
             if (cursadaExamen.isPresent()) {
                 CursadaExamen ce = cursadaExamen.get();
                 fecha = ce.getFecha() != null ? ce.getFecha().toString() : "-";
-                hora  = ce.getHora()  != null ? ce.getHora()            : "-";
+                hora = ce.getHora() != null ? ce.getHora() : "-";
             } else if (optional.isPresent()) {
                 ExamenHorario eh = optional.get();
                 fecha = eh.getFecha() != null ? eh.getFecha().toString() : "-";
-                hora  = eh.getHora()  != null ? eh.getHora().toString()  : "-";
+                hora = eh.getHora() != null ? eh.getHora().toString() : "-";
             }
-
             inscripcion.setHora(hora);
             inscripcion.setFecha(fecha);
-            inscripcion.setCorrelativas(cursadaService.obtenerCorrelativasPendientesMateriaId(
-                    cursada.getLegajo().getLegajoId(),
-                    cursada.getMateriaCarrera().getMateria()
-            ));
+
+//            inscripcion.setCorrelativas(
+//                    cursadaService.obtenerCorrelativasPendientesMateriaId(
+//                    cursada.getLegajo().getLegajoId(),
+//                    cursada.getMateriaCarrera().getMateria()
+//            ));
 
             inscripciones.add(inscripcion);
         });

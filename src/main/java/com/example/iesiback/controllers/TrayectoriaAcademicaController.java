@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.ImportResponseDTO;
 import com.example.iesiback.dto.NotaImportDTO;
+import com.example.iesiback.dto.ResultadoImportDTO;
 import com.example.iesiback.services.TrayectoriaAcademicaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,18 +27,27 @@ public class TrayectoriaAcademicaController {
         if (notas == null || notas.isEmpty()) {
             return ResponseEntity
                     .badRequest()
-                    .body(new ImportResponseDTO(
-                            0,
-                            "La lista de notas está vacía"));
+                    .body(new ImportResponseDTO(0, "La lista de notas está vacía"));
         }
 
-        trayectoriaAcademicaService.procesarNotas(notas);
+        ResultadoImportDTO resultado = trayectoriaAcademicaService.procesarNotas(notas);
 
-        ImportResponseDTO response =
-                new ImportResponseDTO(
-                        notas.size(),
-                        "Importación realizada correctamente");
+        String mensaje = resultado.tieneErrores()
+                ? "Importación finalizada con " + resultado.getTotalErrores() + " error/es"
+                : "Importación realizada correctamente";
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        ImportResponseDTO response = new ImportResponseDTO(
+                resultado.getFilasExitosas(), mensaje);
+
+        response.setErrores(resultado.getErrores());
+
+        HttpStatus status = resultado.tieneErrores()
+                ? HttpStatus.MULTI_STATUS
+                : HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(response);
     }
+
+
+
 }

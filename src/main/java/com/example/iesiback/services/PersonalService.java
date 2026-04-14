@@ -1,5 +1,7 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.PersonaDTO;
+import com.example.iesiback.entities.Persona;
 import com.example.iesiback.entities.Personal;
 
 import java.util.List;
@@ -35,4 +37,6 @@ public interface PersonalService {
     List<Personal> findByCurriculum(Boolean curriculum);
 
     List<Personal> buscarPorTextoLibre(String texto);
+
+    List<PersonaDTO> findPersonaOrdeando(String tipo);
 }

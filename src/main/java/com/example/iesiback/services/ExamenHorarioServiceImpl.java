@@ -143,8 +143,14 @@ public class ExamenHorarioServiceImpl implements ExamenHorarioService {
     }
 
 
-    @Override
+//    @Override
+//    public Optional<ExamenHorario> findByMateriaIdAndTurnoId(String materiaId, String turnoId) {
+//        return examenHorarioRepository.findByMateriaIdAndTurno_TurnoId(materiaId, turnoId);
+//    }
+
     public Optional<ExamenHorario> findByMateriaIdAndTurnoId(String materiaId, String turnoId) {
-        return examenHorarioRepository.findByMateriaIdAndTurno_TurnoId(materiaId, turnoId);
+        System.out.println("Materia recibida: [" + materiaId + "]");
+        System.out.println("Turno recibido: [" + turnoId + "]");
+        return examenHorarioRepository.findByMateriaIdAndTurno_TurnoId(materiaId.trim(), turnoId.trim());
     }
 }

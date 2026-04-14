@@ -43,10 +43,13 @@ public interface CursadaRepository extends JpaRepository<Cursada, Integer> {
     WHERE cu.cursada_legajo_id = :legajoId
       AND mc.materia_id = :materiaId
      AND ca.carrera_year = :materiaYear
+        AND mc.division= :division
     """, nativeQuery = true)
     Optional<Boolean> findEstadoByLegajoAndMateria(@Param("legajoId") String legajoId,
                                                    @Param("materiaId") String materiaId,
-                                                   @Param("materiaYear") Integer materiaYear);
+                                                   @Param("materiaYear") Integer materiaYear,
+                                                   @Param("division") String division
+                                                   );
 
 
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, Integer materiaCarreraId);

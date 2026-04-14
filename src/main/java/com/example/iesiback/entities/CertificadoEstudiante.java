@@ -60,9 +60,9 @@ public class CertificadoEstudiante {
     @JsonBackReference("atencion-certificados")
     private Atencion atencion;
 
-    @Size(max = 50)
-    @Column(name = "legajo_id", length = 50)
-    private String legajoId;
+//    @Size(max = 50)
+//    @Column(name = "legajo_id", length = 50)
+//    private String legajoId;
 
     @Column(name = "accion", length = Integer.MAX_VALUE)
     private String accion;
@@ -78,10 +78,5 @@ public class CertificadoEstudiante {
 
     @Column(name = "razon", length = Integer.MAX_VALUE)
     private String razon;
-
-//    @JsonProperty("legajoId")
-//    public String getLegajoId() {
-//        return legajo != null ? legajo.getLegajoId() : null;
-//    }
 
 }

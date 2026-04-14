@@ -13,6 +13,7 @@ public class NotaImportDTO {
     private String libro;
     private String folio;
     private String condicion; // PROMOCION, FINAL, EQUIVALENCIA
+    private String estado; // Cursando, Aprobado, Regular, Libre
     private Double nota;
 
     public Long getDni() {
@@ -93,5 +94,13 @@ public class NotaImportDTO {
 
     public void setNota(Double nota) {
         this.nota = nota;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

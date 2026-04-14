@@ -24,7 +24,12 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
     List<MateriaCarrera> findByCarrera_CarreraId(String carreraId);
 
 
-    Optional<MateriaCarrera> findByCarrera_CarreraIdAndMateria_MateriaId(String carreraId, String materiaId);
+//    Optional<MateriaCarrera> findByCarrera_CarreraIdAndMateria_MateriaId(String carreraId, String materiaId);
+
+
+    List<MateriaCarrera> findByCarrera_CarreraIdAndMateria_MateriaId(String carreraId, String materiaId);
+    List<MateriaCarrera> findByCarrera_CarreraIdAndMateria_MateriaIdAndDivision(String carreraId, String materiaId, String division);
+
 
 
 /*
@@ -164,7 +169,8 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
            m.materiaModalidad AS materiaModalidad,
            CAST(m.materiaCursada AS string) AS materiaCursada,
            CAST(m.materiaExamen AS string) AS materiaExamen,
-           '' AS catedras
+           '' AS catedras,
+           mc.division
     FROM MateriaCarrera mc
     JOIN mc.materia m
     WHERE mc.fmcDocente = :fmcDocente
@@ -267,6 +273,23 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
             @Param("carreraId") String carreraId,
             @Param("orden") Integer orden
     );
+
+
+//
+//    @Query("""
+//    SELECT mc
+//    FROM MateriaCarrera mc
+//    JOIN mc.materia m
+//    JOIN mc.carrera c
+//    WHERE m.materiaOrden = :orden
+//      AND c.carreraId= :orden
+//    ORDER BY mc.fechaInicio DESC
+//""")
+//    List<MateriaCarrera> buscarMateriaCarreraOrden(
+//            @Param("orden") Integer orden,
+//            @Param("carreraId") String carreraId
+//    );
+
 
 }
 

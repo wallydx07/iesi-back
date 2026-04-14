@@ -39,9 +39,19 @@ public class MateriaCarreraController {
     @GetMapping("/{carreraId}/{materiaId}")
     public ResponseEntity<MateriaCarrera> obtenerMateriaCarrera(@PathVariable String carreraId,
                                                                 @PathVariable String materiaId) {
-        MateriaCarrera materiaCarrera = materiaCarreraService.obtenerMateriaCarrera(carreraId, materiaId);
+        MateriaCarrera materiaCarrera = materiaCarreraService.obtenerMateriaCarrera(carreraId, materiaId).get(0);
         return ResponseEntity.ok(materiaCarrera);
     }
+
+
+    @GetMapping("/{carreraId}/{materiaId}/{division}")
+    public ResponseEntity<MateriaCarrera> obtenerMateriaCarreraDivision(@PathVariable String carreraId,
+                                                                @PathVariable String materiaId,
+                                                                        @PathVariable String division) {
+        MateriaCarrera materiaCarrera = materiaCarreraService.obtenerMateriaCarreraDivision(carreraId, materiaId,division).get(0);
+        return ResponseEntity.ok(materiaCarrera);
+    }
+
 
     @GetMapping("carreraId/{carreraId}")
     public ResponseEntity<List<MateriaCarrera>> obtenerMateriasPorCarrera(@PathVariable String carreraId) {
