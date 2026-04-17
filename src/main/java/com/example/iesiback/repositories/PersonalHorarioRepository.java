@@ -47,6 +47,25 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
             @Param("dia") String dia,
             @Param("anio") Integer anio);
 
+//    @Query("SELECT new com.example.iesiback.dto.PersonalHorarioDTO(" +
+//            "ph.id, " +
+//            "p.id, " +
+//            "p.personalApellido, " +
+//            "p.personalNombre, " +
+//            "mc.id, " +
+//            "mc.carrera.carreraId, " +
+//            "m.materiaNombre, " +
+//            "ph.dia, " +
+//            "ph.entrada, " +
+//            "ph.salida, m.materiaRegimen) " +
+//            "FROM PersonalHorario ph " +
+//            "JOIN ph.dni p " +
+//            "JOIN ph.materiaCarrera mc " +
+//            "JOIN mc.materia m " +
+//            "WHERE ph.year = :year " +
+//            "ORDER BY p.personalApellido, p.personalNombre ASC")
+//    List<PersonalHorarioDTO> findPersonalHorariosDelAnio(@Param("year") Integer year);
+
     @Query("SELECT new com.example.iesiback.dto.PersonalHorarioDTO(" +
             "ph.id, " +
             "p.id, " +
@@ -57,15 +76,15 @@ public interface PersonalHorarioRepository extends JpaRepository<PersonalHorario
             "m.materiaNombre, " +
             "ph.dia, " +
             "ph.entrada, " +
-            "ph.salida, m.materiaRegimen) " +
+            "ph.salida, " +
+            "m.materiaRegimen) " +
             "FROM PersonalHorario ph " +
             "JOIN ph.dni p " +
             "JOIN ph.materiaCarrera mc " +
             "JOIN mc.materia m " +
             "WHERE ph.year = :year " +
-            "ORDER BY p.personalApellido, p.personalNombre ASC")
+            "ORDER BY p.personalApellido, p.personalNombre")
     List<PersonalHorarioDTO> findPersonalHorariosDelAnio(@Param("year") Integer year);
-
 
     List<PersonalHorario> findByMateriaCarreraId(long materiaId);
 

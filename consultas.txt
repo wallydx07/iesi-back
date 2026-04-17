@@ -240,6 +240,19 @@ WHERE mc.materia_id = m.materia_id
   ORDER BY a.aporte_fecha DESC;
 
 
+  SELECT
+      tipo,
+      autoridad,
+      curso,
+      atencion_resuelto,
+      tipo, atencion.legajo_id
+  FROM certificado_estudiante
+  INNER JOIN atencion
+      ON certificado_estudiante.atencion_id = atencion.atencion_id
+  WHERE fecha >= '2026-01-01'
+    AND fecha < '2027-01-01';
+
+
 
 
 
