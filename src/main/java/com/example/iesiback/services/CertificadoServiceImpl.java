@@ -68,7 +68,7 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final AporteService aporteService;
     private final UserService userService;
     private final ObservacionesService observacionesService;
-    private final AtencionService atencionService;
+    private final TramiteService tramiteService;
     private final PagoService pagoService;
     private final PasesService paseService;
     private final TurnoService turnoService;
@@ -84,7 +84,7 @@ public class CertificadoServiceImpl implements CertificadoService {
                                   MateriaCarreraRepository materiaCarreraRepository, DocumentoService documentoService,
                                   LegajoService legajoService,
                                   AlumnoLegajoService alumnoLegajoService,
-                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, AtencionService atencionService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, PersonalHorariosService personalHorariosService) {
+                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, PersonalHorariosService personalHorariosService) {
         this.alumnoService = alumnoService;
         this.carreraService = carreraService;
         this.notaService = notaService;
@@ -98,7 +98,7 @@ public class CertificadoServiceImpl implements CertificadoService {
         this.aporteService = aporteService;
         this.userService = userService;
         this.observacionesService = observacionesService;
-        this.atencionService = atencionService;
+        this.tramiteService = tramiteService;
         this.pagoService = pagoService;
         this.paseService = paseService;
         this.turnoService = turnoService;
@@ -7178,7 +7178,7 @@ public PDDocument generaCalificador(String legajoId,boolean enBlanco) {
 public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
         Persona persona = this.alumnoService.obtenerAlumnoPorLegajoId(legajoId);
         Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(legajoId);
-        Atencion atencion= this.atencionService.findById(atencionId).get();
+    Tramite atencion= this.tramiteService.findById(atencionId).get();
         Legajo legajo=this.legajoService.findLegajoById(legajoId);
         double nuevoProm = 0;
         int contProm = 0;
@@ -7329,19 +7329,19 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
             //cellL1.setBorderStyle(null);
-            cell0 = l0.createCell(40, "Tipo: "+atencion.getAtencionTipo());
+            cell0 = l0.createCell(40, "Tipo: "+atencion.getTramiteTipo());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
             // cellL1.setBorderStyle(null);
 
-            cell0 = l0.createCell(25, "Fecha: "+ atencion.getAtencionFecha());
+            cell0 = l0.createCell(25, "Fecha: "+ atencion.getTramiteFecha());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
             //  cellL1.setBorderStyle(null);
 
-            cell0 = l0.createCell(20, "Resuelto: "+atencion.getAtencionResuelto());
+            cell0 = l0.createCell(20, "Resuelto: "+atencion.getTramiteEstado());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
@@ -7483,7 +7483,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l4 = tablel4.createRow(20);
 
-            Cell<PDPage> cellL4 = l4.createCell(100, "Observaciones"+atencion.getAtencionObservaciones());
+            Cell<PDPage> cellL4 = l4.createCell(100, "Observaciones"+atencion.getTramiteObservaciones());
             cellL4.setAlign(HorizontalAlignment.LEFT);
             cellL4.setValign(VerticalAlignment.MIDDLE);
             cellL4.setFontSize(tan);
@@ -7514,7 +7514,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
 
     @Override
     public PDDocument generaTroquelNotaIngresante(Integer atencionId) {
-        Atencion atencion = this.atencionService.findById(atencionId)
+        Tramite atencion = this.tramiteService.findById(atencionId)
                 .orElseThrow(() ->
                         new RuntimeException("No se encontró la atención con id: " + atencionId)
                 );
@@ -7593,7 +7593,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             contenido.beginText();
             contenido.newLineAtOffset(margin, yStart);
             contenido.setFont(negrita, 15);
-            contenido.showText(atencion.getAtencionTipo()+" N°: "+atencion.getNumeroTipo());
+            contenido.showText(atencion.getTramiteTipo()+" N°: "+atencion.getNumeroTipo());
             contenido.endText();
             contenido.close();
 
@@ -7623,14 +7623,14 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
 
-            cell0 = l0.createCell(30,  atencion.getAtencionFechaFormateada());
+            cell0 = l0.createCell(30,  atencion.getTramiteFechaFormateada());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
             cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
 
-            cell0 = l0.createCell(25, "Prioridad: "+atencion.getAtencionPrioridad());
+            cell0 = l0.createCell(25, "Prioridad: "+atencion.getTramitePrioridad());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
@@ -7646,7 +7646,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.setFont(PDType1Font.HELVETICA, 20);
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l1 = tablel1.createRow(10);
-            Cell<PDPage> cellL1 = l1.createCell(50, "Remitente:" + atencion.getAtencionApellidoNombre());
+            Cell<PDPage> cellL1 = l1.createCell(50, "Remitente:" + atencion.getTramiteApellidoNombre());
             cellL1.setAlign(HorizontalAlignment.LEFT);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
@@ -7658,7 +7658,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
 
 
             //cellL1.setBorderStyle(null);
-            cellL1 = l1.createCell(20, "Celular: " + atencion.getAtencionCelular());
+            cellL1 = l1.createCell(20, "Celular: " + atencion.getTramiteCelular());
             cellL1.setAlign(HorizontalAlignment.CENTER);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
@@ -7667,7 +7667,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
             cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
 
-            cellL1 = l1.createCell(30, "Destino: " + atencion.getAtencionDestino());
+            cellL1 = l1.createCell(30, "Destino: " + atencion.getTramiteDestino());
             cellL1.setAlign(HorizontalAlignment.LEFT);
             cellL1.setValign(VerticalAlignment.MIDDLE);
             cellL1.setFontSize(tan);
@@ -7683,9 +7683,9 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.beginText();
             cuadro.newLineAtOffset(0, 800);//X=40
 
-            String asunto=atencion.getAtencionAsunto();
+            String asunto=atencion.getTramiteAsunto();
 
-            if(atencion.getAtencionAsunto().equals("Certificado Estudiante")) {
+            if(atencion.getTramiteAsunto().equals("Certificado Estudiante")) {
                 Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(atencion.getLegajoId());
                     String carr = carrera.getCarreraNombre();
                     String cohorte = carrera.getCarreraYear().toString();
@@ -7706,7 +7706,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cellL6.setFontSize(tan);
             cellL6 = l6.createCell(
                     10,
-                    "Folios: " + (atencion.getAtencionFolios() == null ? "" : atencion.getAtencionFolios())
+                    "Folios: " + (atencion.getTramiteFolios() == null ? "" : atencion.getTramiteFolios())
             );
 
             cellL6.setAlign(HorizontalAlignment.LEFT);
@@ -7724,13 +7724,13 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l2 = tablel2.createRow(10);
 
-            String problema = atencion.getAtencionProblema();
+            String problema = atencion.getTramiteProblema();
             if (problema != null) {
                 problema = problema.replaceAll("\\r?\\n", " ").trim();
             }
 
 
-            if(atencion.getAtencionAsunto().equals("Certificado Estudiante")) {
+            if(atencion.getTramiteAsunto().equals("Certificado Estudiante")) {
                 List<CertificadoEstudiante> listaCer = atencion.getCertificados();
                 String tiposCertificados;
                 if (listaCer == null || listaCer.isEmpty()) {
@@ -7813,7 +7813,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.beginText();
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l3 = tablel3.createRow(10);
-            Cell<PDPage> cellL3 = l3.createCell(50, "Recepcionado por: "+atencion.getAtencionUsuario());//70
+            Cell<PDPage> cellL3 = l3.createCell(50, "Recepcionado por: "+atencion.getTramiteUsuario());//70
             cellL3.setAlign(HorizontalAlignment.LEFT);
             cellL3.setValign(VerticalAlignment.MIDDLE);
             cellL3.setFontSize(tan);
@@ -7835,7 +7835,7 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cuadro.beginText();
             cuadro.newLineAtOffset(0, 800);//X=40
             Row<PDPage> l4 = tablel4.createRow(20);
-            Cell<PDPage> cellL4 = l4.createCell(85, "Observaciones"+atencion.getAtencionObservaciones());//100
+            Cell<PDPage> cellL4 = l4.createCell(85, "Observaciones"+atencion.getTramiteObservaciones());//100
             cellL4.setAlign(HorizontalAlignment.LEFT);
             cellL4.setValign(VerticalAlignment.MIDDLE);
             cellL4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));

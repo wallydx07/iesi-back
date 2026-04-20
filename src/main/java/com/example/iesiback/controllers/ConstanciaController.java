@@ -2,11 +2,11 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.AporteDTO;
 import com.example.iesiback.dto.CertificadoEstudianteDTO;
-import com.example.iesiback.entities.Atencion;
+import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.CertificadoEstudiante;
 import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.User;
-import com.example.iesiback.services.AtencionService;
+import com.example.iesiback.services.TramiteService;
 import com.example.iesiback.services.CertificadoEstudianteService;
 import com.example.iesiback.services.LegajoService;
 import com.example.iesiback.services.UserService;
@@ -30,7 +30,7 @@ public class ConstanciaController {
     private LegajoService legajoService;
 
     @Autowired
-    private AtencionService atencionService;
+    private TramiteService tramiteService;
 
     public ConstanciaController(UserService userService) {
         this.userService = userService;
@@ -196,9 +196,9 @@ public class ConstanciaController {
         System.out.println("Monto: " + updateCertificado.getMonto());
 //        System.out.println("Legajo ID: " + updateCertificado.getAtencion().getLegajo().getLegajoId());
 
-        System.out.println("Legajo ID: " + updateCertificado.getAtencion().getLegajoId());
+        System.out.println("Legajo ID: " + updateCertificado.getTramite().getLegajoId());
 
-        System.out.println("Atencion ID: " + updateCertificado.getAtencion().getId());
+        System.out.println("Atencion ID: " + updateCertificado.getTramite().getId());
         System.out.println("--------------------------------------");
 
         // Guardamos el certificado actualizado

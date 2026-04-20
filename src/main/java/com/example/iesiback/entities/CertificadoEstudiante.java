@@ -56,9 +56,9 @@ public class CertificadoEstudiante {
     private String curso;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "atencion_id")
-    @JsonBackReference("atencion-certificados")
-    private Atencion atencion;
+    @JoinColumn(name = "tramite_id")
+    @JsonBackReference("tramite-certificados")
+    private Tramite tramite;
 
 //    @Size(max = 50)
 //    @Column(name = "legajo_id", length = 50)

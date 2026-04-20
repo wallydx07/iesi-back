@@ -1,0 +1,4 @@
+
+
+
+ALTER TABLE atencion RENAME TO tramite;

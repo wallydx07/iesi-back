@@ -19,7 +19,7 @@ import java.util.*;
 public class PagoServiceImpl implements PagoService {
 
     private final MercadoPagoService mercadoPagoService;
-    private final AtencionService atencionService;
+    private final TramiteService tramiteService;
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
@@ -54,9 +54,9 @@ public class PagoServiceImpl implements PagoService {
 
 
 
-    public PagoServiceImpl(MercadoPagoService mercadoPagoService, AtencionService atencionService) {
+    public PagoServiceImpl(MercadoPagoService mercadoPagoService, TramiteService tramiteService) {
         this.mercadoPagoService = mercadoPagoService;
-        this.atencionService = atencionService;
+        this.tramiteService = tramiteService;
     }
 
     @Override

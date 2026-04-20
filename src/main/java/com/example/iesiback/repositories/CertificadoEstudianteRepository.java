@@ -17,8 +17,8 @@ public interface CertificadoEstudianteRepository extends JpaRepository<Certifica
     List<CertificadoEstudiante> findByUsuarioContainingIgnoreCase(String usuario);
     List<CertificadoEstudiante> findByValidado(Boolean validado);
     List<CertificadoEstudiante> findByMonto(Integer monto);
-    List<CertificadoEstudiante> findByAtencionId(Integer atencionId);
-    List<CertificadoEstudiante> findByAtencion_LegajoId(String legajoId);
+    List<CertificadoEstudiante> findByTramiteId(Integer atencionId);
+    List<CertificadoEstudiante> findByTramite_LegajoId(String legajoId);
 
 //    @Query("SELECT new com.example.iesiback.dto.AporteDTO(" +
 //            "c.id, " +
@@ -53,8 +53,8 @@ public interface CertificadoEstudianteRepository extends JpaRepository<Certifica
       c.usuario,
       c.validado
     FROM certificado_estudiante c
-    INNER JOIN atencion a ON c.atencion_id = a.atencion_id
-    INNER JOIN persona p ON a.atencion_dni = p.persona_dni
+    INNER JOIN tramite a ON c.tramite_id = a.tramite_id
+    INNER JOIN persona p ON a.tramite_dni = p.persona_dni
     ORDER BY c.fecha DESC
 """, nativeQuery = true)
     List<Object[]> findCertificadosComoAportes();

@@ -33,7 +33,7 @@ public class Pago {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "atencion_id", nullable = false)
-    private Atencion atencion;
+    private Tramite atencion;
 
     @Nullable
     @Column(name = "mp_payment_id", nullable = false)

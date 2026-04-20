@@ -1,8 +1,8 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.entities.Atencion;
+import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.User;
-import com.example.iesiback.repositories.AtencionRepository;
+import com.example.iesiback.repositories.TramiteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -13,11 +13,11 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
-public class AtencionServiceImpl implements AtencionService {
+public class TramiteServiceImpl implements TramiteService {
 
-    private final AtencionRepository repository;
+    private final TramiteRepository repository;
     private final UserService userService;
-    public AtencionServiceImpl(AtencionRepository repository, UserService userService) {
+    public TramiteServiceImpl(TramiteRepository repository, UserService userService) {
         this.repository = repository;
         this.userService = userService;
     }
@@ -29,31 +29,31 @@ public class AtencionServiceImpl implements AtencionService {
 
 
     @Override
-    public List<Atencion> findAll() {
+    public List<Tramite> findAll() {
         return repository.findAllByOrderByIdDesc();
 //        return repository.findAll();
     }
 
     @Override
-    public Optional<Atencion> findById(Integer id) {
+    public Optional<Tramite> findById(Integer id) {
         return repository.findById(id);
     }
 
     @Override
-    public Optional<Atencion> findByCodigoSeguimiento(String codigo) {
+    public Optional<Tramite> findByCodigoSeguimiento(String codigo) {
         return repository.findByCodigoSeguimiento(codigo);
     }
 
     @Override
-    public Atencion save(Atencion atencion) {
+    public Tramite save(Tramite atencion) {
         // Asigna el usuario logueado automáticamente
-        atencion.setAtencionUsuario(obtenerUser());
+        atencion.setTramiteUsuario(obtenerUser());
 
         // Genera el código de seguimiento
         atencion.setCodigoSeguimiento(generarCodigoSeguimiento());
 
         // Obtiene la secuencia según el tipo de atención
-        String secuencia = getSecuenciaPorTipo(atencion.getAtencionTipo());
+        String secuencia = getSecuenciaPorTipo(atencion.getTramiteTipo());
         Long numero = obtenerSiguienteNumero(secuencia);
         atencion.setNumeroTipo(numero);
 
@@ -68,8 +68,8 @@ public class AtencionServiceImpl implements AtencionService {
 
 
     @Override
-    public Atencion update(Atencion atencion) {
-        atencion.setAtencionUsuario(obtenerUser());
+    public Tramite update(Tramite atencion) {
+        atencion.setTramiteUsuario(obtenerUser());
         return repository.save(atencion);
     }
 
@@ -89,38 +89,38 @@ public class AtencionServiceImpl implements AtencionService {
     }
 
     @Override
-    public List<Atencion> findByDni(Long dni) {
-        return repository.findByAtencionDni(dni);
+    public List<Tramite> findByDni(Long dni) {
+        return repository.findByTramiteDni(dni);
     }
 
     @Override
-    public List<Atencion> findByApellidoNombre(String apellidoNombre) {
-        return repository.findByAtencionApellidoNombreContainingIgnoreCase(apellidoNombre);
+    public List<Tramite> findByApellidoNombre(String apellidoNombre) {
+        return repository.findByTramiteApellidoNombreContainingIgnoreCase(apellidoNombre);
     }
 
     @Override
-    public List<Atencion> findByCorreo(String correo) {
-        return repository.findByAtencionCorreoContainingIgnoreCase(correo);
+    public List<Tramite> findByCorreo(String correo) {
+        return repository.findByTramiteCorreoContainingIgnoreCase(correo);
     }
 
     @Override
-    public List<Atencion> findByDestino(String destino) {
-        return repository.findByAtencionDestino(destino);
+    public List<Tramite> findByDestino(String destino) {
+        return repository.findByTramiteDestino(destino);
     }
 
     @Override
-    public List<Atencion> findByUsuario(String usuario) {
-        return repository.findByAtencionUsuario(usuario);
+    public List<Tramite> findByUsuario(String usuario) {
+        return repository.findByTramiteUsuario(usuario);
     }
 
     @Override
-    public List<Atencion> findByResuelto(String resuelto) {
-        return repository.findByAtencionResuelto(resuelto);
+    public List<Tramite> findByResuelto(String resuelto) {
+        return repository.findByTramiteEstado(resuelto);
     }
 
     @Override
-    public List<Atencion> findByFecha(LocalDate fecha) {
-        return repository.findByAtencionFecha(fecha);
+    public List<Tramite> findByFecha(LocalDate fecha) {
+        return repository.findByTramiteFecha(fecha);
     }
 
     @Autowired
@@ -154,23 +154,23 @@ public class AtencionServiceImpl implements AtencionService {
 
 
     @Override
-    public List<Atencion> obtenerPorGestor(Long gestorDni) {
+    public List<Tramite> obtenerPorGestor(Long gestorDni) {
         return repository.findByGestorDni(gestorDni);
     }
 
 
     @Override
-    public List<Atencion> findByAtencionReferencia(Integer referencia) {
-        return repository.findByAtencionReferencia(referencia);
+    public List<Tramite> findByAtencionReferencia(Integer referencia) {
+        return repository.findByTramiteReferencia(referencia);
     }
 
     @Override
-    public List<Atencion> findAllByOrderByAtencionFechaDesc() {
-        return repository.findAllByOrderByAtencionFechaDescNumeroTipoDesc();
+    public List<Tramite> findAllByOrderByAtencionFechaDesc() {
+        return repository.findAllByOrderByTramiteFechaDescNumeroTipoDesc();
     }
 
     @Override
-    public List<Atencion> findByAtencionLegajoId(String legajoId) {
+    public List<Tramite> findByAtencionLegajoId(String legajoId) {
         return repository.findByLegajoId(legajoId);
     }
 }

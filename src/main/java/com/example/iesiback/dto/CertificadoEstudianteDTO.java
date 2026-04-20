@@ -30,9 +30,9 @@ public class CertificadoEstudianteDTO {
         this.monto = certificado.getMonto();
 //        this.legajoId = certificado.getAtencion().getLegajo() != null ? certificado.getAtencion().getLegajo().getLegajoId() : null;
 
-        this.legajoId = certificado.getAtencion().getLegajoId() != null ? certificado.getAtencion().getLegajoId() : null;
+        this.legajoId = certificado.getTramite().getLegajoId() != null ? certificado.getTramite().getLegajoId() : null;
 
-        this.atencionId = certificado.getAtencion() != null ? certificado.getAtencion().getId() : null;
+        this.atencionId = certificado.getTramite() != null ? certificado.getTramite().getId() : null;
     }
 
 

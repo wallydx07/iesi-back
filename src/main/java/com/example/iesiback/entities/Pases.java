@@ -16,7 +16,7 @@ public class Pases {
     @ManyToOne
     @JoinColumn(name = "tramite_id", nullable = false)
     @JsonBackReference
-    private Atencion tramite;
+    private Tramite tramite;
 
     // Usuario que generó el pase
     @ManyToOne
@@ -53,11 +53,11 @@ public class Pases {
         this.id = id;
     }
 
-    public Atencion getTramite() {
+    public Tramite getTramite() {
         return tramite;
     }
 
-    public void setTramite(Atencion tramite) {
+    public void setTramite(Tramite tramite) {
         this.tramite = tramite;
     }
 
@@ -69,20 +69,20 @@ public class Pases {
         this.deUsuario = deUsuario;
     }
 
-    public String getDeTexto() {
-        return deTexto;
-    }
-
-    public void setDeTexto(String deTexto) {
-        this.deTexto = deTexto;
-    }
-
     public Personal getParaUsuario() {
         return paraUsuario;
     }
 
     public void setParaUsuario(Personal paraUsuario) {
         this.paraUsuario = paraUsuario;
+    }
+
+    public String getDeTexto() {
+        return deTexto;
+    }
+
+    public void setDeTexto(String deTexto) {
+        this.deTexto = deTexto;
     }
 
     public Destino getParaDestino() {

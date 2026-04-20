@@ -1,7 +1,7 @@
 package com.example.iesiback.repositories;
 
 
-import com.example.iesiback.entities.Atencion;
+import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -22,7 +22,7 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     Optional<Pago> findByExternalReference(String externalReference);
 
     // Buscar todos los pagos de una atención
-    List<Pago> findByAtencion(Atencion atencion);
+    List<Pago> findByAtencion(Tramite atencion);
 
     // Buscar por estado (ej: approved, rejected)
     List<Pago> findByEstado(String estado);

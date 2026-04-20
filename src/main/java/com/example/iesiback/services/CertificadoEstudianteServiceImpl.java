@@ -69,12 +69,12 @@ import java.util.List;
 
         @Override
         public List<CertificadoEstudiante> findByAtencionId(Integer atencionId) {
-            return repository.findByAtencionId(atencionId);
+            return repository.findByTramiteId(atencionId);
         }
 
         @Override
         public List<CertificadoEstudiante> findByLegajoId(String legajoId) {
-            return repository.findByAtencion_LegajoId(legajoId);
+            return repository.findByTramite_LegajoId(legajoId);
         }
 
     @Override

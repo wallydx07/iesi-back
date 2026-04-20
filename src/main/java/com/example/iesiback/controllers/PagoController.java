@@ -1,9 +1,9 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.ProductoDTO;
-import com.example.iesiback.entities.Atencion;
+import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
-import com.example.iesiback.services.AtencionService;
+import com.example.iesiback.services.TramiteService;
 import com.example.iesiback.services.PagoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +20,11 @@ import java.util.Optional;
 public class PagoController {
 
     private final PagoService pagoService;
-    private final AtencionService atencionService;
+    private final TramiteService tramiteService;
 
-    public PagoController(PagoService pagoService, AtencionService atencionService) {
+    public PagoController(PagoService pagoService, TramiteService tramiteService) {
         this.pagoService = pagoService;
-        this.atencionService = atencionService;
+        this.tramiteService = tramiteService;
     }
 
     @PostMapping("/crear-preferencia")
@@ -43,9 +43,9 @@ public class PagoController {
     // Guardar o actualizar un Pago
     @PostMapping("/atencion/{atencionId}")
     public ResponseEntity<Pago> guardarPAgoAT(@RequestBody Pago pago, @PathVariable Integer atencionId) {
-        Atencion atencion= atencionService.findById(atencionId).get();
+        Tramite atencion= tramiteService.findById(atencionId).get();
         pago.setAtencion(atencion);
-        pago.setResponsable(atencion.getAtencionUsuario());
+        pago.setResponsable(atencion.getTramiteUsuario());
         Pago pagoGuardado = pagoService.guardar(pago);
         return ResponseEntity.ok(pagoGuardado);
     }
