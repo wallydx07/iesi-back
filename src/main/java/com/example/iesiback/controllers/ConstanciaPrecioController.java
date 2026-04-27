@@ -16,13 +16,20 @@ public class ConstanciaPrecioController {
     @Autowired
     private ConstanciaPrecioService service;
 
-
     @GetMapping
-    public List<ConstanciaPrecio> obtenerTodasLasConstancias() {
+    public List<ConstanciaPrecio> obtenerTodasLasConstancias(
+            @RequestParam(required = false) List<Long> ids
+    ) {
+        if (ids != null && !ids.isEmpty()) {
+            return service.findByIdIn(ids);
+        }
         return service.obtenerTodas();
     }
-    @GetMapping("/{tipo}")
-    public ResponseEntity<ConstanciaPrecio> obtenerPorTipoConstancia(@PathVariable String tipo) {
+
+    @GetMapping("/tipo/{tipo}")
+    public ResponseEntity<ConstanciaPrecio> obtenerPorTipoConstancia(
+            @PathVariable String tipo
+    ) {
         return service.findByTipoConstancia(tipo)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

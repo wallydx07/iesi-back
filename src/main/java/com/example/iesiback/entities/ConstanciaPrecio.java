@@ -24,12 +24,37 @@ public class ConstanciaPrecio {
 
     @Size(max = 100)
     @NotNull
-    @Column(name = "tipo_constancia", nullable = false, length = 100)
-    private String tipoConstancia;
+    @Column(name = "nombre", nullable = false, length = 100)
+    private String nombre;
 
     @NotNull
     @Column(name = "precio", nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
+
+
+    @Column(name = "descuento")
+    private Double descuento;
+
+
+    @Column(name = "icono", length = 100)
+    private String icono;
+
+
+    public Double getDescuento() {
+        return descuento;
+    }
+
+    public void setDescuento(Double descuento) {
+        this.descuento = descuento;
+    }
+
+    public String getIcono() {
+        return icono;
+    }
+
+    public void setIcono(String icono) {
+        this.icono = icono;
+    }
 
     public Integer getId() {
         return id;
@@ -39,12 +64,12 @@ public class ConstanciaPrecio {
         this.id = id;
     }
 
-    public String getTipoConstancia() {
-        return tipoConstancia;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setTipoConstancia(String tipoConstancia) {
-        this.tipoConstancia = tipoConstancia;
+    public void setNombre(String tipoConstancia) {
+        this.nombre = tipoConstancia;
     }
 
     public BigDecimal getPrecio() {

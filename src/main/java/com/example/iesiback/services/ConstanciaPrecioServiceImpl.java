@@ -16,7 +16,7 @@ public class ConstanciaPrecioServiceImpl implements ConstanciaPrecioService {
 
     @Override
     public Optional<ConstanciaPrecio> findByTipoConstancia(String tipoConstancia) {
-        return repository.findByTipoConstancia(tipoConstancia);
+        return repository.findByNombre(tipoConstancia);
     }
 
     @Override
@@ -24,4 +24,8 @@ public class ConstanciaPrecioServiceImpl implements ConstanciaPrecioService {
         return repository.findAll();
     }
 
+    @Override
+    public List<ConstanciaPrecio> findByIdIn(List<Long> ids) {
+        return repository.findByIdIn(ids);
+    }
 }
