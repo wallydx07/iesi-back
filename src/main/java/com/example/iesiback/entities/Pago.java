@@ -1,16 +1,12 @@
 package com.example.iesiback.entities;
 
-import com.beust.jcommander.internal.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -20,23 +16,25 @@ import java.util.Map;
 @Getter
 @Setter
 @Entity
-@Table(name = "pago")
+@Table(name = "pago", indexes = {
+        @Index(name = "idx_pago_tramite", columnList = "tramite_id"),
+        @Index(name = "idx_pago_estado", columnList = "estado"),
+        @Index(name = "idx_pago_fecha", columnList = "fecha_pago")
+})
 public class Pago {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pago_id_gen")
     @SequenceGenerator(name = "pago_id_gen", sequenceName = "pagos_id_seq", allocationSize = 1)
-    @Column(name = "id", nullable = false)
     private Integer id;
 
-    @NotNull
+    // 🔗 OPCIONAL: muchos pagos → 1 trámite
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "tramite_id", nullable = true)
     @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "atencion_id", nullable = false)
-    private Tramite atencion;
+    private Tramite tramite;
 
-    @Nullable
-    @Column(name = "mp_payment_id", nullable = false)
+    @Column(name = "mp_payment_id")
     private Long mpPaymentId;
 
     @Size(max = 100)
@@ -47,8 +45,9 @@ public class Pago {
     @Column(name = "external_reference", length = 100)
     private String externalReference;
 
-    @Size(max = 50)
+    // ⚠️ String controlado
     @NotNull
+    @Size(max = 50)
     @Column(name = "estado", nullable = false, length = 50)
     private String estado;
 
@@ -69,23 +68,28 @@ public class Pago {
     private BigDecimal montoTotal;
 
     @Size(max = 10)
-    @ColumnDefault("'ARS'")
     @Column(name = "moneda", length = 10)
-    private String moneda;
+    private String moneda = "ARS";
 
     @Column(name = "fecha_pago")
     private Instant fechaPago;
 
-    @Column(name = "raw_response")
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "raw_response")
     private Map<String, Object> rawResponse;
 
-    @ColumnDefault("now()")
-    @Column(name = "creado_en")
+    @Column(name = "creado_en", nullable = false, updatable = false)
     private Instant creadoEn;
 
     @Size(max = 50)
     @Column(name = "responsable", length = 50)
     private String responsable;
 
+    @PrePersist
+    public void prePersist() {
+        this.creadoEn = Instant.now();
+        if (this.estado != null) {
+            this.estado = this.estado.toUpperCase();
+        }
+    }
 }

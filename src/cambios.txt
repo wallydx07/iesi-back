@@ -1,4 +1,81 @@
-
-
-
 ALTER TABLE atencion RENAME TO tramite;
+
+-- 1. Renombrar la secuencia (para que coincida con el generador de JPA)
+ALTER SEQUENCE atencion_atencion_id_seq RENAME TO tramite_id_seq;
+
+
+
+  
+-- 2. Renombrar las columnas de la tabla 'tramite'
+ALTER TABLE tramite RENAME COLUMN atencion_id TO tramite_id;
+ALTER TABLE tramite RENAME COLUMN atencion_resuelto TO tramite_estado;
+ALTER TABLE tramite RENAME COLUMN atencion_dni TO tramite_dni;
+ALTER TABLE tramite RENAME COLUMN atencion_apellido_nombre TO tramite_apellido_nombre;
+ALTER TABLE tramite RENAME COLUMN atencion_correo TO tramite_correo;
+ALTER TABLE tramite RENAME COLUMN atencion_celular TO tramite_celular;
+ALTER TABLE tramite RENAME COLUMN atencion_tipo TO tramite_tipo;
+ALTER TABLE tramite RENAME COLUMN atencion_problema TO tramite_problema;
+ALTER TABLE tramite RENAME COLUMN atencion_fecha TO tramite_fecha;
+ALTER TABLE tramite RENAME COLUMN atencion_respuesta TO tramite_respuesta;
+ALTER TABLE tramite RENAME COLUMN atencion_observaciones TO tramite_observaciones;
+ALTER TABLE tramite RENAME COLUMN atencion_destino TO tramite_destino;
+ALTER TABLE tramite RENAME COLUMN atencion_usuario TO tramite_usuario;
+ALTER TABLE tramite RENAME COLUMN atencion_prioridad TO tramite_prioridad;
+ALTER TABLE tramite RENAME COLUMN atencion_folios TO tramite_folios;
+ALTER TABLE tramite RENAME COLUMN atencion_canal TO tramite_canal;
+ALTER TABLE tramite RENAME COLUMN atencion_subtipo TO tramite_subtipo;
+ALTER TABLE tramite RENAME COLUMN atencion_asunto TO tramite_asunto;
+ALTER TABLE tramite RENAME COLUMN atencion_Referencia TO tramite_referencia;
+ALTER TABLE constancia_precios RENAME COLUMN tipo_constancia TO nombre;
+
+
+ALTER TABLE certificado_estudiante
+RENAME COLUMN atencion_id TO tramite_id;
+
+ALTER TABLE certificado_estudiante
+DROP CONSTRAINT fk_constancia_atencion;
+
+ALTER TABLE certificado_estudiante
+ADD CONSTRAINT fk_certificado_tramite
+FOREIGN KEY (tramite_id)
+REFERENCES tramite(tramite_id);
+
+
+
+
+
+ALTER TABLE pago DROP CONSTRAINT IF EXISTS pago_atencion_id_key;
+
+ALTER TABLE pago RENAME COLUMN atencion_id TO tramite_id;
+
+ALTER TABLE pago 
+ALTER COLUMN tramite_id DROP NOT NULL;
+
+ALTER TABLE pago
+DROP CONSTRAINT IF EXISTS fk_pago_tramite;
+
+ALTER TABLE pago
+ADD CONSTRAINT fk_pago_tramite
+FOREIGN KEY (tramite_id)
+REFERENCES tramite(tramite_id)
+ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_pago_tramite_id ON pago(tramite_id);
+CREATE INDEX IF NOT EXISTS idx_pago_estado ON pago(estado);
+CREATE INDEX IF NOT EXISTS idx_pago_fecha ON pago(fecha_pago);
+
+________________________
+_____________________
+
+
+UPDATE constancia_precios SET icono = 'school' WHERE id = 1;
+UPDATE constancia_precios SET icono = 'menu_book' WHERE id = 2;
+UPDATE constancia_precios SET icono = 'park' WHERE id = 3;
+UPDATE constancia_precios SET icono = 'assignment' WHERE id = 4;
+UPDATE constancia_precios SET icono = 'verified' WHERE id = 5;
+UPDATE constancia_precios SET icono = 'description' WHERE id = 6;
+UPDATE constancia_precios SET icono = 'check_circle' WHERE id = 7;
+UPDATE constancia_precios SET icono = 'science' WHERE id = 8;
+UPDATE constancia_precios SET icono = 'analytics' WHERE id = 9;
+UPDATE constancia_precios SET descuento = 0;
+

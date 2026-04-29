@@ -48,10 +48,8 @@ public class PagoServiceImpl implements PagoService {
 
     @Override
     public Optional<Pago> findByAtencionId(Integer id) {
-        return pagoRepository.findByAtencionId(id);
+        return pagoRepository.findByTramiteId(id);
     }
-
-
 
 
     public PagoServiceImpl(MercadoPagoService mercadoPagoService, TramiteService tramiteService) {

@@ -24,8 +24,13 @@ public class ActaCursadaDTO {
     private String nombreDocente;
     private String materiaModalidad;
     private String materiaRegimen;
+    private String materiaId;
+    private String division;
 
-    public ActaCursadaDTO(Integer id, String materiaNombre, Integer materiaOrden, String folio, String libro, LocalDate fecha, Boolean firma, Long docenteDni, String carreraId, Integer carreraYear, String apellidoDocente, String nombreDocente, String materiaModalidad, String materiaRegimen) {
+    public ActaCursadaDTO(Integer id, String materiaNombre, Integer materiaOrden,
+                          String folio, String libro, LocalDate fecha, Boolean firma, Long docenteDni,
+                          String carreraId, Integer carreraYear, String apellidoDocente, String nombreDocente,
+                          String materiaModalidad, String materiaRegimen, String materiaId, String division) {
 
 
         this.id = id;
@@ -42,6 +47,8 @@ public class ActaCursadaDTO {
         this.nombreDocente = nombreDocente;
         this.materiaModalidad = materiaModalidad;
         this.materiaRegimen = materiaRegimen;
+        this.materiaId=materiaId;
+        this.division=division;
 
 
     }

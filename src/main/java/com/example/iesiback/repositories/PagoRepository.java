@@ -22,7 +22,7 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     Optional<Pago> findByExternalReference(String externalReference);
 
     // Buscar todos los pagos de una atención
-    List<Pago> findByAtencion(Tramite atencion);
+    List<Pago> findByTramite(Tramite atencion);
 
     // Buscar por estado (ej: approved, rejected)
     List<Pago> findByEstado(String estado);
@@ -34,7 +34,7 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     List<Pago> findByTipoPago(String tipoPago);
 
     // Buscar el único pago relacionado a una atención por su ID
-    Optional<Pago> findByAtencionId(Integer atencionId);
+    Optional<Pago> findByTramiteId(Integer atencionId);
 
 
 }

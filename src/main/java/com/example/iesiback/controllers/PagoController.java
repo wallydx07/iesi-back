@@ -44,7 +44,7 @@ public class PagoController {
     @PostMapping("/atencion/{atencionId}")
     public ResponseEntity<Pago> guardarPAgoAT(@RequestBody Pago pago, @PathVariable Integer atencionId) {
         Tramite atencion= tramiteService.findById(atencionId).get();
-        pago.setAtencion(atencion);
+        pago.setTramite(atencion);
         pago.setResponsable(atencion.getTramiteUsuario());
         Pago pagoGuardado = pagoService.guardar(pago);
         return ResponseEntity.ok(pagoGuardado);
@@ -111,13 +111,11 @@ public class PagoController {
 
     @PostMapping("/inicial")
     public ResponseEntity<Pago> crearPagoInicial(@RequestBody Pago pago) {
-        if (pago.getAtencion() == null || pago.getAtencion().getId() == null) {
+        if (pago.getTramite() == null || pago.getTramite().getId() == null) {
             return ResponseEntity.badRequest().build();
         }
-
         pago.setEstado("pendiente");
         pago.setCreadoEn(Instant.now());
-
         Pago guardado = pagoService.guardar(pago);
         return ResponseEntity.ok(guardado);
     }

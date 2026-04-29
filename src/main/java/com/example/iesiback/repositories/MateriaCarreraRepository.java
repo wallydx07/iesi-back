@@ -200,7 +200,7 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
     @Query("SELECT new com.example.iesiback.dto.ActaCursadaDTO(" +
             "mc.id, m.materiaNombre, m.materiaOrden, mc.folio, mc.libro, mc.fecha, mc.firma, " +
             "mc.fmcDocente, c.carreraId, c.carreraYear, p.personalApellido, p.personalNombre, " +
-            "m.materiaModalidad, m.materiaRegimen) " +
+            "m.materiaModalidad, m.materiaRegimen, m.materiaId, mc.division) " +
             "FROM MateriaCarrera mc " +
             "JOIN mc.materia m " +
             "JOIN mc.carrera c " +
@@ -211,7 +211,7 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
     @Query("SELECT new com.example.iesiback.dto.ActaCursadaDTO(" +
             "mc.id, m.materiaNombre, m.materiaOrden, mc.folio, mc.libro, mc.fecha, mc.firma, " +
             "mc.fmcDocente, c.carreraId, c.carreraYear, p.personalApellido, p.personalNombre, " +
-            "m.materiaModalidad, m.materiaRegimen) " +
+            "m.materiaModalidad, m.materiaRegimen, m.materiaId, mc.division) " +
             "FROM MateriaCarrera mc " +
             "JOIN mc.materia m " +
             "JOIN mc.carrera c " +

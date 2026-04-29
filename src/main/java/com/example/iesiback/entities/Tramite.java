@@ -116,6 +116,9 @@ public class Tramite {
     @Column(name = "tramite_Referencia")
     private Integer tramiteReferencia;
 
+    @OneToMany(mappedBy = "tramite")
+    private List<Pago> pagos;
+
 
 
 
