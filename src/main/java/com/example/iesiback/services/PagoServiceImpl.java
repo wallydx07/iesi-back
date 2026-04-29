@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.dto.PaymentDTO;
+import com.example.iesiback.dto.ResumenRecaudacionDTO;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.dto.ProductoDTO;
 import com.example.iesiback.repositories.PagoRepository;
@@ -130,6 +131,10 @@ public class PagoServiceImpl implements PagoService {
         pagoRepository.save(pago);
     }
 
+    @Override
+    public Optional<ResumenRecaudacionDTO> ResumenRecaudacionDTO() {
+        return pagoRepository.findById();
+    }
 
 
 }

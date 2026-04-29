@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.dto.ProductoDTO;
+import com.example.iesiback.dto.ResumenRecaudacionDTO;
 import com.example.iesiback.entities.Pago;
 
 import java.util.List;
@@ -23,4 +24,5 @@ public interface PagoService {
     Map<String, String> crearPreferencia(ProductoDTO producto) throws Exception;
     void procesarWebhook(Map<String, Object> payload) throws Exception;
 
+    Optional<ResumenRecaudacionDTO> ResumenRecaudacionDTO();
 }

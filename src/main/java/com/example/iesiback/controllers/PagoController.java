@@ -1,6 +1,7 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.ProductoDTO;
+import com.example.iesiback.dto.ResumenRecaudacionDTO;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.services.TramiteService;
@@ -119,6 +120,19 @@ public class PagoController {
         Pago guardado = pagoService.guardar(pago);
         return ResponseEntity.ok(guardado);
     }
+
+
+    // Buscar un Pago por ID
+    @GetMapping("/ResumenRecaudacionDTO")
+    public ResponseEntity<ResumenRecaudacionDTO> ResumenRecaudacionDTO(@PathVariable Integer id) {
+//        Optional<Pago> pagoOpt = pagoService.buscarPorId(id);
+
+        Optional<ResumenRecaudacionDTO> pagoOpt = pagoService.ResumenRecaudacionDTO();
+
+        return pagoOpt.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
 
 //    // Consulta estado pago por atención (polling)
