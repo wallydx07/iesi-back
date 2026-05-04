@@ -22,6 +22,9 @@ public class ResumenRecaudacionDTO {
         this.porConcepto = porConcepto;
     }
 
+    public ResumenRecaudacionDTO() {
+    }
+
     public BigDecimal getTotalRecaudado() {
         return totalRecaudado;
     }

@@ -1,6 +1,7 @@
 package com.example.iesiback.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,6 +12,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -81,9 +83,13 @@ public class Pago {
     @Column(name = "creado_en", nullable = false, updatable = false)
     private Instant creadoEn;
 
-    @Size(max = 50)
+    @Size(max = 50)//
     @Column(name = "responsable", length = 50)
     private String responsable;
+
+    @OneToMany(mappedBy = "pago", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<PagoDetalle> detalles;
 
     @PrePersist
     public void prePersist() {

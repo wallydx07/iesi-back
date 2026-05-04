@@ -98,6 +98,22 @@ public ResponseEntity<List<MateriaDTO>> getMateriasPorCarrerasyUsuario(@PathVari
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
     System.out.println("Materias obtenidas: " + materias.size());
+
+    for (MateriaDTO m : materias) {
+        System.out.println("---- Materia ----");
+        System.out.println("ID: " + m.getMateriaId());
+        System.out.println("Nombre: " + m.getMateriaNombre());
+        System.out.println("Orden: " + m.getMateriaOrden());
+        System.out.println("Nivel: " + m.getMateriaNivel());
+        System.out.println("Regimen: " + m.getMateriaRegimen());
+        System.out.println("Modalidad: " + m.getMateriaModalidad());
+        System.out.println("Cursada: " + m.getMateriaCursada());
+        System.out.println("Examen: " + m.getMateriaExamen());
+        System.out.println("Catedras: " + m.getCatedras());
+        System.out.println("Division: " + m.getDivision());
+    }
+
+
     return ResponseEntity.ok(materias);
 }
 

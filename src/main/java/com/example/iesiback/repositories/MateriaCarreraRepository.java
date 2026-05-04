@@ -160,35 +160,72 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
 //
 
 
-    @Query("""
-    SELECT m.materiaId AS materiaId,
-           m.materiaNombre AS materiaNombre,
-           CAST(m.materiaOrden AS string) AS materiaOrden,
-           m.materiaNivel AS materiaNivel,
-           m.materiaRegimen AS materiaRegimen,
-           m.materiaModalidad AS materiaModalidad,
-           CAST(m.materiaCursada AS string) AS materiaCursada,
-           CAST(m.materiaExamen AS string) AS materiaExamen,
-           '' AS catedras,
-           mc.division
-    FROM MateriaCarrera mc
-    JOIN mc.materia m
-    WHERE mc.fmcDocente = :fmcDocente
-      AND mc.carrera.carreraId = :carreraId
+    @Query(value = """
+    SELECT 
+        m.materia_id,
+        m.materia_nombre,
+        m.materia_orden,
+        m.materia_nivel,
+        m.materia_regimen,
+        m.materia_cursada,
+        m.materia_modalidad,
+        m.materia_examen,
+        m.catedras,
+        mc.division
+    FROM materia_carrera mc
+    INNER JOIN materia m ON mc.materia_id = m.materia_id
+    INNER JOIN carrera c ON mc.carrera_id = c.carrera_id
+    WHERE mc.fmc_docente = :fmcDocente
+      AND c.carrera_id = :carreraId
       AND :anioActual = (
-        CASE 
-          WHEN m.materiaNivel = '1ro' THEN mc.carrera.carreraYear
-          WHEN m.materiaNivel = '2do' THEN mc.carrera.carreraYear + 1
-          WHEN m.materiaNivel = '3ro' THEN mc.carrera.carreraYear + 2
+        CASE
+          WHEN m.materia_nivel = '1ro' THEN c.carrera_year
+          WHEN m.materia_nivel = '2do' THEN c.carrera_year + 1
+          WHEN m.materia_nivel = '3ro' THEN c.carrera_year + 2
           ELSE -1
         END
       )
-""")
+""", nativeQuery = true)
     List<MateriaDTO> findMateriasDictadasEsteAnio(
             @Param("fmcDocente") Long fmcDocente,
             @Param("carreraId") String carreraId,
             @Param("anioActual") Integer anioActual
     );
+
+
+
+
+//    @Query(value = """
+//             SELECT m.materiaId,
+//                    m.materiaNombre,
+//                    m.materiaOrden,
+//                    m.materiaNivel,
+//                    m.materiaRegimen,  \s
+//                    m.materiaCursada,
+//                    m.materiaModalidad,
+//                    m.materiaExamen,
+//                    m.catedras,
+//                    mc.division
+//    FROM MateriaCarrera mc
+//    JOIN mc.materia m
+//    WHERE mc.fmcDocente = :fmcDocente
+//      AND mc.carrera.carreraId = :carreraId
+//      AND :anioActual = (
+//        CASE
+//          WHEN m.materiaNivel = '1ro' THEN mc.carrera.carreraYear
+//          WHEN m.materiaNivel = '2do' THEN mc.carrera.carreraYear + 1
+//          WHEN m.materiaNivel = '3ro' THEN mc.carrera.carreraYear + 2
+//          ELSE -1
+//        END
+//      )
+//""")
+//    List<MateriaDTO> findMateriasDictadasEsteAnio(
+//            @Param("fmcDocente") Long fmcDocente,
+//            @Param("carreraId") String carreraId,
+//            @Param("anioActual") Integer anioActual
+//    );
+//
+
 
 
 

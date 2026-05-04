@@ -591,16 +591,11 @@ public class CertificadoController {
 
     @GetMapping("/generaPlanillaSeguimiento")
     public ResponseEntity<ByteArrayResource> generaPlanillaSeguimiento(
-            @RequestParam String materiaId,
-            @RequestParam String carreraId,
+            @RequestParam Long materiaCarreraId,
             @RequestParam Boolean cursadaInscripto) {
         try {
-            System.out.println("Materia ID: " + materiaId);
-            System.out.println("carreraId: " + carreraId);
-            System.out.println("cursadaInscripto: " + cursadaInscripto);
-
             // 🔴 POSIBLE ERROR 1: certificadoService.generaPlanilla() puede retornar null o lanzar una excepción
-            PDDocument document = certificadoService.generaPlanillaSeguimiento(carreraId, materiaId, cursadaInscripto);
+            PDDocument document = certificadoService.generaPlanillaSeguimiento(materiaCarreraId, cursadaInscripto);
             if (document == null) {
                 // Buen control defensivo
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

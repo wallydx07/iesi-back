@@ -161,6 +161,9 @@ public int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO
     public List<MateriaDTO> obtenerMateriasPorCarreraYDocente(Long fmcDocente, String carreraId) {
 //        return materiaCarreraRepository.findMateriasByCarreraAndFmcDocente(fmcDocente, carreraId);
         int anioActual = LocalDate.now().getYear();
+        System.out.println("fmcDocente: " + fmcDocente);
+        System.out.println("carreraId: " + carreraId);
+        System.out.println("anioActual: " + anioActual);
         return materiaCarreraRepository.findMateriasDictadasEsteAnio(fmcDocente, carreraId, anioActual);
 
     }

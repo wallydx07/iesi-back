@@ -5641,9 +5641,12 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
 }
 
     @Override
-    public PDDocument generaPlanillaSeguimiento(String carreraId, String materiaId, Boolean inscripto) {
+    public PDDocument generaPlanillaSeguimiento(Long materiaCarreraId, Boolean inscripto) {
         PDImageXObject Iesc1, Iesc2;
-        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get(0);
+//        MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get(0);
+          MateriaCarrera materiaCarrera = this.materiaCarreraRepository.findById(materiaCarreraId).get();
+        String carreraId=materiaCarrera.getCarrera().getCarreraId();
+        String materiaId=materiaCarrera.getMateria().getMateriaId();
         String materia = materiaCarrera.getMateria().getMateriaNombre();
         String profe = String.valueOf(materiaCarrera.getFmcDocente());
         String modalidad = materiaCarrera.getMateria().getMateriaModalidad();
@@ -5855,6 +5858,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
 //            cuadro.endText();
 //            cuadro.close();
             int i = 1;
+
             Personal personal = this.personalService.findById(String.valueOf(materiaCarrera.getFmcDocente())).get();
             for (PDPage page : Documento.getPages()) {
                 addHeaderA4(Documento, page, Iesc1, materiaCarrera, personal);

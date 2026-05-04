@@ -1,9 +1,13 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.PagoRequestDTO;
 import com.example.iesiback.dto.ProductoDTO;
+import com.example.iesiback.dto.ResumenOperadorDTO;
 import com.example.iesiback.dto.ResumenRecaudacionDTO;
+import com.example.iesiback.entities.PagoDetalle;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
+import com.example.iesiback.services.PagoDetalleService;
 import com.example.iesiback.services.TramiteService;
 import com.example.iesiback.services.PagoService;
 import org.springframework.http.HttpStatus;
@@ -11,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,10 +27,37 @@ public class PagoController {
 
     private final PagoService pagoService;
     private final TramiteService tramiteService;
+    private final PagoDetalleService pagoDetalleService;
 
-    public PagoController(PagoService pagoService, TramiteService tramiteService) {
+    public PagoController(PagoService pagoService, TramiteService tramiteService, PagoDetalleService pagoDetalleService) {
         this.pagoService = pagoService;
         this.tramiteService = tramiteService;
+        this.pagoDetalleService = pagoDetalleService;
+    }
+
+
+//    @GetMapping("/ResumenRecaudacionDTO/{fechaPago}")
+//    public ResponseEntity<ResumenRecaudacionDTO> ResumenRecaudacionDTO(
+//            @PathVariable LocalDate fechaPago) {
+//        Optional<ResumenRecaudacionDTO> pagoOpt = pagoService.ResumenRecaudacionDTO(fechaPago);
+//        return pagoOpt.map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
+
+
+    @GetMapping("/ResumenOperadorDTO/{fecha}")
+    public ResponseEntity<List<ResumenOperadorDTO>> getResumen(
+            @PathVariable LocalDate fecha) {
+
+        return ResponseEntity.ok(
+                pagoService.obtenerResumenPorOperador(fecha)
+        );
+    }
+
+    @PatchMapping("/{id}/validar")
+    public ResponseEntity<Void> toggleValidar(@PathVariable Long id) {
+        pagoService.actualizarEstadoValidacion(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/crear-preferencia")
@@ -51,13 +83,12 @@ public class PagoController {
         return ResponseEntity.ok(pagoGuardado);
     }
 
-    // Guardar o actualizar un Pago
-    @PostMapping
-    public ResponseEntity<Pago> guardar(@RequestBody Pago pago, @RequestBody String atencionId) {
-
-        Pago pagoGuardado = pagoService.guardar(pago);
-        return ResponseEntity.ok(pagoGuardado);
-    }
+        // Guardar o actualizar un Pago
+        @PostMapping
+        public ResponseEntity<Pago> guardar(@RequestBody Pago pago) {
+            Pago pagoGuardado = pagoService.guardar(pago);
+            return ResponseEntity.ok(pagoGuardado);
+        }
 
     // Buscar un Pago por ID
     @GetMapping("/{id}")
@@ -122,15 +153,36 @@ public class PagoController {
     }
 
 
-    // Buscar un Pago por ID
-    @GetMapping("/ResumenRecaudacionDTO")
-    public ResponseEntity<ResumenRecaudacionDTO> ResumenRecaudacionDTO(@PathVariable Integer id) {
-//        Optional<Pago> pagoOpt = pagoService.buscarPorId(id);
+    @GetMapping("/ResumenRecaudacionDTO/{fechaPago}")
+    public ResponseEntity<ResumenRecaudacionDTO> ResumenRecaudacionDTO(
+            @PathVariable LocalDate fechaPago) {
 
-        Optional<ResumenRecaudacionDTO> pagoOpt = pagoService.ResumenRecaudacionDTO();
+        Optional<ResumenRecaudacionDTO> pagoOpt =
+                pagoService.ResumenRecaudacionDTO(fechaPago);
 
-        return pagoOpt.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(
+                pagoOpt.orElseGet(ResumenRecaudacionDTO::new)
+        );
+    }
+
+
+
+
+    @PostMapping("/con-detalles")
+    public ResponseEntity<Pago> guardarConDetalles(@RequestBody PagoRequestDTO request) {
+
+        Pago pago = request.getPago();
+        List<PagoDetalle> detalles = request.getDetalles();
+
+        Pago guardado = pagoDetalleService.guardarPagoConDetalles(pago, detalles);
+
+        return ResponseEntity.ok(guardado);
+    }
+
+
+    @GetMapping("/{id}/detalles")
+    public ResponseEntity<List<PagoDetalle>> obtenerDetalles(@PathVariable Integer id) {
+        return ResponseEntity.ok(pagoDetalleService.obtenerPorPago(id));
     }
 
 

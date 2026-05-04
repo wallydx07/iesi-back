@@ -46,7 +46,7 @@ public interface CertificadoService {
 
     PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin);
 
-    PDDocument generaPlanillaSeguimiento(String carreraId, String materiaId, Boolean inscripto);
+    PDDocument generaPlanillaSeguimiento( Long materiaCarreraId, Boolean inscripto);
 
     PDDocument generaCalificador(String legajoId, boolean enBlanco);
 

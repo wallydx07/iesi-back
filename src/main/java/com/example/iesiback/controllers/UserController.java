@@ -116,7 +116,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
     @PostMapping("/{username}/reset-password")
     public ResponseEntity<String> resetPassword(
             @PathVariable String username,
