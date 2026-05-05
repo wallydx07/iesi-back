@@ -10,6 +10,7 @@ public class ResumenOperadorDTO {
     private BigDecimal total;
     private long validados;
     private long pendientes;
+
     private List<ReciboDTO> items;
 
     public ResumenOperadorDTO(String usuario, List<ReciboDTO> items) {

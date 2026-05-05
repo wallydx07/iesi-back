@@ -333,6 +333,8 @@ public class PagoServiceImpl implements PagoService {
 
             dto.setAporteNroRecibo(pago.getExternalReference());
 
+            dto.setPagoDetalles(pagoDetalleService.obtenerPorPago(pago.getId()));
+
             return dto;
 
         }).toList();
