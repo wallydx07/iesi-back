@@ -19,7 +19,7 @@ import java.util.List;
 public class Tramite {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tramite_id_gen")
-    @SequenceGenerator(name = "tramite_id_gen", sequenceName = "tramite_atencion_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "tramite_id_gen", sequenceName = "tramite_id_seq", allocationSize = 1)
     @Column(name = "tramite_id", nullable = false)
     private Integer id;
 

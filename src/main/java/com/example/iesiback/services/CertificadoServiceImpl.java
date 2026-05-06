@@ -254,7 +254,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             regular.newLineAtOffset(-(tamaño(t6, letra, negrita) + t6.length() * charspacing(longitud, tamaño(t6, letra, negrita) + tamaño(t7, letra, normal), t6 + t7)), -20);//linea nueav
             String carreraCompl = "Tecnicatura Superior en " + carrera.getCarreraNombre();
             String t10 = (" y actualmente se");
-            regular.setCharacterSpacing(charspacing(longitud, tamaño(carreraCompl, letra, negrita) + tamaño(t10, letra, normal), carrera + t10));//espacio entre caracteres
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(carreraCompl, letra, negrita) + tamaño(t10, letra, normal), carreraCompl + t10));//espacio entre caracteres
             regular.setFont(negrita, letra);
             regular.showText(carreraCompl);
             regular.newLineAtOffset(tamaño(carreraCompl, letra, negrita) + carreraCompl.length() * charspacing(longitud, tamaño(carreraCompl, letra, negrita) + tamaño(t10, letra, normal), carreraCompl + t10), 0);//linea alejada de la primera palabra
@@ -1073,25 +1073,15 @@ public class CertificadoServiceImpl implements CertificadoService {
             pTexto.setFont(normal, letra);
             pTexto.newLineAtOffset(55, 725);
             String t1 = ("-----Por la presente, se deja constancia que " + genero1 + " ");
-            //String nombre=(String)objcrud.consultaString("select alumno.alumno_nombre from alumno where alumno.alumno_dni='"+alumno_dni+"';", "alumno_nombre");
-            //String apellido=(String)objcrud.consultaString("select alumno.alumno_apellido from alumno where alumno.alumno_dni='"+alumno_dni+"';", "alumno_apellido");
             String t2 = (apellido + " " + nombre + ", DNI: " + dni);
             pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t1, letra, normal) + tamaño(t2, letra, negrita), t1 + t2));//espacio entre caracteres
             pTexto.showText(t1);
-            // pTexto.newLineAtOffset(tamaño(t1,letra, normal), 0);
             pTexto.newLineAtOffset(tamaño(t1, letra, normal) + t1.length() * charspacing(longitud, tamaño(t1, letra, normal) + tamaño(t2, letra, negrita), t1 + t2), 0);
             pTexto.setFont(negrita, letra);
             pTexto.showText(t2);
-            //  float longitud=tamaño(t1+t2,letra, PDType1Font.HELVETICA)+10;//longitud permitida para justificar
-            // float longitud=tamaño(t1+t2,letra, normal)+20;//longitud permitida para justificar
-
             pTexto.newLineAtOffset(-tamaño(t1, letra, normal) - t1.length() * charspacing(longitud, tamaño(t1, letra, normal) + tamaño(t2, letra, negrita), t1 + t2), n);//nueva linea abajo justo al inicio
             String t3 = accion;
-            //String t3="ha cursado la carrera: ";
-            //   if(!año.equals("")){
-            //        t3= ("Es estudiante del "+año+" de la: ");
-            //    }
-            String t4 = " Tecnicatura Superior en " + carreraNombre;//(String)objcrud.consultaString("select carrera.carrera_nombre from carrera where Carrera.carrera_id='"+alumno_carrera+"';" , "carrera_nombre");
+            String t4 = " Tecnicatura Superior en " + carreraNombre;
             pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t4, letra, negrita) + tamaño(t3, letra, normal), t3 + t4));//espacio entre caracteres
             pTexto.setFont(normal, letra);
             pTexto.showText(t3);
@@ -1107,10 +1097,7 @@ public class CertificadoServiceImpl implements CertificadoService {
             pTexto.showText(t6);
 
             pTexto.newLineAtOffset(0, n);//linea nueav
-            //nueva line=tamfrase
-            //String carrera=(String)objcrud.consultaString("select carrera.carrera_nombre from carrera where Carrera.carrera_id='"+alumno_carrera+"';" , "carrera_nombre");
             String t8 = ("Instituto de Educación Superior Intercultural Campinta Guazú Gloria Pérez ");
-            //String t9=("DESARROLLO INDIGENA ");
             pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t8, letra, negrita), t8));//espacio entre caracteres
             pTexto.setFont(negrita, letra);
             pTexto.showText(t8);
