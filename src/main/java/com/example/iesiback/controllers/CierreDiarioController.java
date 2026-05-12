@@ -16,7 +16,7 @@ public class CierreDiarioController {
     }
 
     @PostMapping("/cerrar-dia")
-    public ResponseEntity<String> cerrarDia(@RequestParam Long usuarioId) {
+    public ResponseEntity<String> cerrarDia(@RequestParam String usuarioId) {
         cierreService.cerrarDia(usuarioId);
         return ResponseEntity.ok("Día cerrado correctamente");
     }
@@ -33,8 +33,13 @@ public class CierreDiarioController {
      * 🧾 Auditar día
      */
     @PostMapping("/auditar-dia")
-    public ResponseEntity<String> auditarDia(@RequestParam Long usuarioId) {
+    public ResponseEntity<String> auditarDia(@RequestParam String usuarioId) {
         cierreService.auditarDia(usuarioId);
         return ResponseEntity.ok("Día auditado correctamente");
+    }
+
+    @GetMapping("/estado-completo")
+    public ResponseEntity<String> estadoCompleto() {
+        return ResponseEntity.ok(cierreService.estadoHoy());
     }
 }

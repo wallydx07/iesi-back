@@ -2,11 +2,13 @@ package com.example.iesiback.services;
 
 public interface CierreDiarioService {
 
-    void cerrarDia(Long usuarioId);
+    void cerrarDia(String usuarioId);
 
     void validarDiaAbierto();
 
     boolean estaCerradoHoy();
 
-    void auditarDia(Long usuarioId);
+    void auditarDia(String usuarioId);
+
+    String estadoHoy();
 }

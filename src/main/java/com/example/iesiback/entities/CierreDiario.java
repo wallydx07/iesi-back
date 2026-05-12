@@ -24,7 +24,7 @@ public class CierreDiario {
     private LocalDateTime fechaCierre;
 
     @Column(name = "usuario_id")
-    private Long usuarioId;
+    private String usuarioId;
 
     @Column(length = 255)
     private String observaciones;
@@ -33,9 +33,10 @@ public class CierreDiario {
     public CierreDiario() {
     }
 
-    public CierreDiario(LocalDate fecha, EstadoCierre estado) {
+    public CierreDiario(LocalDate fecha, EstadoCierre estado, String usuarioId) {
         this.fecha = fecha;
         this.estado = estado;
+        this.usuarioId = usuarioId;
     }
 
     public Long getId() {
@@ -70,11 +71,11 @@ public class CierreDiario {
         this.fechaCierre = fechaCierre;
     }
 
-    public Long getUsuarioId() {
+    public String getUsuarioId() {
         return usuarioId;
     }
 
-    public void setUsuarioId(Long usuarioId) {
+    public void setUsuarioId(String usuarioId) {
         this.usuarioId = usuarioId;
     }
 

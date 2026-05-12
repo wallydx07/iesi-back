@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.Optional;
 
-public interface CierreDiarioRepository extends JpaRepository<CierreDiario, Long> {
+public interface CierreDiarioRepository extends JpaRepository<CierreDiario, String> {
 
     Optional<CierreDiario> findByFecha(LocalDate fecha);
 
     boolean existsByFecha(LocalDate fecha);
+
+    Optional<CierreDiario> findByFechaAndUsuarioId(LocalDate fecha, String usuarioId);
 }
