@@ -21,17 +21,11 @@ public class CierreDiarioController {
         return ResponseEntity.ok("Día cerrado correctamente");
     }
 
-    /**
-     * 🔎 Saber si hoy está cerrado
-     */
     @GetMapping("/estado-hoy")
     public ResponseEntity<Boolean> estaCerradoHoy() {
         return ResponseEntity.ok(cierreService.estaCerradoHoy());
     }
 
-    /**
-     * 🧾 Auditar día
-     */
     @PostMapping("/auditar-dia")
     public ResponseEntity<String> auditarDia(@RequestParam String usuarioId) {
         cierreService.auditarDia(usuarioId);

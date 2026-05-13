@@ -38,8 +38,9 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     List<Pago> findByTipoPago(String tipoPago);
 
     // Buscar el único pago relacionado a una atención por su ID
-    Optional<Pago> findByTramiteId(Integer atencionId);
+//    Optional<Pago> findByTramiteId(Integer atencionId);
 
+    List<Pago> findAllByTramiteId(Integer tramiteId);
 
     List<Pago> findByFechaPago(Instant fechaPago);
 

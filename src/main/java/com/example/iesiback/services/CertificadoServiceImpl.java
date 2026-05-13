@@ -7458,8 +7458,25 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cellL3.setFontSize(tan);
             // cellL3.setBorderStyle(null);
 
-            Pago pago=pagoService.findByAtencionId(atencion.getId()).get();
-            cellL3 = l3.createCell(30, "Pago: "+ pago.getMontoTotal()+"-"+pago.getEstado());
+//            Pago pago=pagoService.findByAtencionId(atencion.getId()).get();
+//            cellL3 = l3.createCell(30, "Pago: "+ pago.getMontoTotal()+"-"+pago.getEstado());
+
+            List<Pago> pagos =
+                    pagoService.findByAtencionId(atencion.getId());
+
+            BigDecimal total = pagos.stream()
+                    .map(Pago::getMontoTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            String estados = pagos.stream()
+                    .map(p -> p.getEstado().name())
+                    .distinct()
+                    .collect(Collectors.joining(", "));
+
+            cellL3 = l3.createCell(
+                    30,
+                    "Pago: " + total + " - " + estados
+            );
 
             cellL3.setAlign(HorizontalAlignment.LEFT);
             cellL3.setValign(VerticalAlignment.MIDDLE);

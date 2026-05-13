@@ -205,7 +205,6 @@ WHERE mc.materia_id = m.materia_id
   DELETE FROM cursada
   WHERE cursada_legajo_id = 'EYEC301';
 
-
   delete from inscripcion where legajo_id='EYEC301';
   delete from observaciones where legajo_id='EYEC301';
   delete from legajo where legajo_id='EYEC301';
@@ -251,6 +250,31 @@ WHERE mc.materia_id = m.materia_id
       ON certificado_estudiante.atencion_id = atencion.atencion_id
   WHERE fecha >= '2026-01-01'
     AND fecha < '2027-01-01';
+
+    SELECT
+        p.persona_dni,
+        p.persona_apellido,
+        p.persona_nombre,
+        a.aporte_nro_recibo,
+        a.aporte_monto,
+        a.aporte_fecha,
+    	legajo_fotocopia_titulo,
+    	      CASE
+              WHEN carrera.carrera_year = 2024 THEN '3ER AÑO'
+              WHEN carrera.carrera_year = 2025 THEN '2DO AÑO'
+              WHEN carrera.carrera_year = 2026 THEN '1ER AÑO'
+              ELSE 'RECURSANTE'
+          END AS curso,
+    	  carrera_nombre,
+    	  a.usuario
+    FROM legajo l
+    INNER JOIN persona p ON l.legajo_alumno_dni = p.persona_dni
+    inner join inscripcion on l.legajo_id=inscripcion.legajo_id
+    inner join carrera on inscripcion.carrera_id=carrera.carrera_id
+    LEFT JOIN aporte a ON l.legajo_id = a.aporte_legajo_id
+        AND a.aporte_fecha> '2025-11-01'
+    WHERE l.legajo_estado = 'Activo'
+    order by persona_apellido asc;
 
 
 

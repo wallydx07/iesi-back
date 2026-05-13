@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.enums.EstadoPago;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -47,11 +48,10 @@ public class Pago {
     @Column(name = "external_reference", length = 100)
     private String externalReference;
 
-    // ⚠️ String controlado
     @NotNull
-    @Size(max = 50)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 50)
-    private String estado;
+    private EstadoPago estado;
 
     @Size(max = 100)
     @Column(name = "status_detail", length = 100)
@@ -94,8 +94,5 @@ public class Pago {
     @PrePersist
     public void prePersist() {
         this.creadoEn = Instant.now();
-        if (this.estado != null) {
-            this.estado = this.estado.toUpperCase();
-        }
     }
 }
