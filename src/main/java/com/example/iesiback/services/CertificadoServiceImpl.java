@@ -76,6 +76,8 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final ExamenService examenService;
 
     private final PersonalHorariosService personalHorariosService;
+private final EmailService emailService;
+
 
     @Autowired
     public CertificadoServiceImpl(@Lazy PersonaService alumnoService,
@@ -84,7 +86,7 @@ public class CertificadoServiceImpl implements CertificadoService {
                                   MateriaCarreraRepository materiaCarreraRepository, DocumentoService documentoService,
                                   LegajoService legajoService,
                                   AlumnoLegajoService alumnoLegajoService,
-                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, PersonalHorariosService personalHorariosService) {
+                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, PersonalHorariosService personalHorariosService, EmailService emailService) {
         this.alumnoService = alumnoService;
         this.carreraService = carreraService;
         this.notaService = notaService;
@@ -105,6 +107,7 @@ public class CertificadoServiceImpl implements CertificadoService {
         this.permisoService = permisoService;
         this.examenService = examenService;
         this.personalHorariosService = personalHorariosService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -7962,8 +7965,6 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
     }
 
 
-
-
     @Override
     public PDDocument generaTroquelPase(Integer paseId) {
         System.out.println("Inicio generaTroquelPase, paseId=" + paseId);
@@ -8967,8 +8968,6 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
         return Documento;
     }
 
-    @Autowired
-    private EmailService emailService;
 
     @Override
     public void enviarPermisoPorEmail(String libreta, String turno, String usuarioNombre, String destinatario) {
@@ -9001,6 +9000,112 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
             throw new RuntimeException("Error al enviar permiso por email: " + e.getMessage());
         }
     }
+
+
+    public PDDocument generaT(Integer paseId) {
+        System.out.println("Inicio generaTroquelPase, paseId=" + paseId);
+
+        Pases pase = this.paseService.findById(Long.valueOf(paseId));
+        if (pase == null) {
+            System.out.println("Pase no encontrado, retornando null");
+            return null;
+        }
+
+        PDDocument documento = new PDDocument();
+        System.out.println("Documento PDF creado");
+
+        try {
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            documento.addPage(pagina);
+            System.out.println("Página añadida");
+
+            PDType1Font normal = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+
+            float margin = 30;
+            float yStart = pagina.getMediaBox().getHeight() - 10;
+            float bottomMargin = 70;
+            float tableWidth = pagina.getMediaBox().getWidth() - 2 * margin;
+            float yStartNewPage = pagina.getMediaBox().getHeight() - margin;
+
+            System.out.println("Creando tabla BaseTable...");
+            BaseTable tabla = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, documento, pagina, true, true);
+            int fontSize = 10;
+
+            // Trámite ID
+            Row<PDPage> filaTramite = tabla.createRow(15);
+            Cell<PDPage> c1 = filaTramite.createCell(70, "Trámite N°: " + (pase.getTramite() != null ? pase.getTramite().getId() : ""));
+            c1.setFontSize(fontSize);
+            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String fechaCreacion = pase.getCreatedAt() != null ? pase.getCreatedAt().format(formatter) : "";
+            c1 = filaTramite.createCell(30, "Fecha: " + fechaCreacion);
+            c1.setFontSize(fontSize);
+            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            System.out.println("Fila trámite creada");
+
+            // De Usuario
+            Row<PDPage> filaDe = tabla.createRow(15);
+            String deUsuario = "Sin asignar";
+            String deArea = "Sin área";
+            if (pase.getDeUsuario() != null) {
+                deUsuario = (pase.getDeUsuario().getPersonalNombre() != null ? pase.getDeUsuario().getPersonalNombre() : "")
+                        + " " + (pase.getDeUsuario().getPersonalApellido() != null ? pase.getDeUsuario().getPersonalApellido() : "");
+                if (pase.getDeUsuario().getDestino() != null && pase.getDeUsuario().getDestino().getNombre() != null) {
+                    deArea = pase.getDeUsuario().getDestino().getNombre();
+                }
+            }
+            System.out.println("De Usuario: " + deUsuario + ", Area: " + deArea);
+
+            Cell<PDPage> c2 = filaDe.createCell(50, "De Usuario: " + deUsuario);
+            c2.setFontSize(fontSize);
+            c2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+            c2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+
+            c2 = filaDe.createCell(50, " Area: " + deArea);
+            c2.setFontSize(fontSize);
+
+            // Para Usuario
+            Row<PDPage> filaParaUsuario = tabla.createRow(15);
+            String paraUsuario = "Sin asignar";
+            String paraArea = "Sin área";
+            if (pase.getParaUsuario() != null) {
+                paraUsuario = (pase.getParaUsuario().getPersonalNombre() != null ? pase.getParaUsuario().getPersonalNombre() : "")
+                        + " " + (pase.getParaUsuario().getPersonalApellido() != null ? pase.getParaUsuario().getPersonalApellido() : "");
+                if (pase.getParaUsuario().getDestino() != null && pase.getParaUsuario().getDestino().getNombre() != null) {
+                    paraArea = pase.getParaUsuario().getDestino().getNombre();
+                }
+            }
+            System.out.println("Para Usuario: " + paraUsuario + ", Area: " + paraArea);
+
+            Cell<PDPage> c4 = filaParaUsuario.createCell(50, "Para Usuario: " + paraUsuario);
+            c4.setFontSize(fontSize);
+
+            c4 = filaParaUsuario.createCell(50, " Area: " + paraArea);
+            c4.setFontSize(fontSize);
+
+            // Observaciones
+            Row<PDPage> filaObs = tabla.createRow(15);
+            Cell<PDPage> c7 = filaObs.createCell(100, "Observaciones: " + (pase.getObservaciones() != null ? pase.getObservaciones() : ""));
+            c7.setFontSize(fontSize);
+
+            System.out.println("Dibujando tabla...");
+            tabla.draw();
+            System.out.println("Tabla dibujada correctamente");
+
+        } catch (Exception e) {
+            System.out.println("ERROR en generaTroquelPase:");
+            e.printStackTrace();
+            return null;
+        }
+
+        System.out.println("PDF generado correctamente, retornando documento");
+        return documento;
+    }
+
 
 
 }

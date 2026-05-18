@@ -70,11 +70,9 @@ public class MateriaController {
     @GetMapping("/reinscripciones")
     public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(
             @RequestParam("cicloLectivo") Integer cicloLectivo,
-            //@RequestParam("carreraNombre") String carreraNombre,
             @RequestParam("legajoId") String legajoId,
             @RequestParam("division") String division
     ) {
-        //return materiaService.obtenerReinscripciones(cicloLectivo, carreraNombre,legajoId);
         return materiaService.obtenerReinscripciones(cicloLectivo,legajoId, division);
     }
 

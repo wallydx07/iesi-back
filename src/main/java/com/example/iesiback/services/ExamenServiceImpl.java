@@ -3,6 +3,8 @@ package com.example.iesiback.services;
 import com.example.iesiback.entities.ExamenHorario;
 import com.example.iesiback.dto.InscripcionExamenDTO;
 import com.example.iesiback.entities.*;
+import com.example.iesiback.enums.EstadoNota;
+import com.example.iesiback.enums.NotaCondicion;
 import com.example.iesiback.repositories.CursadaExamenRepository;
 import com.example.iesiback.repositories.ExamenRepository;
 import jakarta.transaction.Transactional;
@@ -248,7 +250,7 @@ public class ExamenServiceImpl implements ExamenService {
             String legajoId,
             Turno turno,
             Materia materia,
-            String condicionExamen,
+            NotaCondicion condicionExamen,
             Integer cursadaId) {
 
         log.info("==== INICIO registrarExamen ====");
@@ -319,7 +321,7 @@ public class ExamenServiceImpl implements ExamenService {
 
         Nota nota = new Nota();
         nota.setNotaCondicion(condicionExamen);
-        nota.setNotaEstado("Pendiente");
+        nota.setNotaEstado(EstadoNota.PENDIENTE);
         nota.setCursada(cursada);
         nota.setNotaFechaNota(cursadaExamen.getFecha());
 

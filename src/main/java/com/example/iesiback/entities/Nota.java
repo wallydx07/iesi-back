@@ -1,5 +1,7 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.enums.EstadoNota;
+import com.example.iesiback.enums.NotaCondicion;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -36,13 +38,13 @@ public class Nota {
     @Column(name = "nota_fecha_nota")
     private LocalDate notaFechaNota;
 
-    @Size(max = 50)
-    @Column(name = "nota_condicion", length = 50)
-    private String notaCondicion;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nota_condicion")
+    private NotaCondicion notaCondicion;
 
-    @Size(max = 50)
-    @Column(name = "nota_estado", length = 50)
-    private String notaEstado;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nota_estado")
+    private EstadoNota notaEstado;
 
     @Size(max = 50)
     @Column(name = "nota_libro_nota", length = 50)
@@ -129,22 +131,6 @@ public class Nota {
         this.notaFechaNota = notaFechaNota;
     }
 
-    public String getNotaCondicion() {
-        return notaCondicion;
-    }
-
-    public void setNotaCondicion(String notaCondicion) {
-        this.notaCondicion = notaCondicion;
-    }
-
-    public String getNotaEstado() {
-        return notaEstado;
-    }
-
-    public void setNotaEstado(String notaEstado) {
-        this.notaEstado = notaEstado;
-    }
-
     public String getNotaLibroNota() {
         return notaLibroNota;
     }
@@ -200,5 +186,21 @@ public class Nota {
 
     public void setNotaCalificacionNotaNumero(Double notaCalificacionNotaNumero) {
         this.notaCalificacionNotaNumero = notaCalificacionNotaNumero;
+    }
+
+    public EstadoNota getNotaEstado() {
+        return notaEstado;
+    }
+
+    public void setNotaEstado(EstadoNota notaEstado) {
+        this.notaEstado = notaEstado;
+    }
+
+    public NotaCondicion getNotaCondicion() {
+        return notaCondicion;
+    }
+
+    public void setNotaCondicion(NotaCondicion notaCondicion) {
+        this.notaCondicion = notaCondicion;
     }
 }

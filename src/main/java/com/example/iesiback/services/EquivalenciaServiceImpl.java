@@ -3,6 +3,8 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.EquivalenciaDetalleDTO;
 import com.example.iesiback.entities.Equivalencia;
 import com.example.iesiback.entities.Nota;
+import com.example.iesiback.enums.EstadoNota;
+import com.example.iesiback.enums.NotaCondicion;
 import com.example.iesiback.repositories.EquivalenciaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,8 +58,8 @@ public class EquivalenciaServiceImpl implements EquivalenciaService {
     public Equivalencia crearEquivalenciaConNota(Equivalencia equivalencia, Integer cursadaId) {
         // 1️⃣ Crear la nota
         Nota nuevaNota = new Nota();
-        nuevaNota.setNotaCondicion("Equivalencia");
-        nuevaNota.setNotaEstado("Pendiente");
+        nuevaNota.setNotaCondicion(NotaCondicion.EQUIVALENCIA);
+        nuevaNota.setNotaEstado(EstadoNota.PENDIENTE);
         nuevaNota.setNotaFechaNota(LocalDate.now());
         notaService.saveNotaWithCursadsa(nuevaNota, cursadaId);
 

@@ -2,6 +2,7 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.InscripcionExamenDTO;
 import com.example.iesiback.entities.*;
+import com.example.iesiback.enums.NotaCondicion;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public interface ExamenService {
     List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno);
     boolean verificarPermisoParaTurno(String permisoLegajoId, String turnoId);
     //Examen registrarExamen(String legajoId, String turnoId, String materiaId, String examenCondicion);
-    Examen registrarExamen(String legajoId, Turno turno, Materia materia, String condicionExamen, Integer cursada);
+    Examen registrarExamen(String legajoId, Turno turno, Materia materia, NotaCondicion condicionExamen, Integer cursada);
 
     void darDeBajaExamen(Long examenId);
     void activarExamen(Long examenId);

@@ -105,7 +105,6 @@ public class NotaController {
 //            String fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 //            nota.setNotaFechaNota(fechaFormateada);
 //        }
-
 //        nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
 
         if (userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre().equals("ROLE_ADMIN")) {

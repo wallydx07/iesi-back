@@ -75,7 +75,7 @@ public class MateriaServiceImpl implements MateriaService {
         return materiaRepository.findMateriasByCarrera(carreraId);
     }
 
-
+    //Regularizado para cursar
     @Override
     public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo,String legajoId, String division) {
 
@@ -93,23 +93,14 @@ public class MateriaServiceImpl implements MateriaService {
               procesado.setMateriaNivel(dto.getMateriaNivel());
               procesado.setMateriaNombre(dto.getMateriaNombre());
               procesado.setCarreraNombre(dto.getCarreraNombre());
-
               procesado.setMateriaRegimen(dto.getMateriaRegimen());
               procesado.setMateriaModalidad(dto.getMateriaModalidad());
-
               procesado.setCarreraYear(dto.getCarreraYear());
               procesado.setMateriaCarreraId(dto.getMateriaCarreraId());
               procesado.setDivision(dto.getDivision());
-              System.out.println("--------------------------------------------LegajoID" + legajoId + "------MateriaId" + dto.getMateriaId());
               Materia materia=this.findMateriaById(dto.getMateriaId());
               List<CorrelativasFaltantesEstadoDTO> correlativas = cursadaService.obtenerCorrelativasPendientesMateriaId(legajoId, materia);
-              System.out.println("--------------------------------------------" + correlativas.size());
-//              String C = "";
-//              for (String aux : correlativas) {
-//                  C = C + aux + ",";
-//              }
-                  Optional<Boolean> estadoOpt = cursadaService.obtenerEstadoCursada(legajoId, dto.getMateriaId(), String.valueOf(dto.getCarreraYear()),division);
-
+              Optional<Boolean> estadoOpt = cursadaService.obtenerEstadoCursada(legajoId, dto.getMateriaId(), String.valueOf(dto.getCarreraYear()),division);
                   if (estadoOpt.isPresent()) {
                       Boolean estado = estadoOpt.get();
                       procesado.setCursadaInscripto(estado);
@@ -124,7 +115,6 @@ public class MateriaServiceImpl implements MateriaService {
     }
 
     public Materia FindByNombreandCarrera(Carrera carrera, String Nombre){
-
         return null;
     }
 

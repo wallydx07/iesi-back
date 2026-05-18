@@ -251,28 +251,19 @@ public class PagoController {
     public ResponseEntity<?> recibirNotificacion(
             @RequestBody Map<String, Object> payload
     ) {
-
         try {
-
             pagoService.procesarWebhook(payload);
-
             return ResponseEntity.ok().build();
-
         } catch (Exception e) {
-
             e.printStackTrace();
-
             return ResponseEntity.status(
-                            HttpStatus.INTERNAL_SERVER_ERROR
-                    )
+                            HttpStatus.INTERNAL_SERVER_ERROR                    )
                     .body("Error al procesar webhook");
         }
     }
-
     // =====================================================
     // CREAR PAGO INICIAL
     // =====================================================
-
     @PostMapping("/inicial")
     public ResponseEntity<Pago> crearPagoInicial(
             @RequestBody Pago pago

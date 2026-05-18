@@ -37,14 +37,12 @@ public interface CursadaService {
 
     Cursada actualizarCursada(Cursada cursada, Cursada cursadaPost);
 
-
     List<Cursada> findByMateriaCarrera_Carrera_CarreraId(String carreraId);
 
     @Transactional
     Cursada obtenerORegistrarCursada(
             Legajo legajo,
             Long materiaCarreraId);
-
 
     @Transactional
     Cursada buscarOMasCercanaORegistrar(

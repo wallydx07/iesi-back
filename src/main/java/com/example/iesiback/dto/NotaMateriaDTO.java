@@ -1,5 +1,8 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.enums.EstadoNota;
+import com.example.iesiback.enums.NotaCondicion;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -10,14 +13,13 @@ public class NotaMateriaDTO {
     private String materiaNombre;
     private Double notaCalificacionNumero;
     private String notaCalificacionLetra;
-    private String notaCondicion;
-    private String notaEstado;
+    private NotaCondicion notaCondicion;
+    private EstadoNota notaEstado;
     private String notaLibro;
     private String notaFolio;
     private LocalDate notaFecha;
     private String notaObservaciones;
     private String notaUsuario;
-    private String notaStatus;
     private String notaFinal;
     private List<String> correlativas;
     private String materiaId;
@@ -30,7 +32,7 @@ public class NotaMateriaDTO {
     public NotaMateriaDTO(){ }
     public NotaMateriaDTO(Long notaId, Integer materiaOrden, String materiaNombre,
                           Double notaCalificacionNumero, String notaCalificacionLetra,
-                          String notaCondicion, String notaEstado, String notaLibro,
+                          NotaCondicion notaCondicion, EstadoNota notaEstado, String notaLibro,
                           String notaFolio, LocalDate notaFecha, String notaObservaciones,
                           String notaUsuario, String materiaId, String materiaNivel,
                           Integer cursadaId, Boolean isfirma, Integer materiaCarreraId) {
@@ -84,14 +86,8 @@ public class NotaMateriaDTO {
     public void setNotaFinal(String notaFinal) {
         this.notaFinal = notaFinal;
     }
-
-    // 📌 Getters y Setters actualizados
     public List<String> getCorrelativas() { return correlativas; }
     public void setCorrelativas(List<String> correlativas) { this.correlativas = correlativas; }
-
-    public String getNotaStatus() { return notaStatus; }
-    public void setNotaStatus(String notaStatus) { this.notaStatus = notaStatus; }
-
     public Long getNotaId() { return notaId; }
     public void setNotaId(Long notaId) { this.notaId = notaId; }
     public Integer getMateriaOrden() { return materiaOrden; }
@@ -102,10 +98,6 @@ public class NotaMateriaDTO {
     public void setNotaCalificacionNumero(Double notaCalificacionNumero) { this.notaCalificacionNumero = notaCalificacionNumero; }
     public String getNotaCalificacionLetra() { return notaCalificacionLetra; }
     public void setNotaCalificacionLetra(String notaCalificacionLetra) { this.notaCalificacionLetra = notaCalificacionLetra; }
-    public String getNotaCondicion() { return notaCondicion; }
-    public void setNotaCondicion(String notaCondicion) { this.notaCondicion = notaCondicion; }
-    public String getNotaEstado() { return notaEstado; }
-    public void setNotaEstado(String notaEstado) { this.notaEstado = notaEstado; }
     public String getNotaLibro() { return notaLibro; }
     public void setNotaLibro(String notaLibro) { this.notaLibro = notaLibro; }
     public String getNotaFolio() { return notaFolio; }
@@ -118,12 +110,26 @@ public class NotaMateriaDTO {
     public void setNotaUsuario(String notaUsuario) { this.notaUsuario = notaUsuario; }
     public String getMateriaId() { return materiaId; }
     public void setMateriaId(String materiaId) { this.materiaId = materiaId; }
-
     public String getMateriaNivel() {
         return materiaNivel;
     }
-
     public void setMateriaNivel(String materiaNivel) {
         this.materiaNivel = materiaNivel;
+    }
+
+    public NotaCondicion getNotaCondicion() {
+        return notaCondicion;
+    }
+
+    public void setNotaCondicion(NotaCondicion notaCondicion) {
+        this.notaCondicion = notaCondicion;
+    }
+
+    public EstadoNota getNotaEstado() {
+        return notaEstado;
+    }
+
+    public void setNotaEstado(EstadoNota notaEstado) {
+        this.notaEstado = notaEstado;
     }
 }

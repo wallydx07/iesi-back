@@ -1,10 +1,13 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.enums.EstadoNota;
+
 public class CorrelativasFaltantesEstadoDTO {
     private String materiaId;
     private String materiaNombre;
     private String materiaOrden;
-    private String status; //libre, regular
+    private EstadoNota notaEstado; //libre, regular
+
 
     public String getMateriaId() {
         return materiaId;
@@ -30,11 +33,10 @@ public class CorrelativasFaltantesEstadoDTO {
         this.materiaOrden = materiaOrden;
     }
 
-    public String getStatus() {
-        return status;
+    public EstadoNota getNotaEstado() {
+        return notaEstado;
     }
-
-    public void setStatus(String status) {
-        this.status = status;
+    public void setNotaEstado(EstadoNota notaEstado) {
+        this.notaEstado = notaEstado;
     }
 }

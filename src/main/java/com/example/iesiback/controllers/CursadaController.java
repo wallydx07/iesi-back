@@ -26,14 +26,12 @@ public class CursadaController {
         return cursadaService.getAllCursadas();
     }
 
-
     @PostMapping("/inscribir/{carreraId}")
     public ResponseEntity<Map<String, String>> agregarMateriasACursada(
             @PathVariable String carreraId,
             @RequestBody Legajo legajo) {
         try {
             cursadaService.agregarMateriasACursadaPorCarrera(carreraId, legajo);
-
             // ✅ Crear un JSON con un mensaje
             Map<String, String> response = new HashMap<>();
             response.put("message", "Materias agregadas correctamente a la cursada.");
@@ -52,7 +50,6 @@ public class CursadaController {
         return resultado;
     }
 
-
     @GetMapping("/buscar")
     public List<Cursada> obtenerCursadaPorLegajoYMateria(
             @RequestParam("legajoId") String legajoId,
@@ -69,7 +66,6 @@ public class CursadaController {
     public List<Cursada> getCursadaByLegajoId(@PathVariable String id) {
         return cursadaService.findByLegajoId(id);
     }
-
 
     @PostMapping
     public Cursada createCursada(@RequestBody Cursada cursada) {
@@ -136,10 +132,4 @@ public class CursadaController {
             @PathVariable String carreraId) {
         return cursadaService.findByMateriaCarrera_Carrera_CarreraId(carreraId);
     }
-
-
-
-
-
-
 }

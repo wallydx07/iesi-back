@@ -1,8 +1,8 @@
 package com.example.iesiback.services;
 import com.example.iesiback.dto.CorrelativasFaltantesEstadoDTO;
 import com.example.iesiback.entities.*;
+import com.example.iesiback.enums.EstadoNota;
 import com.example.iesiback.repositories.CursadaRepository;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,8 +151,10 @@ public class CursadaServiceImpl implements CursadaService {
         List<Cursada> filtradas = cursadas.stream()
                 .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty())
                 .filter(cursada -> cursada.getNotas().stream()
-                        .noneMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()) ||
-                                "Cursando".equalsIgnoreCase(nota.getNotaEstado())))
+                        .noneMatch(nota ->
+                                nota.getNotaEstado() == EstadoNota.APROBADO ||
+                                        nota.getNotaEstado() == EstadoNota.CURSANDO
+                        ))
                 .collect(Collectors.toList());
 
         // Quedarse con la cursada más reciente por materia
@@ -182,7 +184,7 @@ public class CursadaServiceImpl implements CursadaService {
     }
 
 
-    //llega desde modoHistoria dfeberia llamarse regular poara
+    //llega desde modoHistoria dfeberia llamarse regular poara cursar materia
     @Override
     public String obtenerCorrelativasPendientes(String materiaId, String legajoId) {
         List<Cursada> cursadas = this.cursadaRepository.findByLegajoAndMateria(legajoId, materiaId);
@@ -191,7 +193,6 @@ public class CursadaServiceImpl implements CursadaService {
         }
 
         Cursada cursada = cursadas.get(0);
-
         String correlativas = cursada.getMateriaCarrera().getMateria().getMateriaCursada();
            // Si no hay correlativas, retornar "Aprobadas"
         if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
@@ -229,70 +230,89 @@ public class CursadaServiceImpl implements CursadaService {
     }
 
 
+//    @Override
+//    public List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia) {
+//        EstadoNota notaEstado; //libre, regular
+//        String correlativas = materia.getMateriaCursada(); //regularizada Para cursar
+//        if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
+//            return Collections.emptyList();
+//        }
+//        List<CorrelativasFaltantesEstadoDTO> resultado = new ArrayList<>();
+//        String[] correlativasArray = correlativas.split("-");
+//        for (String materiaOrden : correlativasArray) {
+//            List<Cursada> cursadas = cursadaRepository
+//                    .findByMateriaOrdenAndLegajoId(materiaOrden, legajoId);
+//
+//            boolean estaAprobada = cursadas.stream()
+//                    .flatMap(c -> c.getNotas().stream())
+//                    .anyMatch(n -> n.getNotaEstado() == EstadoNota.APROBADO);
+//
+//            // 👉 Si está aprobada, NO la agregamos
+//            if (estaAprobada) {
+//                continue;
+//            }
+//            boolean estaRegular = cursadas.stream()
+//                    .flatMap(c -> c.getNotas().stream())
+//                    .anyMatch(n -> EstadoNota.REGULAR.equals(n.getNotaEstado()));
+//            CorrelativasFaltantesEstadoDTO dto = new CorrelativasFaltantesEstadoDTO();
+//            dto.setMateriaOrden(materiaOrden);
+//            if (estaRegular) {
+//                dto.setNotaEstado(EstadoNota.REGULAR);
+//            } else {
+//                dto.setNotaEstado(EstadoNota.LIBRE);
+//            }
+//            resultado.add(dto);
+//        }
+//        return resultado;
+//    }
+
+
+
     @Override
-    public List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia) {
-
+    public List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(
+            String legajoId,
+            Materia materia) {
         String correlativas = materia.getMateriaCursada();
-
-        if (correlativas == null || correlativas.isEmpty() || correlativas.equals("-")) {
+        if (correlativas == null ||
+                correlativas.isBlank() ||
+                correlativas.equals("-")) {
             return Collections.emptyList();
         }
-
         List<CorrelativasFaltantesEstadoDTO> resultado = new ArrayList<>();
-
         String[] correlativasArray = correlativas.split("-");
-
         for (String materiaOrden : correlativasArray) {
-
-
-            List<Cursada> cursadas = cursadaRepository
-                    .findByMateriaOrdenAndLegajoId(materiaOrden, legajoId);
-
-//            Materia materiaM=materiaCarreraService.findMateriaCarreraByMateriaOrdenCarreraId(materiaOrden)
-
-            boolean estaAprobada = cursadas.stream()
+            List<Cursada> cursadas =
+                    cursadaRepository.findByMateriaOrdenAndLegajoId(
+                            materiaOrden,
+                            legajoId
+                    );
+            boolean aprobadaORegular = cursadas.stream()
                     .flatMap(c -> c.getNotas().stream())
-                    .anyMatch(n -> "APROBADO".equalsIgnoreCase(n.getNotaEstado()));
-
-            // 👉 Si está aprobada, NO la agregamos
-            if (estaAprobada) {
+                    .anyMatch(n ->
+                            n.getNotaEstado() == EstadoNota.APROBADO
+                                    || n.getNotaEstado() == EstadoNota.REGULAR
+                    );
+            // Si ya está aprobada o regularizada, no la agregamos
+            if (aprobadaORegular) {
                 continue;
             }
-
-            boolean estaRegular = cursadas.stream()
-                    .flatMap(c -> c.getNotas().stream())
-                    .anyMatch(n -> "REGULAR".equalsIgnoreCase(n.getNotaEstado()));
-
-            CorrelativasFaltantesEstadoDTO dto = new CorrelativasFaltantesEstadoDTO();
+            CorrelativasFaltantesEstadoDTO dto =
+                    new CorrelativasFaltantesEstadoDTO();
             dto.setMateriaOrden(materiaOrden);
-//            dto.setMateriaNombre(materiaM.getMateriaNombre());
-//            dto.setMateriaId(materiaM.getMateriaId());
-
-            if (estaRegular) {
-                dto.setStatus("regular");
-            } else {
-                dto.setStatus("libre");
-            }
-
+            dto.setNotaEstado(EstadoNota.LIBRE);
             resultado.add(dto);
         }
 
         return resultado;
     }
 
-//    private boolean tieneNotaAprobadaORegular(Cursada cursada) {
-//        return cursada.getNotas().stream()
-//                .peek(nota -> System.out.println("Estado de la nota: " + nota.getNotaEstado()))  // Imprime el estado de cada nota
-//                .anyMatch(nota -> "Aprobado".equalsIgnoreCase(nota.getNotaEstado()));
-//    }
-
-    private static final Set<String> ESTADOS_VALIDOS = Set.of("APROBADO", "REGULAR");
     private boolean tieneNotaAprobadaORegular(Cursada cursada) {
         return cursada.getNotas().stream()
-                .anyMatch(nota -> ESTADOS_VALIDOS.contains(nota.getNotaEstado().toUpperCase()));
+                .anyMatch(nota ->
+                        nota.getNotaEstado() == EstadoNota.APROBADO ||
+                                nota.getNotaEstado() == EstadoNota.REGULAR
+                );
     }
-
-
 @Transactional
 @Override
 public void eliminarCursada(Integer id) {
@@ -320,7 +340,6 @@ public void eliminarCursada(Integer id) {
         cursada.setStatus(cursadaPost.getStatus());
 
 //        cursada.setMateriaCarrera(cursadaPost.getMateriaCarrera());
-
 //        // Actualizar notas sin reemplazar la colección
 //        actualizarNotas(cursada, cursadaPost.getNotas());
 
@@ -349,43 +368,33 @@ public void eliminarCursada(Integer id) {
                                     .obtenerMateriaCarreraPorId(materiaCarreraId)
                                     .orElseThrow(() ->
                                             new RuntimeException("MateriaCarrera no encontrada"));
-
                     Cursada nueva = new Cursada();
                     nueva.setLegajo(legajo);
                     nueva.setMateriaCarrera(materiaCarrera);
                     nueva.setCursadaInscripto(true);
-
                     return cursadaRepository.save(nueva);
                 });
     }
-
 
     @Transactional
     @Override
     public Cursada buscarOMasCercanaORegistrar(
             Legajo legajo,
             MateriaCarrera materiaCarrera) {
-
         LocalDate hoy = LocalDate.now();
-
         // Traemos todas las cursadas del alumno para esa materia
         List<Cursada> cursadas = cursadaRepository.findByLegajoAndMateria(
                 legajo.getLegajoId(),
                 materiaCarrera.getMateria().getMateriaId()
         );
-
         Cursada masCercana = null;
-
         if (!cursadas.isEmpty()) {
-
             // Filtramos cursadas con al menos una nota Regular
             List<Cursada> regulares = cursadas.stream()
                     .filter(c -> c.getNotas().stream()
-                            .anyMatch(n -> "Regular".equalsIgnoreCase(n.getNotaEstado())))
+                            .anyMatch(n -> n.getNotaEstado() == EstadoNota.REGULAR))
                     .collect(Collectors.toList());
-
             List<Cursada> aEvaluar = regulares.isEmpty() ? cursadas : regulares;
-
             // Obtenemos la cursada más cercana a la fecha actual
             masCercana = aEvaluar.stream()
                     .min(Comparator.comparing(c ->
@@ -393,7 +402,6 @@ public void eliminarCursada(Integer id) {
                     ))
                     .orElse(null);
         }
-
         // Si no hay ninguna cursada, creamos una nueva
         if (masCercana == null) {
             masCercana = obtenerORegistrarCursada(legajo, materiaCarrera.getId().longValue());

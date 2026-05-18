@@ -2,6 +2,8 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.NotaImportDTO;
 import com.example.iesiback.dto.ResultadoImportDTO;
+import com.example.iesiback.enums.EstadoNota;
+import com.example.iesiback.enums.NotaCondicion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,18 +22,13 @@ public class TrayectoriaAcademicaServiceImpl implements TrayectoriaAcademicaServ
 
     @Override
     public ResultadoImportDTO procesarNotas(List<NotaImportDTO> filas) {
-
-        log.info("========== INICIO PROCESAMIENTO ==========");
+        log.info("========= INICIO PROCESAMIENTO ==========");
         log.info("Cantidad de filas recibidas: {}", filas.size());
-
         int filaNumero = 0;
         int exitosas = 0;
         List<String> errores = new ArrayList<>();
-
         for (NotaImportDTO fila : filas) {
-
             filaNumero++;
-
             log.info("--------------------------------------------------");
             log.info("Fila #{}", filaNumero);
             log.info("Datos crudos -> DNI: {} | Nombre: {} | Apellido: {} | CarreraId: {} | MateriaOrden: {} | Fecha: {} | Condición: {}",
@@ -42,41 +39,30 @@ public class TrayectoriaAcademicaServiceImpl implements TrayectoriaAcademicaServ
                     fila.getMateriaOrden(),
                     fila.getFecha(),
                     fila.getCondicion());
-
             // ── Validaciones previas (no requieren transacción) ──────────────
-
-            fila.setEstado("Aprobado");
-
+            fila.setNotaEstado(EstadoNota.APROBADO);
             if (fila.getDni() == null) {
                 String msg = "Fila #" + filaNumero + " ignorada -> DNI nulo";
                 log.warn("⚠ {}", msg);
                 errores.add(msg);
                 continue;
             }
-
             if (fila.getCarreraId() == null) {
                 String msg = "Fila #" + filaNumero + " ignorada -> CarreraId nulo";
                 log.warn("⚠ {}", msg);
                 errores.add(msg);
                 continue;
             }
-
             if (fila.getMateriaOrden() == null) {
                 String msg = "Fila #" + filaNumero + " ignorada -> MateriaOrden nulo";
                 log.warn("⚠ {}", msg);
                 errores.add(msg);
                 continue;
             }
-
-            if (fila.getCondicion() == null || fila.getCondicion().isBlank()) {
-                fila.setCondicion("PROMOCION");
-                fila.setEstado("Cursando");
-//                String msg = "Fila #" + filaNumero + " ignorada -> Condición nula o vacía";
-//                log.warn("⚠ {}", msg);
-//                errores.add(msg);
-//                continue;
+            if (fila.getCondicion() == null) {
+                fila.setCondicion(NotaCondicion.CURSADA);//promocion==========================================
+                fila.setNotaEstado(EstadoNota.CURSANDO);
             }
-
             if (fila.getFecha() == null) {
                 LocalDate aux = materiaCarreraService.obtenerFechaVigencia(
                         fila.getCarreraId(), fila.getMateriaOrden());
@@ -89,19 +75,13 @@ public class TrayectoriaAcademicaServiceImpl implements TrayectoriaAcademicaServ
                 log.warn("⚠ Fecha nula en fila #{}, se completó con fecha de vigencia: {}", filaNumero, aux);
                 fila.setFecha(aux);
             }
-
-
-
             // ── Procesamiento atómico por fila ───────────────────────────────
             // Cada llamada a notaFilaProcessor.procesarFila() corre en su propia
             // transacción (REQUIRES_NEW). Si falla, solo hace rollback de esa fila.
-
             try {
                 log.info("Procesando DNI: {} | MateriaOrden: {} | Condición: {}",
                         fila.getDni(), fila.getMateriaOrden(), fila.getCondicion());
-
                 notaFilaProcessor.procesarFila(fila);
-
                 exitosas++;
                 log.info("✅ Fila #{} procesada correctamente.", filaNumero);
 
