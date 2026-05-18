@@ -3,6 +3,9 @@ import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.services.PersonaService;
 import com.example.iesiback.services.LegajoService;
 import com.example.iesiback.services.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,24 +31,50 @@ public class LegajoController {
     }
 
 
+//    @PutMapping("/{id}")
+//    public ResponseEntity<Legajo> updateLegajo(@RequestBody Legajo legajo, @RequestParam String dni) {
+//        Legajo UpdateLegajo= legajoService.findLegajoById(legajo.getLegajoId());
+//        UpdateLegajo.setLegajoFotocopiaDni(legajo.getLegajoFotocopiaDni());
+//        UpdateLegajo.setLegajoCertificadoNacimiento(legajo.getLegajoCertificadoNacimiento());
+//        UpdateLegajo.setLegajoFotocopiaTitulo(legajo.getLegajoFotocopiaTitulo());
+//        UpdateLegajo.setLegajoCarnetSanitario(legajo.getLegajoCarnetSanitario());
+//        UpdateLegajo.setLegajoAval(legajo.getLegajoAval());
+//        UpdateLegajo.setLegajoEstado(legajo.getLegajoEstado());
+//        UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
+//        UpdateLegajo.setNotasCorregidas(legajo.isNotasCorregidas());
+//        UpdateLegajo.setLegajoComision(legajo.getLegajoComision());
+//        //UpdateLegajo.setLegajoCarpetaColgante(legajo.getLegajoCarpetaColgante());
+//        Legajo updatedLegajo = legajoService.updateLegajo(UpdateLegajo);
+//        return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);
+//    }
+//
+
     @PutMapping("/{id}")
-    public ResponseEntity<Legajo> updateLegajo(@RequestBody Legajo legajo, @RequestParam String dni) {
-        Legajo UpdateLegajo= legajoService.findLegajoById(legajo.getLegajoId());
-        UpdateLegajo.setLegajoFotocopiaDni(legajo.getLegajoFotocopiaDni());
-        UpdateLegajo.setLegajoCertificadoNacimiento(legajo.getLegajoCertificadoNacimiento());
-        UpdateLegajo.setLegajoFotocopiaTitulo(legajo.getLegajoFotocopiaTitulo());
-        UpdateLegajo.setLegajoCarnetSanitario(legajo.getLegajoCarnetSanitario());
-        UpdateLegajo.setLegajoAval(legajo.getLegajoAval());
-        UpdateLegajo.setLegajoEstado(legajo.getLegajoEstado());
-        UpdateLegajo.setLegajoFoto(legajo.getLegajoFoto());
-        UpdateLegajo.setNotasCorregidas(legajo.isNotasCorregidas());
-        UpdateLegajo.setLegajoComision(legajo.getLegajoComision());
-        //UpdateLegajo.setLegajoCarpetaColgante(legajo.getLegajoCarpetaColgante());
-        Legajo updatedLegajo = legajoService.updateLegajo(UpdateLegajo);
-        return new ResponseEntity<>(updatedLegajo, HttpStatus.OK);
+    public ResponseEntity<Legajo> updateLegajo(
+            @PathVariable String id,
+            @RequestBody Legajo legajo
+    ) {
+
+        Logger logger = LoggerFactory.getLogger(getClass());
+        logger.info("========== INICIO UPDATE LEGAJO ==========");
+        logger.info("ID recibido: {}", id);
+        Legajo updateLegajo = legajoService.findLegajoById(id);
+        logger.info("Legajo actual en DB encontrado: {}", updateLegajo);
+        updateLegajo.setLegajoFotocopiaDni(legajo.getLegajoFotocopiaDni());
+        updateLegajo.setLegajoCertificadoNacimiento(legajo.getLegajoCertificadoNacimiento());
+        updateLegajo.setLegajoFotocopiaTitulo(legajo.getLegajoFotocopiaTitulo());
+        updateLegajo.setLegajoCarnetSanitario(legajo.getLegajoCarnetSanitario());
+        updateLegajo.setLegajoAval(legajo.getLegajoAval());
+        updateLegajo.setLegajoEstado(legajo.getLegajoEstado());
+        updateLegajo.setLegajoFoto(legajo.getLegajoFoto());
+        updateLegajo.setNotasCorregidas(legajo.isNotasCorregidas());
+        updateLegajo.setLegajoComision(legajo.getLegajoComision());
+        Legajo saved = legajoService.updateLegajo(updateLegajo);
+        logger.info("Legajo actualizado correctamente: {}", saved);
+        logger.info("========== FIN UPDATE LEGAJO ==========");
+
+        return ResponseEntity.ok(saved);
     }
-
-
 
     @GetMapping("/{id}")
     public ResponseEntity<Legajo> getLegajoById(@PathVariable String id) {

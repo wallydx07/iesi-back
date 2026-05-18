@@ -5,8 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cierre_diario",
-        uniqueConstraints = @UniqueConstraint(columnNames = "fecha"))
+@Table(name = "cierre_diario")
 public class CierreDiario {
 
     @Id

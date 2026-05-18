@@ -4,6 +4,7 @@ import com.example.iesiback.dto.*;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.User;
+import com.example.iesiback.exception.BusinessException;
 import com.example.iesiback.repositories.PagoRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mercadopago.MercadoPagoConfig;
@@ -15,6 +16,7 @@ import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -300,8 +302,12 @@ public class PagoServiceImpl implements PagoService {
                     )
             );
 
-            r.setValidado(
-                    p.getEstado() == EstadoPago.APROBADO
+//            r.setValidado(
+//                    p.getEstado() == EstadoPago.APROBADO
+//            );
+
+            r.setEstado(
+                    p.getEstado()
             );
 
             return r;
@@ -411,8 +417,12 @@ public class PagoServiceImpl implements PagoService {
                             : "SIN_USUARIO"
             );
 
-            dto.setValidado(
-                    pago.getEstado() == EstadoPago.APROBADO
+//            dto.setValidado(
+//                    pago.getEstado() == EstadoPago.APROBADO
+//            );
+
+            dto.setEstado(
+                    pago.getEstado()
             );
 
             if (
@@ -564,98 +574,133 @@ public class PagoServiceImpl implements PagoService {
         pagoRepository.saveAll(pagos);
     }
 
+
     @Override
-    public void cambiarEstadoPago(
-            Integer pagoId,
-            EstadoPago nuevoEstado
-    ) {
+    @Transactional // Súper importante para asegurar la consistencia en operaciones de escritura
+    public void cambiarEstadoPago(Integer pagoId, EstadoPago nuevoEstado) {
 
+        // 1. Validar autenticación PRIMERO (Usa BusinessException)
+        User user = userService.getAuthenticatedUser()
+                .orElseThrow(() -> new BusinessException("Usuario no autenticado"));
+
+        // 2. Buscar la entidad (Usa BusinessException)
         Pago pago = pagoRepository.findById(pagoId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Pago no encontrado"
-                        ));
+                .orElseThrow(() -> new BusinessException("Pago no encontrado con el ID: " + pagoId));
 
-        EstadoPago estadoActual = pago.getEstado();
-
-        // =========================================
-        // VALIDACIONES DE TRANSICIÓN
-        // =========================================
-
-        switch (estadoActual) {
-
-            case PENDIENTE -> {
-
-                if (
-                        nuevoEstado != EstadoPago.APROBADO
-                                && nuevoEstado != EstadoPago.RECHAZADO
-                                && nuevoEstado != EstadoPago.CANCELADO
-                ) {
-
-                    throw new RuntimeException(
-                            "Cambio de estado inválido"
-                    );
-                }
-            }
-
-            case APROBADO -> {
-
-                if (nuevoEstado != EstadoPago.CANCELADO) {
-
-                    throw new RuntimeException(
-                            "Un pago aprobado solo puede cancelarse"
-                    );
-                }
-            }
-
-            case RECHAZADO -> {
-
-                if (nuevoEstado != EstadoPago.PENDIENTE) {
-
-                    throw new RuntimeException(
-                            "Un pago rechazado solo puede volver a pendiente"
-                    );
-                }
-            }
-
-            case CANCELADO -> {
-
-                throw new RuntimeException(
-                        "Un pago cancelado no puede modificarse"
-                );
-            }
+        // 3. Validar transición usando el Enum (Usa BusinessException)
+        if (!pago.getEstado().puedeTransicionarA(nuevoEstado)) {
+            throw new BusinessException("Cambio de estado inválido de " + pago.getEstado() + " a " + nuevoEstado);
         }
 
-        // =========================================
-        // ACTUALIZAR ESTADO
-        // =========================================
-
+        // 4. Aplicar cambios
         pago.setEstado(nuevoEstado);
+        pago.setResponsable(user.getUsername());
 
-        // =========================================
-        // FECHA APROBACIÓN
-        // =========================================
-
-        if (
-                nuevoEstado == EstadoPago.APROBADO
-                        && pago.getFechaPago() == null
-        ) {
-
+        if (nuevoEstado == EstadoPago.APROBADO && pago.getFechaPago() == null) {
             pago.setFechaPago(Instant.now());
         }
 
-        // =========================================
-        // RESPONSABLE
-        // =========================================
-
-        User user = userService.getAuthenticatedUser()
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Usuario no autenticado"
-                        ));
-
-        pago.setResponsable(user.getUsername());
-
         pagoRepository.save(pago);
     }
+
+//    @Override
+//    public void cambiarEstadoPago(
+//            Integer pagoId,
+//            EstadoPago nuevoEstado
+//    ) {
+//
+//        Pago pago = pagoRepository.findById(pagoId)
+//                .orElseThrow(() ->
+//                        new RuntimeException(
+//                                "Pago no encontrado"
+//                        ));
+//
+//        EstadoPago estadoActual = pago.getEstado();
+//
+//        // =========================================
+//        // VALIDACIONES DE TRANSICIÓN
+//        // =========================================
+//
+//        switch (estadoActual) {
+//
+//            case PENDIENTE -> {
+//
+//                if (
+//                        nuevoEstado != EstadoPago.APROBADO
+//                                && nuevoEstado != EstadoPago.RECHAZADO
+//                                && nuevoEstado != EstadoPago.CANCELADO
+//                ) {
+//
+//                    throw new RuntimeException(
+//                            "Cambio de estado inválido"
+//                    );
+//                }
+//            }
+//
+//            case APROBADO -> {
+//
+//                if (nuevoEstado != EstadoPago.CANCELADO) {
+//
+//                    throw new RuntimeException(
+//                            "Un pago aprobado solo puede cancelarse"
+//                    );
+//                }
+//            }
+//
+//            case RECHAZADO -> {
+//
+//                if (nuevoEstado != EstadoPago.PENDIENTE) {
+//
+//                    throw new RuntimeException(
+//                            "Un pago rechazado solo puede volver a pendiente"
+//                    );
+//                }
+//            }
+//
+//            case CANCELADO -> {
+//
+//                throw new RuntimeException(
+//                        "Un pago cancelado no puede modificarse"
+//                );
+//            }
+//        }
+//
+//
+//
+//
+//        // =========================================
+//        // ACTUALIZAR ESTADO
+//        // =========================================
+//
+//        pago.setEstado(nuevoEstado);
+//
+//        // =========================================
+//        // FECHA APROBACIÓN
+//        // =========================================
+//
+//        if (
+//                nuevoEstado == EstadoPago.APROBADO
+//                        && pago.getFechaPago() == null
+//        ) {
+//
+//            pago.setFechaPago(Instant.now());
+//        }
+//
+//        // =========================================
+//        // RESPONSABLE
+//        // =========================================
+//
+//        User user = userService.getAuthenticatedUser()
+//                .orElseThrow(() ->
+//                        new RuntimeException(
+//                                "Usuario no autenticado"
+//                        ));
+//
+//        pago.setResponsable(user.getUsername());
+//
+//        pagoRepository.save(pago);
+//    }
+
+
+
 }
