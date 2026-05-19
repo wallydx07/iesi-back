@@ -3,6 +3,7 @@ package com.example.iesiback.controllers;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.services.CursadaService;
 import com.example.iesiback.services.NotaService;
 import com.example.iesiback.services.UserService;
@@ -44,7 +45,7 @@ public class NotaController {
 
     @GetMapping("/obtenerTodasNotasPorLegajo/{legajoId}")
     public ResponseEntity<List<NotaMateriaDTO>> obtenerTodasNotasPorLegajo(@PathVariable String legajoId) {
-        return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId,"Examen"));
+        return ResponseEntity.ok(notaService.obtenerTodasNotasPorLegajo(legajoId,EstadoCondicion.EXAMEN));
     }
 
 //    @GetMapping("/obtenerTodasNotasPorMateria")
@@ -168,7 +169,7 @@ public class NotaController {
             String nuevoStatus = notaService.evaluarCorrelativaIndividual(
                     cursada.getLegajo().getLegajoId(),
                     cursada.getMateriaCarrera().getMateria().getMateriaOrden(),
-                    "Cursada"
+                    EstadoCondicion.CURSADA
             ).getStatus();
             cursada.setStatus(nuevoStatus);
             return ResponseEntity.ok(cursada);
@@ -181,7 +182,7 @@ public class NotaController {
     public ResponseEntity<EvaluacionCorrelativaResponse> evaluarMateriaIndividual(
             @PathVariable String legajoId,
             @PathVariable Integer materiaOrden,
-            @PathVariable String condicion) {
+            @PathVariable EstadoCondicion condicion) {
         EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId,materiaOrden, condicion);
         return ResponseEntity.ok(response);
     }
@@ -190,7 +191,7 @@ public class NotaController {
         @PostMapping("/evaluarCorrelativaNotaId/{notaId}/{condicion}")
         public ResponseEntity<EvaluacionCorrelativaResponse> evaluarCorrelativaNotaId(
                 @PathVariable Long  notaId,
-                @PathVariable String condicion) {
+                @PathVariable EstadoCondicion condicion) {
             EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaNotaId(notaId, condicion);
             return ResponseEntity.ok(response);
         }

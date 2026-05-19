@@ -1,7 +1,7 @@
 package com.example.iesiback.dto;
 
 import com.example.iesiback.enums.EstadoNota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,7 +13,7 @@ public class NotaMateriaDTO {
     private String materiaNombre;
     private Double notaCalificacionNumero;
     private String notaCalificacionLetra;
-    private NotaCondicion notaCondicion;
+    private EstadoCondicion notaCondicion;
     private EstadoNota notaEstado;
     private String notaLibro;
     private String notaFolio;
@@ -32,7 +32,7 @@ public class NotaMateriaDTO {
     public NotaMateriaDTO(){ }
     public NotaMateriaDTO(Long notaId, Integer materiaOrden, String materiaNombre,
                           Double notaCalificacionNumero, String notaCalificacionLetra,
-                          NotaCondicion notaCondicion, EstadoNota notaEstado, String notaLibro,
+                          EstadoCondicion notaCondicion, EstadoNota notaEstado, String notaLibro,
                           String notaFolio, LocalDate notaFecha, String notaObservaciones,
                           String notaUsuario, String materiaId, String materiaNivel,
                           Integer cursadaId, Boolean isfirma, Integer materiaCarreraId) {
@@ -117,11 +117,11 @@ public class NotaMateriaDTO {
         this.materiaNivel = materiaNivel;
     }
 
-    public NotaCondicion getNotaCondicion() {
+    public EstadoCondicion getNotaCondicion() {
         return notaCondicion;
     }
 
-    public void setNotaCondicion(NotaCondicion notaCondicion) {
+    public void setNotaCondicion(EstadoCondicion notaCondicion) {
         this.notaCondicion = notaCondicion;
     }
 

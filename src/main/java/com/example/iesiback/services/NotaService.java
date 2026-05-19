@@ -4,6 +4,7 @@ import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Examen;
 import com.example.iesiback.entities.Nota;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,7 @@ import java.util.List;
 @Service
 public interface NotaService {
     List<Nota> obtenerNotas();
-    List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, String condicion);
+    List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, EstadoCondicion condicion);
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String legajoId);
     List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId);
     List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); //
@@ -29,15 +30,15 @@ public interface NotaService {
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId);
 
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnaliticoSINREF(String legajoId);
-    List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion);
+    List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, EstadoCondicion notaCondicion);
     @Transactional
     void eliminarNota(Long id);
     @Transactional
     void eliminarNotaIndividual(Long id);
     NotaMateriaDTO obtenerUltimaNota(String legajoId);
     Cursada obtenerCursadaPorNotaId(Long notaId);
-    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden,  String condicion);
-    EvaluacionCorrelativaResponse evaluarCorrelativaNotaId(Long  notaId, String condicion);
+    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden,  EstadoCondicion condicion);
+    EvaluacionCorrelativaResponse evaluarCorrelativaNotaId(Long  notaId, EstadoCondicion condicion);
     void permitirEdicionMateria(String carreraId, String materiaId, boolean editable, String division);
     Nota saveNotaWithCursadsa(Nota nota, Integer cursadaId);
     NotaServiceImpl.ResultadoRegularidad evaluarRegularidad(List<Nota> notas);

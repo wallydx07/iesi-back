@@ -1,7 +1,7 @@
 package com.example.iesiback.entities;
 
 import com.example.iesiback.enums.EstadoNota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -9,7 +9,6 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -40,7 +39,7 @@ public class Nota {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "nota_condicion")
-    private NotaCondicion notaCondicion;
+    private EstadoCondicion notaCondicion;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "nota_estado")
@@ -196,11 +195,11 @@ public class Nota {
         this.notaEstado = notaEstado;
     }
 
-    public NotaCondicion getNotaCondicion() {
+    public EstadoCondicion getNotaCondicion() {
         return notaCondicion;
     }
 
-    public void setNotaCondicion(NotaCondicion notaCondicion) {
+    public void setNotaCondicion(EstadoCondicion notaCondicion) {
         this.notaCondicion = notaCondicion;
     }
 }

@@ -4,7 +4,7 @@ import com.example.iesiback.dto.NotaMateriaDTO;
 import com.example.iesiback.dto.TurnoExamenDTO;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoNota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.example.iesiback.dto.NotaImportDTO;
@@ -167,9 +167,9 @@ public class NotaFilaProcessor {
         NotaMateriaDTO notaFinal = existentes.stream()
                 .filter(n -> n.getNotaCondicion() != null
                         && (
-                        n.getNotaCondicion() == NotaCondicion.EXAMEN
-                                || n.getNotaCondicion() == NotaCondicion.EXAMEN_REGULAR
-                                || n.getNotaCondicion() == NotaCondicion.EXAMEN_LIBRE
+                        n.getNotaCondicion() == EstadoCondicion.EXAMEN
+                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR
+                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE
                 )
                         && Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
                 .findFirst()
@@ -182,7 +182,7 @@ public class NotaFilaProcessor {
             if (turnoActual != null && turnoActual.getTurnoId().equals(turno.getTurnoId())) {
                 log.info("Mismo turno detectado. Actualizando nota.");
                 Nota nota = notaService.obtenerNotaPorId(notaFinal.getNotaId());
-                nota.setNotaCondicion(NotaCondicion.EXAMEN_REGULAR);
+                nota.setNotaCondicion(EstadoCondicion.EXAMEN_REGULAR);
                 actualizarNota(nota, fila);
                 notaService.guardarNota(nota);
                 return;
@@ -199,12 +199,12 @@ public class NotaFilaProcessor {
                 legajo.getLegajoId(),
                 turnoService.obtenerTurnoPorId(turno.getTurnoId()),
                 materiaCarrera.getMateria(),
-                NotaCondicion.EXAMEN_REGULAR,
+                EstadoCondicion.EXAMEN_REGULAR,
                 cursada.getId());
 
         Nota notaExamen = notaService.findExamenPorCursadaYTurnoId(
                 cursada.getId(), Integer.valueOf(turno.getTurnoId()));
-        notaExamen.setNotaCondicion(NotaCondicion.EXAMEN_REGULAR);
+        notaExamen.setNotaCondicion(EstadoCondicion.EXAMEN_REGULAR);
         notaExamen.setNotaEstado(EstadoNota.APROBADO);
         actualizarNota(notaExamen, fila);
         notaService.guardarNota(notaExamen);
@@ -226,9 +226,9 @@ public class NotaFilaProcessor {
         NotaMateriaDTO notaFinal = existentes.stream()
                 .filter(n -> n.getNotaCondicion() != null
                         && (
-                        n.getNotaCondicion() == NotaCondicion.EXAMEN
-                                || n.getNotaCondicion() == NotaCondicion.EXAMEN_REGULAR
-                                || n.getNotaCondicion() == NotaCondicion.EXAMEN_LIBRE
+                        n.getNotaCondicion() == EstadoCondicion.EXAMEN
+                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR
+                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE
                 )
                         && Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
                 .findFirst()
@@ -241,7 +241,7 @@ public class NotaFilaProcessor {
             if (turnoActual != null && turnoActual.getTurnoId().equals(turno.getTurnoId())) {
                 log.info("Mismo turno detectado. Actualizando nota.");
                 Nota nota = notaService.obtenerNotaPorId(notaFinal.getNotaId());
-                nota.setNotaCondicion(NotaCondicion.EXAMEN_LIBRE);
+                nota.setNotaCondicion(EstadoCondicion.EXAMEN_LIBRE);
                 actualizarNota(nota, fila);
                 notaService.guardarNota(nota);
                 return;
@@ -258,12 +258,12 @@ public class NotaFilaProcessor {
                 legajo.getLegajoId(),
                 turnoService.obtenerTurnoPorId(turno.getTurnoId()),
                 materiaCarrera.getMateria(),
-                NotaCondicion.EXAMEN_LIBRE,
+                EstadoCondicion.EXAMEN_LIBRE,
                 cursada.getId());
 
         Nota notaExamen = notaService.findExamenPorCursadaYTurnoId(
                 cursada.getId(), Integer.valueOf(turno.getTurnoId()));
-        notaExamen.setNotaCondicion(NotaCondicion.EXAMEN_LIBRE);
+        notaExamen.setNotaCondicion(EstadoCondicion.EXAMEN_LIBRE);
         notaExamen.setNotaEstado(EstadoNota.APROBADO);
         actualizarNota(notaExamen, fila);
         notaService.guardarNota(notaExamen);
@@ -291,7 +291,7 @@ public class NotaFilaProcessor {
             log.info("Equivalencia actualizada.");
         } else {
             log.info("No existe equivalencia previa. Creando nueva nota.");
-            Nota nueva = crearNota(fila, NotaCondicion.EQUIVALENCIA);
+            Nota nueva = crearNota(fila, EstadoCondicion.EQUIVALENCIA);
             notaService.guardarNota(nueva);
         }
     }
@@ -300,7 +300,7 @@ public class NotaFilaProcessor {
     // Helpers
     // ─────────────────────────────────────────────────────────────
 
-    private Nota crearNota(NotaImportDTO fila, NotaCondicion condicion) {
+    private Nota crearNota(NotaImportDTO fila, EstadoCondicion condicion) {
         Nota nota = new Nota();
         nota.setNotaFechaNota(fila.getFecha());
         nota.setNotaLibroNota(fila.getLibro());

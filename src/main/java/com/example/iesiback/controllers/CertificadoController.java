@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Materia;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.services.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,7 +168,7 @@ public class CertificadoController {
             @RequestParam String materiaId,
             @RequestParam String carrera,
             @RequestParam Integer cursadaExamenId,
-            @RequestParam String modalidad) {
+            @RequestParam EstadoCondicion modalidad) {
 
         try {
             Materia materia=this.materiaService.findMateriaById(materiaId);

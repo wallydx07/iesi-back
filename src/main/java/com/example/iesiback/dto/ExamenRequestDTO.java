@@ -1,6 +1,6 @@
 package com.example.iesiback.dto;
 import com.example.iesiback.entities.Nota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true) // ✅ Evita errores con propiedades desconocidas
@@ -9,7 +9,7 @@ public class ExamenRequestDTO {
     private String legajoId;
     private String turnoId;
     private String materiaId;
-    private NotaCondicion examenCondicion;
+    private EstadoCondicion examenCondicion;
     private Nota nota;
     private Integer cursadaId;
 
@@ -54,11 +54,11 @@ public class ExamenRequestDTO {
         this.materiaId = materiaId;
     }
 
-    public NotaCondicion getExamenCondicion() {
+    public EstadoCondicion getExamenCondicion() {
         return examenCondicion;
     }
 
-    public void setExamenCondicion(NotaCondicion examenCondicion) {
+    public void setExamenCondicion(EstadoCondicion examenCondicion) {
         this.examenCondicion = examenCondicion;
     }
 }

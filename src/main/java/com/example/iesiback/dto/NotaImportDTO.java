@@ -1,7 +1,7 @@
 package com.example.iesiback.dto;
 
 import com.example.iesiback.enums.EstadoNota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 
 import java.time.LocalDate;
 
@@ -15,7 +15,7 @@ public class NotaImportDTO {
     private LocalDate fecha;
     private String libro;
     private String folio;
-    private NotaCondicion condicion; // PROMOCION, FINAL, EQUIVALENCIA
+    private EstadoCondicion condicion; // PROMOCION, FINAL, EQUIVALENCIA
     private EstadoNota notaEstado; //libre, regular
     private Double nota;
 
@@ -99,11 +99,11 @@ public class NotaImportDTO {
         this.notaEstado = notaEstado;
     }
 
-    public NotaCondicion getCondicion() {
+    public EstadoCondicion getCondicion() {
         return condicion;
     }
 
-    public void setCondicion(NotaCondicion condicion) {
+    public void setCondicion(EstadoCondicion condicion) {
         this.condicion = condicion;
     }
 }

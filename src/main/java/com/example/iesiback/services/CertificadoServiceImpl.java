@@ -4,6 +4,7 @@ import be.quodlibet.boxable.*;
 import be.quodlibet.boxable.line.LineStyle;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.*;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.repositories.HtmlService;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
 import com.google.zxing.EncodeHintType;
@@ -1319,7 +1320,7 @@ private final EmailService emailService;
     }
 
     @Override
-    public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cursadaExamen, String modalidad) {
+    public PDDocument generaExamen(Materia materia, String carrera, CursadaExamen cursadaExamen, EstadoCondicion modalidad) {
         List<NotaExamenDTO> listaResultados = this.notaService.obtenerNotasPorCondicion(Long.valueOf(cursadaExamen.getId()), true, modalidad);
         PDImageXObject Iesc1, Iesc2;
         String division = "  ";

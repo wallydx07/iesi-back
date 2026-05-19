@@ -3,7 +3,7 @@ import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.enums.EstadoNota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.exception.ResourceNotFoundException;
 import com.example.iesiback.repositories.NotaRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -56,11 +56,10 @@ public class NotaServiceImpl implements NotaService {
             dto.setMateriaNombre((String) row[2]);
             dto.setNotaCalificacionNumero((Double) row[3]);
             dto.setNotaCalificacionLetra((String) row[4]);
-            dto.setNotaCondicion((NotaCondicion) row[5]);
+            dto.setNotaCondicion((EstadoCondicion) row[5]);
             dto.setNotaEstado((EstadoNota) row[6]);
             dto.setNotaLibro((String) row[7]);
             dto.setNotaFolio((String) row[8]);
-//          LocalDate fecha = ((Date) row[9]).toLocalDate(); // ✅
             LocalDate fecha = row[9] != null ? ((java.sql.Date) row[9]).toLocalDate() : null;
             dto.setNotaFecha(fecha);
             dto.setNotaObservaciones((String) row[10]);
@@ -119,15 +118,15 @@ public class NotaServiceImpl implements NotaService {
 
 
 @Override
-public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, String condicion) {
-    List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-    System.out.println(results.size());
-    List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, EstadoCondicion condicion) {
+  List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
+//    List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+//    List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
     return resultados.stream()
             .filter(Objects::nonNull)
             .map(obj -> {
                 EvaluacionCorrelativaResponse resp =
-                        evaluarCorrelativaIndividual(legajoId, obj.getMateriaOrden(), "");
+                        evaluarCorrelativaIndividual(legajoId, obj.getMateriaOrden(), EstadoCondicion.EXAMEN);//decia vacio
                 obj.setCorrelativas(resp.getCorrelativasDesaprobadas());
                 return obj;
             })
@@ -139,13 +138,11 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, String c
 @Override
 public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String legajoId) {
 
-        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
+    List<NotaMateriaDTO> results = notaRepository.findNotasPorLegajo(legajoId);
+
         System.out.println(results.size());
 
-        return mapResultsToDTO(results)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return results;
     }
 
 
@@ -194,14 +191,13 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId) {
-        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+        List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
         return resultados.stream()
                 .filter(obj -> {
                     EstadoNota estadoNota = obj.getNotaEstado();
-                    NotaCondicion condicionNota = obj.getNotaCondicion();
+                    EstadoCondicion condicionNota = obj.getNotaCondicion();
 
-                    return condicionNota == NotaCondicion.CURSADA
+                    return condicionNota == EstadoCondicion.CURSADA
                             && estadoNota != EstadoNota.APROBADO;
                 })
                 .map(obj -> {
@@ -230,8 +226,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
-        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+        List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
         return resultados.stream()
                 .filter(obj -> {
                     EstadoNota estadoNota = obj.getNotaEstado();
@@ -263,10 +258,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public boolean isMateriaAprobada(String legajoId, String materiaId) {
-
-        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
-
+        List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
         return resultados.stream()
                 .anyMatch(obj -> {
                     String thisMateriaId = obj.getMateriaId();
@@ -280,7 +272,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materaId, String division, boolean cursadaInscripto) {
-        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId, cursadaInscripto, "Cursada",division);
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(carreraId, materaId, cursadaInscripto, EstadoCondicion.CURSADA,division);
         return todasLasNotas;
     }
 
@@ -293,7 +285,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division,  boolean cursadaInscripto) {
-        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "Cursada", division);
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, EstadoCondicion.CURSADA, division);
         return todasLasNotas;
     }
 
@@ -305,7 +297,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         List<NotaExamenDTO> aux = new ArrayList<>();
         for (NotaExamenDTO dto : todosLosExamenes) {
             System.out.println("DTO: " + dto);
-            String status = evaluarCorrelativaIndividual(dto.getLegajoId(), dto.getMateriaOrden(), "Examen")
+            String status = evaluarCorrelativaIndividual(dto.getLegajoId(), dto.getMateriaOrden(), EstadoCondicion.EXAMEN)
                     .getStatus();
             dto.setStatus(status);
             aux.add(dto);
@@ -431,8 +423,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
     @Override
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
 
-        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-        List<NotaMateriaDTO> resultados = mapResultsToDTO(results);
+        List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
 
         // 1. Deduplicar por orden, quedándose con la mejor nota
         Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>();
@@ -455,12 +446,12 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                 .filter(Objects::nonNull)
                 .map(obj -> {
                     EvaluacionCorrelativaResponse resp =
-                            evaluarCorrelativaIndividual(legajoId, obj.getMateriaOrden(), "");
+                            evaluarCorrelativaIndividual(legajoId, obj.getMateriaOrden(), EstadoCondicion.EXAMEN);//dfecia vbacio
 
                     obj.setCorrelativas(resp.getCorrelativasDesaprobadas());
 
                     String status = resp.getStatus();
-                    NotaCondicion condicion = obj.getNotaCondicion();
+                    EstadoCondicion condicion = obj.getNotaCondicion();
 
                     EstadoNota estadoNota = obj.getNotaEstado();
 
@@ -483,7 +474,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnaliticoSINREF(String legajoId) {
-        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId,"Examen");
+        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId,EstadoCondicion.EXAMEN);
         Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>(); // Evita duplicados y almacena la mejor nota
         boolean checkCorrelativas = false;
         for (NotaMateriaDTO nota : notasOrigen) {
@@ -986,14 +977,14 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
 
     @Override
-    public List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, String notaCondicion) {
+    public List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, EstadoCondicion notaCondicion) {
         List<NotaExamenDTO> aux = new ArrayList<>();
         List<NotaExamenDTO> lista =
                 findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto, notaCondicion);
 
         // Iteramos la lista y procesamos cada item
         for (NotaExamenDTO dto : lista) {
-            String status = evaluarCorrelativaIndividual(dto.getLegajoId(), dto.getMateriaOrden(),"Examen").getStatus();
+            String status = evaluarCorrelativaIndividual(dto.getLegajoId(), dto.getMateriaOrden(),EstadoCondicion.EXAMEN).getStatus();
             if (status.equals("Aceptada")) {
                 aux.add(dto);
             }
@@ -1004,7 +995,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
     public List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(
             Long cursadaExamenId,
             boolean examenInscripto,
-            String notaCondicion
+            EstadoCondicion notaCondicion
     ) {
 
         List<Object[]> rows = notaRepository.findExamenesRaw(cursadaExamenId, examenInscripto, notaCondicion);
@@ -1078,12 +1069,11 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         return notaRepository.findCursadaByNotaId(notaId);
     }
 
-
-
     //evalua columna regularizada para cursar;
-    //no necesita String condicion
+    //requiere que el alumno ya este matriculado!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     @Override
-    public EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden, String condicion) {
+    public EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden, EstadoCondicion condicion) {
+
         List<NotaCursandoProjection> notas = notaRepository.findNotaCursandoByLegajoAndMateria(legajoId, materiaOrden);
         if (notas == null || notas.isEmpty()) {
             System.out.println("❌ No se encontró la materia para este alumno.-" + legajoId + "-" + materiaOrden);
@@ -1104,24 +1094,23 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                 "-" + notaSeleccionada.getMateriaOrden() +"-"
             + notaSeleccionada.getNotaCondicion());
         String listaCorrelativas;
+
         switch (notaSeleccionada.getNotaCondicion()) {
-            case "Cursada":
+            case CURSADA:
                 listaCorrelativas = notaSeleccionada.getMateriaCursada();
                 break;
-            case "Examen Libre":
+            case EXAMEN_LIBRE:
+            case EXAMEN_REGULAR:
+            case EXAMEN:
                 listaCorrelativas = notaSeleccionada.getMateriaExamen();
                 break;
-            case "Examen Regular":
-                listaCorrelativas = notaSeleccionada.getMateriaExamen();
-                break;
-            case "Equivalencia":
+
+            case EQUIVALENCIA:
                 listaCorrelativas = "-";
                 break;
-            case "Examen":
-                listaCorrelativas = notaSeleccionada.getMateriaExamen();
-                break;
+
             default:
-                listaCorrelativas = "-"; // o null, según lo que necesites
+                listaCorrelativas = "-";
                 break;
         }
         if (listaCorrelativas.equals("-")) {
@@ -1141,7 +1130,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
 
     @Override
-    public EvaluacionCorrelativaResponse evaluarCorrelativaNotaId(Long  notaId, String condicion) {
+    public EvaluacionCorrelativaResponse evaluarCorrelativaNotaId(Long  notaId, EstadoCondicion condicion) {
         List<NotaCursandoProjection> notas = notaRepository.findNotaNotaCursandoProjectionbyNotyaId(notaId);
         if (notas == null || notas.isEmpty()) {
             System.out.println("❌ No se encontró la materia para este materiaId.-" + notaId);
@@ -1164,23 +1153,22 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         String listaCorrelativas;
 
         switch (condicion) {
-            case "Cursada":
+            case CURSADA:
                 listaCorrelativas = notaSeleccionada.getMateriaCursada();
                 break;
-            case "Examen Libre":
+
+            case EXAMEN_LIBRE:
+            case EXAMEN_REGULAR:
+            case EXAMEN:
                 listaCorrelativas = notaSeleccionada.getMateriaExamen();
                 break;
-            case "Examen Regular":
-                listaCorrelativas = notaSeleccionada.getMateriaExamen();
-                break;
-            case "Equivalencia":
+
+            case EQUIVALENCIA:
                 listaCorrelativas = "-";
                 break;
-            case "Examen":
-                listaCorrelativas = notaSeleccionada.getMateriaExamen();
-                break;
+
             default:
-                listaCorrelativas = "-"; // o null, según lo que necesites
+                listaCorrelativas = "-";
                 break;
         }
         if (listaCorrelativas.equals("-")) {
@@ -1196,13 +1184,6 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
             return procesarCorrelativasIndividual(notaSeleccionada, listaCorrelativas);
         }
     }
-
-
-
-
-
-
-
 
     private EvaluacionCorrelativaResponse procesarCorrelativasIndividual(NotaCursandoProjection nota, String listaCorrelativas) {
         String[] correlativas = listaCorrelativas.split("-");
@@ -1227,7 +1208,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                 boolean correlativaAprobadaValida = false;
                 for (NotaCursandoProjection correlativa : correlativasNotas) {
                     System.out.println("🔍 Analizando correlativa: " + correlativa.getMateriaNombre());
-                    boolean estaAprobada = "Aprobado".equalsIgnoreCase(correlativa.getNotaEstado());
+                    boolean estaAprobada = correlativa.getNotaEstado() == EstadoNota.APROBADO;
                     if (correlativa.getNotaFechaNota() == null || nota.getNotaFechaNota() == null) {
                         System.out.println("⚠️ Una de las fechas es nula. Se considera fecha incoherente.");
                         tieneFechaIncoherente = true;
@@ -1291,116 +1272,9 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
     }
 
 
-//    private EvaluacionCorrelativaResponse procesarCorrelativasIndividual(NotaCursandoProjection nota) {
-//        String[] correlativas = nota.getMateriaCursada().split("-");
-//
-//        System.out.println("🔗 Correlativas a evaluar: " + Arrays.toString(correlativas));
-//
-//        List<String> materiasDesaprobadas = new ArrayList<>();
-//        List<String> materiasConFechaInvalida = new ArrayList<>();
-//
-//        boolean tieneDesaprobadas = false;
-//        boolean tieneFechaIncoherente = false;
-//
-//        List<NotaCursandoProjection> notasDelAlumno = notaRepository.findAllNotasByLegajo(nota.getLegajoId());
-//        System.out.println("📚 Notas del alumno: " + notasDelAlumno.size());
-//
-//        // Mapeo: clave -> materiaOrden | valor -> lista de notas
-//        Map<String, List<NotaCursandoProjection>> notasMap = notasDelAlumno.stream()
-//                .collect(Collectors.groupingBy(n -> String.valueOf(n.getMateriaOrden())));
-//
-//        for (String numero : correlativas) {
-//            if (numero == null || numero.trim().isEmpty()) {
-//                continue; // Salta correlativas vacías por error de carga
-//            }
-//
-//            numero = numero.trim();
-//
-//            List<NotaCursandoProjection> correlativasNotas = notasMap.get(numero);
-//            System.out.println("➡️ Evaluando correlativa: " + numero);
-//
-//            if (correlativasNotas != null && !correlativasNotas.isEmpty()) {
-//
-//
-//
-//
-//                // Tomar la nota más reciente
-//                Optional<NotaCursandoProjection> optCorrelativa = correlativasNotas.stream()
-//                        .max(Comparator.comparing(NotaCursandoProjection::getNotaFechaNota));
-//
-//                if (optCorrelativa.isPresent()) {
-//                    NotaCursandoProjection correlativa = optCorrelativa.get();
-//                    System.out.println("🔍 Correlativa encontrada: " + correlativa);
-//                    boolean estaAprobada = "Aprobado".equalsIgnoreCase(correlativa.getNotaEstado());
-//                    boolean fechaCoherente = false;
-//
-//                    if (correlativa.getNotaFechaNota() != null && nota.getNotaFechaNota() != null) {
-//                        fechaCoherente = correlativa.getNotaFechaNota().isBefore(nota.getNotaFechaNota());
-//                    } else {
-//                        System.out.println("⚠️ Una de las fechas es nula, se considera incoherente.");
-//                        tieneFechaIncoherente = true;
-//                        materiasConFechaInvalida.add(numero + " (fecha nula)");
-//                    }
-//
-//                    System.out.println("📌 Estado: " + correlativa.getNotaEstado() + ", Fecha coherente: " + fechaCoherente);
-//
-//                    if (!estaAprobada) {
-//                        tieneDesaprobadas = true;
-//                        materiasDesaprobadas.add(numero);
-//                        System.out.println("❗ Materia desaprobada: " + numero);
-//                    }
-//
-//                    if (correlativa.getNotaFechaNota() != null && nota.getNotaFechaNota() != null && !fechaCoherente) {
-//                        tieneFechaIncoherente = true;
-//                        materiasConFechaInvalida.add(numero);
-//                        System.out.println("❗ Fecha incoherente: " + numero);
-//                    }
-//
-//                } else {
-//                    System.out.println("⚠️ No se encontró nota válida para la correlativa: " + numero);
-//                }
-//
-//
-//
-//
-//
-//
-//
-//            } else {
-//                System.out.println("⚠️ No se encontró nota para la correlativa: " + numero);
-//            }
-//        }
-//
-//        String status;
-//
-//        if (tieneDesaprobadas) {
-//            status = "Provisoria";
-//        } else if (tieneFechaIncoherente) {
-
-    /// /            status = "Verificar fecha";
-//            status = "Aceptada";
-//        } else {
-//            status = "Aceptada";
-//        }
-//
-//        if (materiasDesaprobadas.isEmpty()) {
-//            materiasDesaprobadas.add("Ninguna");
-//        }
-//        if (materiasConFechaInvalida.isEmpty()) {
-//            materiasConFechaInvalida.add("Coherente");
-//        }
-//
-//        System.out.println("✅ Resultado final: " + status);
-//        System.out.println("❌ Materias desaprobadas: " + materiasDesaprobadas);
-//        System.out.println("📅 Materias con fecha inválida: " + materiasConFechaInvalida);
-//
-//        return new EvaluacionCorrelativaResponse(status, materiasDesaprobadas, materiasConFechaInvalida);
-//    }
-
-
     @Override
     public void permitirEdicionMateria(String carreraId, String materiaId, boolean editable, String division) {
-        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, "Cursada",division);
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, EstadoCondicion.CURSADA,division);
         for (NotaCursadaDTO n : todasLasNotas) {
             Optional<Nota> notaOpt = notaRepository.findById(n.getNotaId());
             if (notaOpt.isPresent()) {
@@ -1427,12 +1301,12 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         List<Nota> examenes = new ArrayList<>();
 
         for (Nota nota : notas) {
-            if (nota.getNotaCondicion() == NotaCondicion.CURSADA) {
+            if (nota.getNotaCondicion() == EstadoCondicion.CURSADA) {
                 cursada = nota;
             } else if (
-                    nota.getNotaCondicion() == NotaCondicion.EXAMEN_REGULAR ||
-                            nota.getNotaCondicion() == NotaCondicion.EXAMEN_LIBRE ||
-                            nota.getNotaCondicion() == NotaCondicion.EXAMEN
+                    nota.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR ||
+                            nota.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE ||
+                            nota.getNotaCondicion() == EstadoCondicion.EXAMEN
             ) {
                 examenes.add(nota);
             }

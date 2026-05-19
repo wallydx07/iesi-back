@@ -1,5 +1,8 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.enums.EstadoCondicion;
+import com.example.iesiback.enums.EstadoNota;
+
 import java.time.LocalDate;
 
 public interface NotaCursandoProjection {
@@ -8,10 +11,10 @@ public interface NotaCursandoProjection {
     String getMateriaId();
     String getMateriaNombre();
     String getMateriaOrden();
-    String getNotaEstado();
+    EstadoNota getNotaEstado();
     String getMateriaCursada();
     String getMateriaExamen();
     Integer getCursadaId();
     LocalDate getNotaFechaNota();
-    String getNotaCondicion();
+    EstadoCondicion getNotaCondicion();
 }

@@ -3,7 +3,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.NotaImportDTO;
 import com.example.iesiback.dto.ResultadoImportDTO;
 import com.example.iesiback.enums.EstadoNota;
-import com.example.iesiback.enums.NotaCondicion;
+import com.example.iesiback.enums.EstadoCondicion;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -60,7 +60,7 @@ public class TrayectoriaAcademicaServiceImpl implements TrayectoriaAcademicaServ
                 continue;
             }
             if (fila.getCondicion() == null) {
-                fila.setCondicion(NotaCondicion.CURSADA);//promocion==========================================
+                fila.setCondicion(EstadoCondicion.CURSADA);//promocion==========================================
                 fila.setNotaEstado(EstadoNota.CURSANDO);
             }
             if (fila.getFecha() == null) {

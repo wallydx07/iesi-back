@@ -280,6 +280,16 @@ WHERE mc.materia_id = m.materia_id
 
 
 
+UPDATE NOTA
+SET NOTA_CONDICION = UPPER(REPLACE(NOTA_CONDICION, ' ', '_'));
+
+UPDATE NOTA
+SET NOTA_ESTADO = UPPER(REPLACE(NOTA_ESTADO, ' ', '_'));
+
+
+
+
+
 
 
 

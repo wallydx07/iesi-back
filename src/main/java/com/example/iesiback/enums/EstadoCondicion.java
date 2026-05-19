@@ -1,7 +1,6 @@
 package com.example.iesiback.enums;
 
-public enum NotaCondicion {
-
+public enum EstadoCondicion {
     CURSADA,
     EXAMEN_LIBRE,
     EXAMEN_REGULAR,
