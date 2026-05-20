@@ -1,35 +1,21 @@
 package com.example.iesiback.services;
-
-
-import com.example.iesiback.dto.CorrelativasFaltantesEstadoDTO;
 import com.example.iesiback.dto.MateriaDTO;
-import com.example.iesiback.dto.ProcesadoReinscripcionMateriaDTO;
 import com.example.iesiback.dto.ReinscripcionMateriaDTO;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.repositories.MateriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class MateriaServiceImpl implements MateriaService {
 
-    private final NotaService notaService;
-    private final CursadaService cursadaService;
-    private final InscripcionService inscripcionService;
 
+    public MateriaServiceImpl() {
 
-    @Autowired
-    public MateriaServiceImpl(
-            NotaService notaService, CursadaService cursadaService, InscripcionService inscripcionService) {
-        this.notaService = notaService;
-
-        this.cursadaService= cursadaService;
-        this.inscripcionService = inscripcionService;
     }
 
     @Override
@@ -75,45 +61,6 @@ public class MateriaServiceImpl implements MateriaService {
         return materiaRepository.findMateriasByCarrera(carreraId);
     }
 
-    //Regularizado para cursar
-    @Override
-    public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo,String legajoId, String division) {
-
-        List<ReinscripcionMateriaDTO> reinscripciones = new ArrayList<>();
-        List<ProcesadoReinscripcionMateriaDTO> procesados = new ArrayList<>();
-        String carreraNombre = inscripcionService.findByLegajoId(legajoId).getCarrera().getCarreraNombre();
-       reinscripciones=materiaRepository.findReinscripciones(cicloLectivo, carreraNombre,division);
-
-        for (ReinscripcionMateriaDTO dto : reinscripciones) {
-
-          if(!notaService.isMateriaAprobada(legajoId,dto.getMateriaId())) {
-              ProcesadoReinscripcionMateriaDTO procesado = new ProcesadoReinscripcionMateriaDTO();
-              procesado.setMateriaId(dto.getMateriaId());
-              procesado.setMateriaOrden(dto.getMateriaOrden());
-              procesado.setMateriaNivel(dto.getMateriaNivel());
-              procesado.setMateriaNombre(dto.getMateriaNombre());
-              procesado.setCarreraNombre(dto.getCarreraNombre());
-              procesado.setMateriaRegimen(dto.getMateriaRegimen());
-              procesado.setMateriaModalidad(dto.getMateriaModalidad());
-              procesado.setCarreraYear(dto.getCarreraYear());
-              procesado.setMateriaCarreraId(dto.getMateriaCarreraId());
-              procesado.setDivision(dto.getDivision());
-              Materia materia=this.findMateriaById(dto.getMateriaId());
-              List<CorrelativasFaltantesEstadoDTO> correlativas = cursadaService.obtenerCorrelativasPendientesMateriaId(legajoId, materia);
-              Optional<Boolean> estadoOpt = cursadaService.obtenerEstadoCursada(legajoId, dto.getMateriaId(), String.valueOf(dto.getCarreraYear()),division);
-                  if (estadoOpt.isPresent()) {
-                      Boolean estado = estadoOpt.get();
-                      procesado.setCursadaInscripto(estado);
-                  } else {
-                      procesado.setCursadaInscripto(false);
-                  }
-                  procesado.setCorrelativas(correlativas);
-                  procesados.add(procesado);
-              }
-          }
-        return procesados;
-    }
-
     public Materia FindByNombreandCarrera(Carrera carrera, String Nombre){
         return null;
     }
@@ -123,7 +70,15 @@ public class MateriaServiceImpl implements MateriaService {
         return materiaRepository.findByMateriaOrden(orden);
     }
 
+    @Override
+    public List<ReinscripcionMateriaDTO> findReinscripciones(Integer cicloLectivo, String carreraNombre, String division) {
+        return materiaRepository.findReinscripciones(cicloLectivo, carreraNombre,division);
+    }
 
+    @Override
+    public List<Materia> findAllByIds(Set<String> ids) {
+        return materiaRepository.findAllByMateriaIdIn(ids);
+    }
 
 //
 //    public List<String> correlativasCursadaId(int cursadaId) {

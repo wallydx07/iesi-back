@@ -67,14 +67,14 @@ public class MateriaController {
             return materiaService.obtenerMateriasPorCarrera(carreraId);
         }
 
-    @GetMapping("/reinscripciones")
-    public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(
-            @RequestParam("cicloLectivo") Integer cicloLectivo,
-            @RequestParam("legajoId") String legajoId,
-            @RequestParam("division") String division
-    ) {
-        return materiaService.obtenerReinscripciones(cicloLectivo,legajoId, division);
-    }
+//    @GetMapping("/reinscripciones")
+//    public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(
+//            @RequestParam("cicloLectivo") Integer cicloLectivo,
+//            @RequestParam("legajoId") String legajoId,
+//            @RequestParam("division") String division
+//    ) {
+//        return materiaService.obtenerReinscripciones(cicloLectivo,legajoId, division);
+//    }
 
 @GetMapping("/carrera/user/{carreraId}")
 public ResponseEntity<List<MateriaDTO>> getMateriasPorCarrerasyUsuario(@PathVariable String carreraId) {

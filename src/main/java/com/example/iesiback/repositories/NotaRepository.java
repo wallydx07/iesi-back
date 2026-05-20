@@ -275,7 +275,7 @@ ORDER BY p.personaApellido, p.personaNombre
              AND materia_carrera.division = :division
     ORDER BY persona.persona_apellido, persona.persona_nombre ASC
    """, nativeQuery = true)
-    List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(
+    List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
             @Param("notaCondicion") EstadoCondicion notaCondicion,

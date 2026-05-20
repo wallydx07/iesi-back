@@ -17,7 +17,7 @@ import java.util.Optional;
 @Service
 public class LegajoServiceImpl implements LegajoService {
 
-    private static final Logger log = LoggerFactory.getLogger(LegajoServiceImpl.class);
+    public static final Logger log = LoggerFactory.getLogger(LegajoServiceImpl.class);
     private final ObjectMapper objectMapper;
     private final LegajoRepository legajoRepository;
     private final PersonaService personaService;

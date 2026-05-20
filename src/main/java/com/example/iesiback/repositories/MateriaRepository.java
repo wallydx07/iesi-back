@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface MateriaRepository extends JpaRepository<Materia, String> {
@@ -81,7 +82,7 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
 //    );
 
 
-
+    List<Materia> findAllByMateriaIdIn(Set<String> ids);
 
 }
 

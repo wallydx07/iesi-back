@@ -16,29 +16,45 @@ import java.util.List;
 public interface NotaService {
     List<Nota> obtenerNotas();
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, EstadoCondicion condicion);
+
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String legajoId);
+
     List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId);
+
     List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId); //
-    List<NotaCursadaDTO> findNotasByCarreraAndMateria(String carreraId, String materiaId, String division, boolean cursadaInscripto);
-//    List<NotaCursadaDTO> findNotasByCarreraAndMateriaNew(String carreraId, String materaId, boolean cursadaInscripto);
-    List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division, boolean cursadaInscripto);
+
+    List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
+            String carreraId, String materiaId, String division, boolean cursadaInscripto);
+    List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division, boolean cursadaInscripto);
+
     List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(Long  cursadaExamenId, Boolean soloInscritos);
+
     boolean isMateriaAprobada(String legajoId, String materiaId);
+
     Nota guardarNota(Nota nota);
+
     Nota obtenerNotaPorId(Long notaId);
+
     Nota actualizarNota(Long id, Nota nota) throws ResourceNotFoundException;
+
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId);
 
-    List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnaliticoSINREF(String legajoId);
+
     List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, EstadoCondicion notaCondicion);
+
     @Transactional
     void eliminarNota(Long id);
+
     @Transactional
     void eliminarNotaIndividual(Long id);
+
     NotaMateriaDTO obtenerUltimaNota(String legajoId);
+
     Cursada obtenerCursadaPorNotaId(Long notaId);
-    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden,  EstadoCondicion condicion);
-    EvaluacionCorrelativaResponse evaluarCorrelativaNotaId(Long  notaId, EstadoCondicion condicion);
+
+//    EvaluacionCorrelativaResponse evaluarCorrelativaIndividual(String legajoId, Integer materiaOrden,  EstadoCondicion condicion);
+//    EvaluacionCorrelativaResponse evaluarCorrelativaNotaId(Long  notaId, EstadoCondicion condicion);
+
     void permitirEdicionMateria(String carreraId, String materiaId, boolean editable, String division);
     Nota saveNotaWithCursadsa(Nota nota, Integer cursadaId);
     NotaServiceImpl.ResultadoRegularidad evaluarRegularidad(List<Nota> notas);
@@ -50,4 +66,7 @@ public interface NotaService {
     Nota findByCursadaIdMateriaCondicion(Integer cursadaId, Integer permisoId);
     Nota findExamenPorCursadaYTurnoId(Integer cursadaId, Integer turnoId);
     boolean evaluarSancion(Integer cursadaId, Integer turnoId);
+
+    //Regularizado para cursar
+    List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo, String legajoId, String division);
 }

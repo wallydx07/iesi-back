@@ -21,31 +21,21 @@ public interface CursadaService {
     Optional<Cursada> findByLegajo_LegajoIdAndMateriaCarrera_Id(String legajoId, int materiaCarreraId);
     void deleteCursada(Integer id);
     List<Cursada> findByLegajoId(String legajoId);
-
     List<Cursada> getCursadasNoAprobadas(String legajoId);
     List<Cursada> findByLegajoAndMateria(String legajo, String materia);
     Optional<Boolean> obtenerEstadoCursada(String legajoId, String materiaId, String materiaYear, String division);
 
     String obtenerCorrelativasPendientes(String materiaId, String legajoId);
 
-    List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia);
-
+    //    String obtenerCorrelativasPendientes(String materiaId, String legajoId);
+//    List<CorrelativasFaltantesEstadoDTO> obtenerCorrelativasPendientesMateriaId(String legajoId, Materia materia);
     @Transactional
     void eliminarCursada(Integer id);
-
     Optional<Cursada> buscarPorId(Integer cursadaId);
-
     Cursada actualizarCursada(Cursada cursada, Cursada cursadaPost);
-
     List<Cursada> findByMateriaCarrera_Carrera_CarreraId(String carreraId);
-
     @Transactional
-    Cursada obtenerORegistrarCursada(
-            Legajo legajo,
-            Long materiaCarreraId);
-
+    Cursada obtenerORegistrarCursada(Legajo legajo, Long materiaCarreraId);
     @Transactional
-    Cursada buscarOMasCercanaORegistrar(
-            Legajo legajo,
-            MateriaCarrera materiaCarrera);
+    Cursada buscarOMasCercanaORegistrar( Legajo legajo, MateriaCarrera materiaCarrera);
 }

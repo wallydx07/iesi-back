@@ -2905,7 +2905,7 @@ private final EmailService emailService;
         String fechacierre = String.valueOf(materiaCarrera.getFecha());
         String tecnicatura = materiaCarrera.getCarrera().getCarreraNombre();
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
-        List<NotaCursadaDTO> cursadas;
+        List<NotaCursadaConEstadoDTO> cursadas;
         if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
             cursadas = this.notaService.findNotasByCarreraAndMateriaAll(materiaCarrera.getCarrera().getCarreraId(),materiaCarrera.getMateria().getMateriaNombre(), division,true);
         } else {
@@ -3018,7 +3018,7 @@ private final EmailService emailService;
                 String nota_c = "-";
                 String status = "-";
                 if (i < cursadas.size()) {
-                    NotaCursadaDTO fResultado = cursadas.get(i);
+                    NotaCursadaConEstadoDTO fResultado = cursadas.get(i);
 
                     dni = fResultado.getPersonaDni(); // Asigna el valor de la segunda columna (dni) a dni
                     apellido = fResultado.getPersonaApellido() + "," + fResultado.getPersonaNombre(); // Asigna el valor de la tercera columna (apellido+nombre) a apellido
@@ -4673,7 +4673,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
             headerRow.createCell(2).setCellValue("DNI");
             MateriaCarrera materiaCarrera = this.materiaCarreraRepository
                     .findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId).get(0);
-            List<NotaCursadaDTO> cursadas;
+            List<NotaCursadaConEstadoDTO> cursadas;
             if ("1ro".equals(materiaCarrera.getMateria().getMateriaNivel())) {
                 cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, division, inscripto);
             } else {
@@ -4682,7 +4682,7 @@ public PDDocument generaUltimaMateria(String legajoId, String autoridades) {
 
             int rowIdx = 1;
             for (int i = 0; i < cursadas.size(); i++) {
-                NotaCursadaDTO nota = cursadas.get(i);
+                NotaCursadaConEstadoDTO nota = cursadas.get(i);
                 org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(i + 1);
                 row.createCell(1).setCellValue(nota.getPersonaApellido() + ", " + nota.getPersonaNombre());
@@ -5647,7 +5647,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         String fechacierre = String.valueOf(materiaCarrera.getFecha());
         String tecnicatura = materiaCarrera.getCarrera().getCarreraNombre();
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
-        List<NotaCursadaDTO> cursadas;
+        List<NotaCursadaConEstadoDTO> cursadas;
         if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
             cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId,division, inscripto);
         } else {
@@ -5701,7 +5701,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                 String estado = "-";
 
                 if (i < cursadas.size()) {
-                    NotaCursadaDTO fResultado = cursadas.get(i);
+                    NotaCursadaConEstadoDTO fResultado = cursadas.get(i);
 
                     dni = fResultado.getPersonaDni() != null ? fResultado.getPersonaDni() : "-";
                     apellido = (fResultado.getPersonaApellido() != null ? fResultado.getPersonaApellido() : "") + ", " +
@@ -5898,7 +5898,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         String fechacierre = String.valueOf(materiaCarrera.getFecha());
         String tecnicatura = materiaCarrera.getCarrera().getCarreraNombre();
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
-        List<NotaCursadaDTO> cursadas;
+        List<NotaCursadaConEstadoDTO> cursadas;
         if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
             cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId, division,inscripto);
         } else {
@@ -5952,7 +5952,7 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                 String estado = "-";
 
                 if (i < cursadas.size()) {
-                    NotaCursadaDTO fResultado = cursadas.get(i);
+                    NotaCursadaConEstadoDTO fResultado = cursadas.get(i);
 
                     dni = fResultado.getPersonaDni() != null ? fResultado.getPersonaDni() : "-";
                     apellido = (fResultado.getPersonaApellido() != null ? fResultado.getPersonaApellido() : "") + ", " +

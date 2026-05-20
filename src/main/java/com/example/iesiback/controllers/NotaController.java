@@ -4,7 +4,7 @@ import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.enums.EstadoCondicion;
-import com.example.iesiback.services.CursadaService;
+import com.example.iesiback.services.CorrelativaService;
 import com.example.iesiback.services.NotaService;
 import com.example.iesiback.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import static com.example.iesiback.services.LegajoServiceImpl.log;
 
 @CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
 @RestController
@@ -19,14 +20,14 @@ import java.util.List;
 public class NotaController {
 
     private final UserService userService;
-    private final CursadaService cursadaService;
+    private final CorrelativaService correlativaService;
     @Autowired
     private NotaService notaService;
 
-    public NotaController( UserService userService,
-    CursadaService cursadaService) {
+    public NotaController(UserService userService, CorrelativaService correlativaService) {
         this.userService=userService;
-        this.cursadaService=cursadaService;
+
+        this.correlativaService = correlativaService;
     }
 
     @GetMapping
@@ -58,27 +59,23 @@ public class NotaController {
 //        return ResponseEntity.ok(notas);
 //    }
 
-    //AQUI SE OBTIENE LOS ALUMNOS DE CURSADA///////
     @GetMapping("/obtenerTodasNotasPorMateria")
     public ResponseEntity<?> obtenerTodasNotasPorMateria(
             @RequestParam String carreraId,
             @RequestParam String materiaId,
             @RequestParam String division,
-            @RequestParam(required = false) Boolean cursadaInscripto
-
-    ) {
+            @RequestParam(required = false) Boolean cursadaInscripto) {
         try {
-            List<NotaCursadaDTO> notas = notaService.findNotasByCarreraAndMateria(
-                    carreraId, materiaId,division, cursadaInscripto != null ? cursadaInscripto : true
+            List<NotaCursadaConEstadoDTO> notas = notaService.findNotasByCarreraAndMateria(
+                    carreraId, materiaId, division, cursadaInscripto != null ? cursadaInscripto : true
             );
             return ResponseEntity.ok(notas);
         } catch (Exception e) {
-            e.printStackTrace(); // Muestra la traza completa del error en consola
-
+            log.error("Error al buscar notas. carreraId={} materiaId={} division={}: {}",
+                    carreraId, materiaId, division, e.getMessage(), e);
             return ResponseEntity.status(500).body("Ocurrió un error al buscar las notas: " + e.getMessage());
         }
     }
-
     @GetMapping("/obtenerNotasNoAprobadasPorLegajo")
     public ResponseEntity<List<NotaMateriaDTO>> obtenerNotasNoAprobadasPorLegajo(
             @RequestParam String legajoId
@@ -164,18 +161,18 @@ public class NotaController {
     @GetMapping("/{notaId}/cursada")
     public ResponseEntity<Cursada> obtenerCursadaPorNota(@PathVariable Long notaId) {
         Cursada cursada = notaService.obtenerCursadaPorNotaId(notaId);
-        if (cursada != null) {
-            // Actualizamos el status con el resultado de la evaluación
-            String nuevoStatus = notaService.evaluarCorrelativaIndividual(
-                    cursada.getLegajo().getLegajoId(),
-                    cursada.getMateriaCarrera().getMateria().getMateriaOrden(),
-                    EstadoCondicion.CURSADA
-            ).getStatus();
-            cursada.setStatus(nuevoStatus);
-            return ResponseEntity.ok(cursada);
-        } else {
+        if (cursada == null) {
             return ResponseEntity.notFound().build();
         }
+
+        CorrelativaService.Veredicto veredicto = correlativaService.evaluar(
+                cursada.getLegajo().getLegajoId(),
+                cursada.getMateriaCarrera().getMateria().getMateriaOrden(),
+                EstadoCondicion.CURSADA
+        );
+
+        cursada.setStatus(veredicto.toLegacy().getStatus());
+        return ResponseEntity.ok(cursada);
     }
 
     @PostMapping("/evaluar/{legajoId}/{materiaOrden}/{condicion}")
@@ -183,18 +180,25 @@ public class NotaController {
             @PathVariable String legajoId,
             @PathVariable Integer materiaOrden,
             @PathVariable EstadoCondicion condicion) {
-        EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaIndividual(legajoId,materiaOrden, condicion);
+
+        EvaluacionCorrelativaResponse response = correlativaService
+                .evaluar(legajoId, materiaOrden, condicion)
+                .toLegacy();
+
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/evaluarCorrelativaNotaId/{notaId}/{condicion}")
+    public ResponseEntity<EvaluacionCorrelativaResponse> evaluarCorrelativaNotaId(
+            @PathVariable Long notaId,
+            @PathVariable EstadoCondicion condicion) {
 
-        @PostMapping("/evaluarCorrelativaNotaId/{notaId}/{condicion}")
-        public ResponseEntity<EvaluacionCorrelativaResponse> evaluarCorrelativaNotaId(
-                @PathVariable Long  notaId,
-                @PathVariable EstadoCondicion condicion) {
-            EvaluacionCorrelativaResponse response = notaService.evaluarCorrelativaNotaId(notaId, condicion);
-            return ResponseEntity.ok(response);
-        }
+        EvaluacionCorrelativaResponse response = correlativaService
+                .evaluarPorNota(notaId, condicion)
+                .toLegacy();
+
+        return ResponseEntity.ok(response);
+    }
 
     @PutMapping("/permitir-edicion")
     public ResponseEntity<String> permitirEdicionMateria(
@@ -222,6 +226,17 @@ public class NotaController {
 //    public void importarNotas(@RequestBody List<NotaImportDTO> notas) {
 //        notaService.importarNotas(notas);
 //    }
+
+
+    @GetMapping("/reinscripciones")
+    public List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(
+            @RequestParam("cicloLectivo") Integer cicloLectivo,
+            @RequestParam("legajoId") String legajoId,
+            @RequestParam("division") String division
+    ) {
+        return notaService.obtenerReinscripciones(cicloLectivo,legajoId, division);
+    }
+
 
 }
 
