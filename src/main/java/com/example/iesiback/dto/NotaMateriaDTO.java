@@ -28,6 +28,9 @@ public class NotaMateriaDTO {
     private Boolean isfirma;
     private Integer materiaCarreraId;
 
+    private String notaStatus;          // "Aceptada" / "Provisoria" / "-"
+    private List<String> notaIsFecha;   // correlativas con fecha incoherente
+
 
     public NotaMateriaDTO(){ }
     public NotaMateriaDTO(Long notaId, Integer materiaOrden, String materiaNombre,
@@ -55,66 +58,44 @@ public class NotaMateriaDTO {
         this.materiaCarreraId = materiaCarreraId;
     }
 
-    public Integer getMateriaCarreraId() {
-        return materiaCarreraId;
+    public Long getNotaId() {
+        return notaId;
     }
 
-    public void setMateriaCarreraId(Integer materiaCarreraId) {
-        this.materiaCarreraId = materiaCarreraId;
+    public void setNotaId(Long notaId) {
+        this.notaId = notaId;
     }
 
-    public Boolean getIsfirma() {
-        return isfirma;
+    public Integer getMateriaOrden() {
+        return materiaOrden;
     }
 
-    public void setIsfirma(Boolean isfirma) {
-        this.isfirma = isfirma;
+    public void setMateriaOrden(Integer materiaOrden) {
+        this.materiaOrden = materiaOrden;
     }
 
-    public Integer getCursadaId() {
-        return cursadaId;
+    public String getMateriaNombre() {
+        return materiaNombre;
     }
 
-    public void setCursadaId(Integer cursadaId) {
-        this.cursadaId = cursadaId;
+    public void setMateriaNombre(String materiaNombre) {
+        this.materiaNombre = materiaNombre;
     }
 
-    public String getNotaFinal() {
-        return notaFinal;
+    public Double getNotaCalificacionNumero() {
+        return notaCalificacionNumero;
     }
 
-    public void setNotaFinal(String notaFinal) {
-        this.notaFinal = notaFinal;
+    public void setNotaCalificacionNumero(Double notaCalificacionNumero) {
+        this.notaCalificacionNumero = notaCalificacionNumero;
     }
-    public List<String> getCorrelativas() { return correlativas; }
-    public void setCorrelativas(List<String> correlativas) { this.correlativas = correlativas; }
-    public Long getNotaId() { return notaId; }
-    public void setNotaId(Long notaId) { this.notaId = notaId; }
-    public Integer getMateriaOrden() { return materiaOrden; }
-    public void setMateriaOrden(Integer materiaOrden) { this.materiaOrden = materiaOrden; }
-    public String getMateriaNombre() { return materiaNombre; }
-    public void setMateriaNombre(String materiaNombre) { this.materiaNombre = materiaNombre; }
-    public Double getNotaCalificacionNumero() { return notaCalificacionNumero; }
-    public void setNotaCalificacionNumero(Double notaCalificacionNumero) { this.notaCalificacionNumero = notaCalificacionNumero; }
-    public String getNotaCalificacionLetra() { return notaCalificacionLetra; }
-    public void setNotaCalificacionLetra(String notaCalificacionLetra) { this.notaCalificacionLetra = notaCalificacionLetra; }
-    public String getNotaLibro() { return notaLibro; }
-    public void setNotaLibro(String notaLibro) { this.notaLibro = notaLibro; }
-    public String getNotaFolio() { return notaFolio; }
-    public void setNotaFolio(String notaFolio) { this.notaFolio = notaFolio; }
-    public LocalDate getNotaFecha() { return notaFecha; }
-    public void setNotaFecha(LocalDate notaFecha) { this.notaFecha = notaFecha; }
-    public String getNotaObservaciones() { return notaObservaciones; }
-    public void setNotaObservaciones(String notaObservaciones) { this.notaObservaciones = notaObservaciones; }
-    public String getNotaUsuario() { return notaUsuario; }
-    public void setNotaUsuario(String notaUsuario) { this.notaUsuario = notaUsuario; }
-    public String getMateriaId() { return materiaId; }
-    public void setMateriaId(String materiaId) { this.materiaId = materiaId; }
-    public String getMateriaNivel() {
-        return materiaNivel;
+
+    public String getNotaCalificacionLetra() {
+        return notaCalificacionLetra;
     }
-    public void setMateriaNivel(String materiaNivel) {
-        this.materiaNivel = materiaNivel;
+
+    public void setNotaCalificacionLetra(String notaCalificacionLetra) {
+        this.notaCalificacionLetra = notaCalificacionLetra;
     }
 
     public EstadoCondicion getNotaCondicion() {
@@ -131,5 +112,117 @@ public class NotaMateriaDTO {
 
     public void setNotaEstado(EstadoNota notaEstado) {
         this.notaEstado = notaEstado;
+    }
+
+    public String getNotaLibro() {
+        return notaLibro;
+    }
+
+    public void setNotaLibro(String notaLibro) {
+        this.notaLibro = notaLibro;
+    }
+
+    public String getNotaFolio() {
+        return notaFolio;
+    }
+
+    public void setNotaFolio(String notaFolio) {
+        this.notaFolio = notaFolio;
+    }
+
+    public LocalDate getNotaFecha() {
+        return notaFecha;
+    }
+
+    public void setNotaFecha(LocalDate notaFecha) {
+        this.notaFecha = notaFecha;
+    }
+
+    public String getNotaObservaciones() {
+        return notaObservaciones;
+    }
+
+    public void setNotaObservaciones(String notaObservaciones) {
+        this.notaObservaciones = notaObservaciones;
+    }
+
+    public String getNotaUsuario() {
+        return notaUsuario;
+    }
+
+    public void setNotaUsuario(String notaUsuario) {
+        this.notaUsuario = notaUsuario;
+    }
+
+    public String getNotaFinal() {
+        return notaFinal;
+    }
+
+    public void setNotaFinal(String notaFinal) {
+        this.notaFinal = notaFinal;
+    }
+
+    public List<String> getCorrelativas() {
+        return correlativas;
+    }
+
+    public void setCorrelativas(List<String> correlativas) {
+        this.correlativas = correlativas;
+    }
+
+    public String getMateriaId() {
+        return materiaId;
+    }
+
+    public void setMateriaId(String materiaId) {
+        this.materiaId = materiaId;
+    }
+
+    public String getMateriaNivel() {
+        return materiaNivel;
+    }
+
+    public void setMateriaNivel(String materiaNivel) {
+        this.materiaNivel = materiaNivel;
+    }
+
+    public Integer getCursadaId() {
+        return cursadaId;
+    }
+
+    public void setCursadaId(Integer cursadaId) {
+        this.cursadaId = cursadaId;
+    }
+
+    public Boolean getIsfirma() {
+        return isfirma;
+    }
+
+    public void setIsfirma(Boolean isfirma) {
+        this.isfirma = isfirma;
+    }
+
+    public Integer getMateriaCarreraId() {
+        return materiaCarreraId;
+    }
+
+    public void setMateriaCarreraId(Integer materiaCarreraId) {
+        this.materiaCarreraId = materiaCarreraId;
+    }
+
+    public String getNotaStatus() {
+        return notaStatus;
+    }
+
+    public void setNotaStatus(String notaStatus) {
+        this.notaStatus = notaStatus;
+    }
+
+    public List<String> getNotaIsFecha() {
+        return notaIsFecha;
+    }
+
+    public void setNotaIsFecha(List<String> notaIsFecha) {
+        this.notaIsFecha = notaIsFecha;
     }
 }

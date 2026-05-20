@@ -8,6 +8,7 @@ import com.example.iesiback.entities.Materia;
 import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.enums.EstadoNota;
 import com.example.iesiback.repositories.CursadaRepository;
+import com.example.iesiback.repositories.MateriaRepository;
 import com.example.iesiback.repositories.NotaRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ public class CorrelativaService {
 
     private final NotaRepository notaRepository;
     private final CursadaRepository cursadaRepository;
+    private final MateriaRepository materiaRepository;
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     // TIPOS DE DATOS INTERNOS
@@ -123,13 +126,38 @@ public class CorrelativaService {
             return result.isEmpty() ? List.of("Ninguna") : result;
         }
 
+//        public List<String> conFechaIncoherente() {
+//            if (items == null || items.isEmpty()) return List.of("No");
+//            List<String> result = items.stream()
+//                    .filter(i -> i.isAprobada() && !i.isFechaOk())
+//                    .map(i -> i.getOrden() + " (" + i.getDetalle() + ")")
+//                    .collect(Collectors.toList());
+//            return result.isEmpty() ? List.of("No") : result;
+//        }
+
+
         public List<String> conFechaIncoherente() {
-            if (items == null || items.isEmpty()) return List.of("No");
-            List<String> result = items.stream()
+            if (items == null || items.isEmpty()) {
+                return tipo == TipoVeredicto.SIN_CURSADA
+                        ? List.of("Sin cursada registrada")
+                        : List.of("No");
+            }
+
+            List<String> mensajes = new ArrayList<>();
+
+            // Correlativas pendientes de aprobación
+            items.stream()
+                    .filter(i -> !i.isAprobada())
+                    .map(i -> "Pendiente: " + i.getOrden() + " (" + i.getDetalle() + ")")
+                    .forEach(mensajes::add);
+
+            // Aprobadas pero con fecha incoherente
+            items.stream()
                     .filter(i -> i.isAprobada() && !i.isFechaOk())
-                    .map(i -> i.getOrden() + " (" + i.getDetalle() + ")")
-                    .collect(Collectors.toList());
-            return result.isEmpty() ? List.of("No") : result;
+                    .map(i -> "Fecha inválida: " + i.getOrden() + " (" + i.getDetalle() + ")")
+                    .forEach(mensajes::add);
+
+            return mensajes.isEmpty() ? List.of("No") : mensajes;
         }
 
         /** Compatibilidad hacia atrás con EvaluacionCorrelativaResponse */
@@ -151,10 +179,29 @@ public class CorrelativaService {
      * Evalúa correlativas de una materia para un legajo dado.
      * Reemplaza: evaluarCorrelativaIndividual()
      */
-    public Veredicto evaluar(String legajoId, Integer materiaOrden, EstadoCondicion condicion) {
+//    public Veredicto evaluar(String legajoId, Integer materiaOrden, EstadoCondicion condicion) {
+//        List<NotaCursandoProjection> notas =
+//                notaRepository.findNotaCursandoByLegajoAndMateria(legajoId, materiaOrden);
+//        return ejecutar(notas, condicion, legajoId);
+//    }
+
+    public Veredicto evaluar(
+            String legajoId,
+            Integer materiaOrden,
+            EstadoCondicion condicion) {
+
         List<NotaCursandoProjection> notas =
-                notaRepository.findNotaCursandoByLegajoAndMateria(legajoId, materiaOrden);
-        return ejecutar(notas, condicion, legajoId);
+                notaRepository.findNotaCursandoByLegajoAndMateria(
+                        legajoId,
+                        materiaOrden
+                );
+
+        Materia materia = materiaRepository
+                .findByMateriaOrdenAndLegajoId(materiaOrden, legajoId)
+                .orElseThrow(() ->
+                        new RuntimeException("Materia no encontrada"));
+
+        return ejecutar(notas, condicion, legajoId, materia);
     }
 
     /**
@@ -196,6 +243,7 @@ public class CorrelativaService {
      * Retorna las correlativas pendientes como lista de DTOs.
      * Reemplaza: obtenerCorrelativasPendientesMateriaId()
      */
+
     public List<CorrelativasFaltantesEstadoDTO> pendientes(String legajoId, Materia materia) {
         String lista = materia.getMateriaCursada();
         if (esVacio(lista)) return Collections.emptyList();
@@ -205,7 +253,12 @@ public class CorrelativaService {
                 .filter(s -> !s.isBlank())
                 .filter(orden -> !tieneAprobadaORegular(orden, legajoId))
                 .map(orden -> {
+                    int auxordmat=Integer.valueOf(orden);
+                    Materia materiaAux= materiaRepository.findByMateriaOrdenAndLegajoId(auxordmat,legajoId).get();
                     CorrelativasFaltantesEstadoDTO dto = new CorrelativasFaltantesEstadoDTO();
+                    dto.setMateriaNombre(materiaAux.getMateriaNombre());
+                    dto.setMateriaId(materiaAux.getMateriaId());
+
                     dto.setMateriaOrden(orden);
                     dto.setNotaEstado(EstadoNota.LIBRE);
                     return dto;
@@ -220,27 +273,44 @@ public class CorrelativaService {
     private Veredicto ejecutar(
             List<NotaCursandoProjection> notasMateria,
             EstadoCondicion condicion,
-            String legajoId) {
+            String legajoId,
+            Materia materia) {
 
-        if (sinDatos(notasMateria)) {
-            log.warn("Sin notas para legajoId={} condicion={}", legajoId, condicion);
-            return veredictoVacio(TipoVeredicto.SIN_CURSADA);
-        }
+//        if (sinDatos(notasMateria)) {
+//            log.warn("Sin notas para legajoId={} condicion={}", legajoId, condicion);
+//            return veredictoVacio(TipoVeredicto.SIN_CURSADA);
+//        }
         Map<String, List<NotaCursandoProjection>> notasMap = cargarNotasLegajo(legajoId);
-        return ejecutarConMapa(notasMateria, condicion, notasMap);
+        return ejecutarConMapa(
+                notasMateria,
+                condicion,
+                notasMap,
+                materia
+        );
+    }
+
+    public String estadoCondicion(String legajoId, Integer materiaOrden, EstadoCondicion condicion) {
+        Veredicto v = evaluar(legajoId, materiaOrden, condicion);
+        return v.toLegacy().getStatus(); // "Aceptada", "Provisoria" o "-"
     }
 
     private Veredicto ejecutarConMapa(
             List<NotaCursandoProjection> notasMateria,
             EstadoCondicion condicion,
-            Map<String, List<NotaCursandoProjection>> notasMap) {
+            Map<String, List<NotaCursandoProjection>> notasMap,
+            Materia materia){
 
-        if (sinDatos(notasMateria)) {
-            return veredictoVacio(TipoVeredicto.SIN_CURSADA);
-        }
+//        if (sinDatos(notasMateria)) {
+//            return veredictoVacio(TipoVeredicto.SIN_CURSADA);
+//        }
 
-        NotaCursandoProjection notaOrigen = notaMasReciente(notasMateria);
-        String listaRaw = resolverLista(notaOrigen, condicion);
+        NotaCursandoProjection notaOrigen =
+                notasMateria.isEmpty()
+                        ? null
+                        : notaMasReciente(notasMateria);
+
+        String listaRaw = resolverListaMateria(materia, condicion);
+//        String listaRaw = resolverLista(notaOrigen, condicion);
 
         if (esVacio(listaRaw)) {
             log.debug("Sin correlativas para condicion={}", condicion);
@@ -262,6 +332,27 @@ public class CorrelativaService {
 
         return Veredicto.builder().tipo(tipo).items(items).build();
     }
+
+
+    private String resolverListaMateria(
+            Materia materia,
+            EstadoCondicion condicion) {
+
+        return switch (condicion) {
+            case CURSADA ->
+                    materia.getMateriaCursada();
+
+            case EXAMEN,
+                 EXAMEN_LIBRE,
+                 EXAMEN_REGULAR ->
+                    materia.getMateriaExamen();
+
+            case EQUIVALENCIA -> "-";
+
+            default -> "-";
+        };
+    }
+
 
     // ── Evaluación de un orden individual ────────────────────────────────────
 

@@ -2,6 +2,7 @@ package com.example.iesiback.repositories;
 
 import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.dto.ReinscripcionMateriaDTO;
+import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Materia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -83,6 +84,25 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
 
 
     List<Materia> findAllByMateriaIdIn(Set<String> ids);
+
+    @Query(value = """
+    SELECT m.*
+    FROM materia m
+    JOIN materia_carrera mc 
+        ON mc.materia_id = m.materia_id
+    JOIN carrera c 
+        ON c.carrera_id = mc.carrera_id
+    JOIN inscripcion i
+        ON i.carrera_id = c.carrera_id
+    JOIN legajo l 
+        ON i.legajo_id = l.legajo_id
+    WHERE m.materia_orden = :materiaOrden
+    AND l.legajo_id = :legajoId
+    LIMIT 1
+    """, nativeQuery = true)
+    Optional<Materia> findByMateriaOrdenAndLegajoId(
+            @Param("materiaOrden") Integer materiaOrden,
+            @Param("legajoId") String legajoId);
 
 }
 

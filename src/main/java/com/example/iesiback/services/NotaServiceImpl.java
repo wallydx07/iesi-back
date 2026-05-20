@@ -184,6 +184,8 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, EstadoCo
         CorrelativaService.Veredicto veredicto = veredictos.get(obj.getMateriaOrden());
         if (veredicto != null) {
             obj.setCorrelativas(veredicto.desaprobadas());
+            obj.setNotaStatus(veredicto.toLegacy().getStatus());
+            obj.setNotaIsFecha(veredicto.conFechaIncoherente());
         }
     });
 
@@ -1009,6 +1011,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
             // 4. Correlativas con el nuevo service
             procesado.setCorrelativas(correlativaService.pendientes(legajoId, materia));
 
+            procesado.setCursadaStatus(correlativaService.estadoCondicion(legajoId, materia.getMateriaOrden(), EstadoCondicion.CURSADA));
             // 5. Estado cursada
             boolean inscripto = cursadaService
                     .obtenerEstadoCursada(legajoId, dto.getMateriaId(),

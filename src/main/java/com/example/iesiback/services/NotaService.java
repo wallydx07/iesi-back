@@ -15,6 +15,7 @@ import java.util.List;
 @Service
 public interface NotaService {
     List<Nota> obtenerNotas();
+
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, EstadoCondicion condicion);
 
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String legajoId);

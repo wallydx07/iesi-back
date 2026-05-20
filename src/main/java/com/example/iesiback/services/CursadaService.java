@@ -15,6 +15,7 @@ public interface CursadaService {
     @Transactional
     void agregarMateriasACursadaPorCarrera(String carreraId, Legajo legajo);
     List<Cursada> getAllCursadas();
+    
     Optional<Cursada> getCursadaById(Integer id);
     Cursada saveCursada(Cursada cursada);
     Optional<Cursada> obtenerCursadaPorLegajoMateriaCarrera(String legajoId, String materiaId, String carreraId);
