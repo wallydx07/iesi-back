@@ -23,4 +23,7 @@ public interface MateriaService {
     List<ReinscripcionMateriaDTO> findReinscripciones(Integer cicloLectivo, String carreraNombre, String division);
 
     List<Materia> findAllByIds(Set<String> ids);
+
+    // <--- AQUÍ SÍ VA
+    Optional<Materia> obtenerMateriaPorNotaId(Long notaId);
 }

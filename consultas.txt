@@ -288,9 +288,40 @@ SET NOTA_ESTADO = UPPER(REPLACE(NOTA_ESTADO, ' ', '_'));
 
 
 
+CREATE OR REPLACE FUNCTION crear_nota_despues_de_cursada()
+RETURNS TRIGGER AS $$
+DECLARE
+    nueva_nota_id INTEGER;
+BEGIN
+    INSERT INTO nota (
+        nota_calificacion_nota_numero,
+        nota_calificacion_nota_letra,
+        nota_fecha_nota,
+        nota_condicion,
+        nota_estado,
+        nota_libro_nota,
+        nota_folio_nota,
+        nota_observaciones,
+        nota_usuario,
+        nota_cursada_id
+    )
+    VALUES (
+        null,
+        '',
+        CURRENT_DATE,
+        'CURSADA',              -- Actualizado a mayúsculas
+        'CURSANDO',             -- Actualizado a mayúsculas
+        '',
+        '',
+        'Nota generada automáticamente',
+        'Sistema',
+        NEW.cursada_id
+    )
+    RETURNING nota_id INTO nueva_nota_id;
 
-
-
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 
 

@@ -29,89 +29,59 @@ public class VerificadorAsistenciaAutomatica {
         this.emailService = emailService;
     }
 
-
     @Transactional
     @Scheduled(cron = "0 0 5 * * *", zone = "America/Argentina/Buenos_Aires") // Todos los días a las 5 AM
     public void verificarAusencias() {
+        // Verifica el día anterior completo
         verificarAusenciasPorFecha(LocalDate.now().minusDays(1));
     }
 
     public void verificarAusenciasPorFecha(LocalDate fecha) {
+        // 1. Obtener el día de la semana formateado (ej: "LUNES")
         String diaSemana = fecha.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("es")).toUpperCase();
-
-        diaSemana = Normalizer.normalize(diaSemana, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
+        diaSemana = Normalizer.normalize(diaSemana, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         int anioActual = fecha.getYear();
-        System.out.println("📆 Verificando ausencias para: " + fecha + " (" + diaSemana + ")");
 
-        List<PersonalHorario> horarios = personalHorariosService.findByDiaYAnio(diaSemana, anioActual);
-        System.out.println("📊 Se encontraron " + horarios.size() + " horarios para " + diaSemana + " (" + anioActual + ")");
+        System.out.println("📆 Verificando asistencias cronológicas para: " + fecha + " (" + diaSemana + ")");
 
-        // Agrupar horarios por DNI
-        Map<Long, List<PersonalHorario>> horariosPorDni = horarios.stream()
-                .collect(Collectors.groupingBy(h -> h.getDni().getId()));
+        // 2. Traer los horarios planificados para saber quiénes DEBÍAN asistir ese día
+        List<PersonalHorario> horariosDelDia = personalHorariosService.findByDiaYAnio(diaSemana, anioActual);
 
+        // Agrupamos por DNI para obtener la lista única de empleados que tenían que ir a trabajar
+        Set<Long> empleadosQueDebianAsistir = horariosDelDia.stream()
+                .map(h -> h.getDni().getId())
+                .collect(Collectors.toSet());
 
-
-        for (Map.Entry<Long, List<PersonalHorario>> entry : horariosPorDni.entrySet()) {
-            Long dni = entry.getKey();
-            List<PersonalHorario> horariosDni = entry.getValue().stream()
-                    .sorted(Comparator.comparing(PersonalHorario::getEntrada))
-                    .collect(Collectors.toList());
-
-            // Obtener asistencias del día
+        for (Long dni : empleadosQueDebianAsistir) {
+            // Obtener todas las marcas reales cronológicas que tuvo este DNI en el día
             List<AsistenciaPersonal> asistenciasDia = asistenciaPersonalService.obtenerPorDniYFecha(dni, fecha);
 
+            // 👉 CASO 1: AUSENCIA TOTAL (No tiene ninguna fichada en todo el día)
             if (asistenciasDia.isEmpty()) {
-                // 👉 Caso 1: No registró ninguna asistencia → marcar todos los horarios como ausente
-                for (PersonalHorario horario : horariosDni) {
-                    AsistenciaPersonal ausencia = new AsistenciaPersonal();
-                    ausencia.setDni(dni);
-                    ausencia.setHorarioId(horario.getId());
-                    ausencia.setFecha(fecha);
-                    ausencia.setHoraEntrada(LocalTime.MIDNIGHT);
-                    ausencia.setHoraSalida(LocalTime.MIDNIGHT);
-                    ausencia.setEstado(4); // Ausente
-                    ausencia.setObservaciones("Marcado automáticamente: no asistió");
-                    asistenciaPersonalService.guardar(ausencia);
-                    System.out.println("🚫 Ausencia registrada para DNI " + dni + " horario " + horario.getId());
-                }
-                continue; // ya procesamos este DNI
-            }
-            for (AsistenciaPersonal asistencia : asistenciasDia) {
-                System.out.println("   ➝ HorarioID: " + asistencia.getHorarioId() +
-                        " | Entrada: " + asistencia.getHoraEntrada() +
-                        " | Salida: " + asistencia.getHoraSalida() +
-                        " | Estado: " + asistencia.getEstado());
-            }
-            boolean huboHorarioOlvidado = false;
-            for (PersonalHorario horario : horariosDni) {
-                Optional<AsistenciaPersonal> asistenciaOpt = asistenciasDia.stream()
-                        .filter(a -> horario.getId().equals(a.getHorarioId()))
-                        .findFirst();
-                if (asistenciaOpt.isPresent()) {
-                    AsistenciaPersonal asistencia = asistenciaOpt.get();
-                    if (asistencia.getHoraEntrada() != null && asistencia.getHoraSalida() == null) {
-                        asistencia.setHoraSalida(asistencia.getHoraEntrada()); // o LocalTime.now()
-                        asistencia.setObservaciones("Marcado automáticamente: salida olvidada");
-                        asistencia.setEstado(0); // estado personalizado
-                        asistenciaPersonalService.guardar(asistencia);
-                        System.out.println("✔️ Salida completada para DNI " + dni + " horario " + horario.getId());
-                        huboHorarioOlvidado = true;
-                    }
-                } else if (huboHorarioOlvidado) {
-                    // 👉 Caso 3: Horarios posteriores tras una salida olvidada
-                    AsistenciaPersonal asistenciaFicticia = new AsistenciaPersonal();
-                    asistenciaFicticia.setDni(dni);
-                    asistenciaFicticia.setHorarioId(horario.getId());
-                    asistenciaFicticia.setFecha(fecha);
-                    asistenciaFicticia.setHoraEntrada(LocalTime.MIDNIGHT);
-                    asistenciaFicticia.setHoraSalida(LocalTime.MIDNIGHT);
-                    asistenciaFicticia.setEstado(0); // Ausente
-                    asistenciaFicticia.setObservaciones("Marcado automáticamente: olvidó marcar salida en horario anterior");
-                    asistenciaPersonalService.guardar(asistenciaFicticia);
-                    System.out.println("🚫 Marcado horario posterior como 00:00 para DNI " + dni + " horario " + horario.getId());
+                AsistenciaPersonal ausencia = new AsistenciaPersonal();
+                ausencia.setDni(dni);
+                ausencia.setFecha(fecha);
+                ausencia.setHoraEntrada(LocalTime.MIDNIGHT);
+                ausencia.setHoraSalida(LocalTime.MIDNIGHT);
+                ausencia.setHorarioId(null); // Ya no se asocia a un tramo fijo
+                ausencia.setEstado(4); // 4 = Falta Injustificada / Ausente
+                ausencia.setObservaciones("Ausencia automática: No registró entrada ni salida en todo el día.");
 
+                asistenciaPersonalService.guardar(ausencia);
+                System.out.println("🚫 Ausencia absoluta registrada para DNI: " + dni);
+                continue;
+            }
+
+            // 👉 CASO 2: REVISAR JORNADAS ABIERTAS (Fichó entrada pero se olvidó la salida)
+            for (AsistenciaPersonal asistencia : asistenciasDia) {
+                if (asistencia.getHoraEntrada() != null && asistencia.getHoraSalida() == null) {
+                    // Forzamos el cierre de la jornada para que no quede rota
+                    asistencia.setHoraSalida(asistencia.getHoraEntrada()); // O podés usar el fin del día (LocalTime.MAX)
+                    asistencia.setEstado(5); // 5 = Requiere Información / Registro Incompleto
+                    asistencia.setObservaciones("Cierre automático: El empleado olvidó marcar la salida.");
+
+                    asistenciaPersonalService.guardar(asistencia);
+                    System.out.println("⚠️ Salida olvidada solucionada de forma automática para DNI: " + dni);
                 }
             }
         }

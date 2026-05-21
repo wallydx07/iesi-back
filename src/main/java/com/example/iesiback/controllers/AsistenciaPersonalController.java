@@ -58,47 +58,7 @@ public class AsistenciaPersonalController {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping("/existe")
-    public ResponseEntity<Boolean> verificarAsistencia(
-            @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam("dni") Long dni,
-            @RequestParam("horarioId") Integer horarioId) {
-        boolean existe = service.verificarSiYaEstaRegistrado(fecha, dni, horarioId);
-        return ResponseEntity.ok(existe);
-    }
 
-//
-//    @PostMapping("/registrar")
-//    public ResponseEntity<String> registrarAsistenciaAutomatica(
-//            @RequestParam("dni") Long dni,
-//            @RequestParam("horarioId") Integer horarioId) {
-//
-//        LocalDate fechaHoy = LocalDate.now();
-//        boolean existe = service.verificarSiYaEstaRegistrado(fechaHoy, dni, horarioId);
-//
-//        if (existe) {
-//            boolean actualizado = service.marcarHoraSalida(fechaHoy, dni, horarioId);
-//            if (actualizado) {
-//                return ResponseEntity.ok("⏺ Salida registrada correctamente.");
-//            } else {
-//                return ResponseEntity.badRequest().body("❌ No se pudo registrar la salida.");
-//            }
-//        } else {
-//            service.registrarEntrada(fechaHoy, dni, horarioId);
-//            return ResponseEntity.ok("✅ Entrada registrada correctamente.");
-//        }
-//    }
-
-//    @PostMapping("/desde-dispositivo")
-//    public ResponseEntity<String> registrarDesdeDispositivo(@RequestParam("dni") String dni) {
-//        LocalDate fechaHoy = LocalDate.now();
-//        Boolean asistencia = service.AsistenciaDahua(dni);
-//        if (asistencia) {
-//            return ResponseEntity.ok("✅ Asistencia registrada correctamente.");
-//        } else {
-//            return ResponseEntity.badRequest().body("❌ No se pudo registrar la salida.");
-//        }
-//    }
 
     @PostMapping("/desde-dispositivo")
     public ResponseEntity<?> recibirDesdeDispositivo(@RequestBody RegistroAsistenciaDTO dto) {

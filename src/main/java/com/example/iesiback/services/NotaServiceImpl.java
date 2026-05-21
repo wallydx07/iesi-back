@@ -135,12 +135,13 @@ public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
 
   int ordenMateria =mnateria.getMateriaOrden();
 
-    // Armar lista de materia única para evaluarLoteDoble
     List<NotaMateriaDTO> materiaWrapper = List.of(
-            new NotaMateriaDTO() {{ setMateriaOrden(ordenMateria); }}
+            new NotaMateriaDTO() {{
+                setMateriaOrden(ordenMateria);
+                setMateriaId(materiaId); // <--- Agrega esta línea
+            }}
     );
 
-    // Agrupar por legajo — una sola carga de notas por alumno
     Map<String, List<NotaCursadaDTO>> porLegajo = todasLasNotas.stream()
             .collect(Collectors.groupingBy(NotaCursadaDTO::getPersonaLegajoId));
 
@@ -165,6 +166,10 @@ public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
                 resultado.add(new NotaCursadaConEstadoDTO(nota, vd.estado()))
         );
     }
+
+    // Al final antes del return, reordenar por apellido y nombre
+    resultado.sort(Comparator.comparing(NotaCursadaConEstadoDTO::getPersonaApellido)
+            .thenComparing(NotaCursadaConEstadoDTO::getPersonaNombre));
 
     return resultado;
 }

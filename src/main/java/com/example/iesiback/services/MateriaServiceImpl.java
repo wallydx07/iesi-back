@@ -23,6 +23,7 @@ public class MateriaServiceImpl implements MateriaService {
         Optional<Materia> materiaOpt = materiaRepository.findById(materiaId);
         return materiaOpt.orElse(null);
     }
+
     @Autowired
     private MateriaRepository materiaRepository;
 
@@ -86,4 +87,8 @@ public class MateriaServiceImpl implements MateriaService {
 //        return cursadaService.obtenerCorrelativasPendientes(cursada);
 //    }
 
+@Override
+public Optional<Materia> obtenerMateriaPorNotaId(Long notaId) {
+    return materiaRepository.findMateriaByNotaIdNativo(notaId);
+}
 }

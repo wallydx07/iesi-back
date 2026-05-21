@@ -2853,7 +2853,7 @@ private final EmailService emailService;
 //            pie.newLineAtOffset(30, yStart - H - 70 - 20);
             pie.newLineAtOffset(30, yStart - H - 70);
             pie.setFont(PDType1Font.HELVETICA, 9);
-            pie.showText("El estudiante que no se encuentre en la lista deben ingresar a gestionacademica.iesijujuy.edu.ar y matricularse en esta materia");
+            pie.showText("El estudiante que no se encuentre en la lista debe dirigirse a mesa de entrada para rectificar su Inscripcion a esta materia");
             //pie.newLineAtOffset(0, -20);
             //pie.showText("Aclartacion__________________________");
             pie.endText();

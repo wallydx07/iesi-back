@@ -83,7 +83,6 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
 //    );
 
 
-    List<Materia> findAllByMateriaIdIn(Set<String> ids);
 
     @Query(value = """
     SELECT m.*
@@ -103,6 +102,17 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
     Optional<Materia> findByMateriaOrdenAndLegajoId(
             @Param("materiaOrden") Integer materiaOrden,
             @Param("legajoId") String legajoId);
+
+    List<Materia> findAllByMateriaIdIn(Set<String> ids);
+
+
+    // Opción 2: Usando SQL Nativo (Tal cual tu consulta)
+    @Query(value = "SELECT m.* FROM materia m " +
+            "INNER JOIN materia_carrera mc ON m.materia_id = mc.materia_id " +
+            "INNER JOIN cursada c          ON mc.id = c.cursada_materia_carrera_id " +
+            "INNER JOIN nota n             ON c.cursada_id = n.nota_cursada_id " +
+            "WHERE n.nota_id = :notaId", nativeQuery = true)
+    Optional<Materia> findMateriaByNotaIdNativo(@Param("notaId") Long notaId);
 
 }
 

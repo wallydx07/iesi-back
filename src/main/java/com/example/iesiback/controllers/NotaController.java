@@ -76,6 +76,9 @@ public class NotaController {
             return ResponseEntity.status(500).body("Ocurrió un error al buscar las notas: " + e.getMessage());
         }
     }
+
+
+
     @GetMapping("/obtenerNotasNoAprobadasPorLegajo")
     public ResponseEntity<List<NotaMateriaDTO>> obtenerNotasNoAprobadasPorLegajo(
             @RequestParam String legajoId

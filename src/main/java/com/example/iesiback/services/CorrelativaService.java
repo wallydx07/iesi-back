@@ -29,6 +29,8 @@ public class CorrelativaService {
     private final CursadaRepository cursadaRepository;
     private final MateriaRepository materiaRepository;
 
+    private final MateriaService materiaService;
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     // TIPOS DE DATOS INTERNOS
@@ -90,11 +92,12 @@ public class CorrelativaService {
         Map<Integer, VeredictoDoble> resultado = new LinkedHashMap<>();
 
         for (NotaMateriaDTO materia : materias) {
+            Materia materiaAux=materiaService.findMateriaById(materia.getMateriaId());
             String orden = String.valueOf(materia.getMateriaOrden());
             List<NotaCursandoProjection> notasMateria = notasMap.getOrDefault(orden, List.of());
 
-            Veredicto vCursada = ejecutarConMapa(notasMateria, EstadoCondicion.CURSADA, notasMap);
-            Veredicto vExamen  = ejecutarConMapa(notasMateria, EstadoCondicion.EXAMEN,  notasMap);
+            Veredicto vCursada = ejecutarConMapa(notasMateria, EstadoCondicion.CURSADA, notasMap,materiaAux);
+            Veredicto vExamen  = ejecutarConMapa(notasMateria, EstadoCondicion.EXAMEN,  notasMap,materiaAux);
 
             resultado.put(materia.getMateriaOrden(),
                     VeredictoDoble.builder()
@@ -212,7 +215,9 @@ public class CorrelativaService {
         List<NotaCursandoProjection> notas =
                 notaRepository.findNotaNotaCursandoProjectionbyNotyaId(notaId);
         String legajoId = (notas == null || notas.isEmpty()) ? null : notas.get(0).getLegajoId();
-        return ejecutar(notas, condicion, legajoId);
+        Materia materiaAux=materiaService.obtenerMateriaPorNotaId(notaId).get();
+
+        return ejecutar(notas, condicion, legajoId,materiaAux);
     }
 
     /**
@@ -229,11 +234,12 @@ public class CorrelativaService {
         Map<Integer, Veredicto> resultado = new LinkedHashMap<>();
 
         for (NotaMateriaDTO materia : materias) {
+            Materia materiaAux=materiaService.obtenerMateriaPorNotaId(materia.getNotaId()).get();
             String orden = String.valueOf(materia.getMateriaOrden());
             List<NotaCursandoProjection> notasMateria = notasMap.getOrDefault(orden, List.of());
             resultado.put(
                     materia.getMateriaOrden(),
-                    ejecutarConMapa(notasMateria, condicion, notasMap)
+                    ejecutarConMapa(notasMateria, condicion, notasMap,materiaAux)
             );
         }
         return resultado;
@@ -328,7 +334,8 @@ public class CorrelativaService {
 
         TipoVeredicto tipo = determinarTipo(items);
         log.debug("Veredicto={} para notaOrigen={} items={}", tipo,
-                notaOrigen.getMateriaOrden(), items.size());
+                notaOrigen != null ? notaOrigen.getMateriaOrden() : "sin-inscripcion",
+                items.size());
 
         return Veredicto.builder().tipo(tipo).items(items).build();
     }

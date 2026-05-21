@@ -26,6 +26,8 @@ public interface NotaService {
 
     List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
             String carreraId, String materiaId, String division, boolean cursadaInscripto);
+
+
     List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division, boolean cursadaInscripto);
 
     List<NotaExamenDTO> findExamenesByCursadaExamenIdMateriaCarrera(Long  cursadaExamenId, Boolean soloInscritos);
