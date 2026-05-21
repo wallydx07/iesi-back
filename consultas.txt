@@ -323,6 +323,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DELETE FROM asistencia_personal
+WHERE fecha >= '2026-04-20'
+  AND fecha <= CURRENT_DATE;
+
 
 
 
