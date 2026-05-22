@@ -17,13 +17,14 @@ import java.util.Optional;
 @Repository
 public interface NotaRepository extends JpaRepository<Nota, Long> {
  //es UNION ALL
+//CAST(n.notaCalificacionNotaNumero AS string),
 
     @Query("""
 SELECT new com.example.iesiback.dto.NotaMateriaDTO(
     n.notaId,
     m.materiaOrden,
     m.materiaNombre,
-    n.notaCalificacionNotaNumero,
+CAST(n.notaCalificacionNotaNumero AS string),
     n.notaCalificacionNotaLetra,
     n.notaCondicion,
     n.notaEstado,
@@ -278,7 +279,7 @@ ORDER BY p.personaApellido, p.personaNombre
     List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
-            @Param("notaCondicion") EstadoCondicion notaCondicion,
+            @Param("notaCondicion") String notaCondicion,
             @Param("division") String division
     );
 
@@ -435,7 +436,7 @@ JOIN mc.carrera c
         n.notaId,
         m.materiaOrden,
         m.materiaNombre,
-        n.notaCalificacionNotaNumero,
+CAST(n.notaCalificacionNotaNumero AS string),
         n.notaCalificacionNotaLetra,
         n.notaCondicion,
         n.notaEstado,
@@ -585,7 +586,7 @@ JOIN mc.carrera c
         n.notaId,
         m.materiaOrden,
         m.materiaNombre,
-        n.notaCalificacionNotaNumero,
+CAST(n.notaCalificacionNotaNumero AS string),
         n.notaCalificacionNotaLetra,
         n.notaCondicion,
         n.notaEstado,

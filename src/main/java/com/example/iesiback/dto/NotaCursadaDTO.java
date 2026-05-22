@@ -1,5 +1,7 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.enums.EstadoNota;
+
 import java.time.LocalDate;
 
 public interface NotaCursadaDTO {
@@ -9,9 +11,9 @@ public interface NotaCursadaDTO {
     String getPersonaApellido();
     String getPersonaNombre();
     LocalDate getNotaFechaNota();
-    Double getNotaCalificacionNotaNumero();
+    String getNotaCalificacionNotaNumero();
     String getNotaCalificacionNotaLetra();
-    String getNotaEstado();
+    EstadoNota getNotaEstado();
     String getNotaLibroNota();
     String getNotaFolioNota();
     String getCursadaStatus();

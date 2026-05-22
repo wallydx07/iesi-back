@@ -62,9 +62,10 @@ public class NotaServiceImpl implements NotaService {
             dto.setNotaId(id);
             dto.setMateriaOrden((Integer) row[1]);
             dto.setMateriaNombre((String) row[2]);
-            dto.setNotaCalificacionNumero((Double) row[3]);
+            dto.setNotaCalificacionNumero((String) row[3]);
             dto.setNotaCalificacionLetra((String) row[4]);
             dto.setNotaCondicion((EstadoCondicion) row[5]);
+
             dto.setNotaEstado((EstadoNota) row[6]);
             dto.setNotaLibro((String) row[7]);
             dto.setNotaFolio((String) row[8]);
@@ -76,6 +77,27 @@ public class NotaServiceImpl implements NotaService {
             dto.setMateriaId((String) row[13]);
             dto.setMateriaNivel((String) row[14]);
             dto.setIsfirma((Boolean) row[16]);
+
+            if(dto.getNotaEstado() == EstadoNota.CURSANDO){
+                dto.setNotaCalificacionNumero("Cur");
+            }
+            if(dto.getNotaEstado() == EstadoNota.REGULAR){
+                dto.setNotaCalificacionNumero("Reg");
+            }
+            if(dto.getNotaEstado() == EstadoNota.LIBRE){
+                dto.setNotaCalificacionNumero("Lib");
+            }
+            if(dto.getNotaEstado() == EstadoNota.DESAPROBADO){
+                dto.setNotaCalificacionNumero("Des");
+            }
+            if(dto.getNotaEstado() == EstadoNota.PENDIENTE){
+                dto.setNotaCalificacionNumero("Pend");
+            }
+
+
+
+
+
             dtoList.add(dto);
         }
         return dtoList;
@@ -162,14 +184,48 @@ public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
             continue;
         }
 
+
         entry.getValue().forEach(nota ->
                 resultado.add(new NotaCursadaConEstadoDTO(nota, vd.estado()))
         );
+
+
+
     }
 
     // Al final antes del return, reordenar por apellido y nombre
     resultado.sort(Comparator.comparing(NotaCursadaConEstadoDTO::getPersonaApellido)
             .thenComparing(NotaCursadaConEstadoDTO::getPersonaNombre));
+
+
+
+
+    for (NotaCursadaConEstadoDTO dto : resultado) {
+
+        if(dto.getNotaEstado() == EstadoNota.CURSANDO){
+            dto.setNotaCalificacionNotaLetra("CURSANDO");
+            dto.setNotaCalificacionNotaNumero("-");
+        }
+        if(dto.getNotaEstado() == EstadoNota.REGULAR){
+            dto.setNotaCalificacionNotaLetra("REGULAR");
+            dto.setNotaCalificacionNotaNumero("R");
+        }
+        if(dto.getNotaEstado() == EstadoNota.LIBRE){
+            dto.setNotaCalificacionNotaLetra("LIBRE");
+            dto.setNotaCalificacionNotaNumero("L");
+        }
+        if(dto.getNotaEstado() == EstadoNota.DESAPROBADO){
+            dto.setNotaCalificacionNotaLetra("DESAPROBADO");
+            dto.setNotaCalificacionNotaNumero("D-");
+        }
+        if(dto.getNotaEstado() == EstadoNota.PENDIENTE){
+            dto.setNotaCalificacionNotaLetra("PENDIENTE");
+            dto.setNotaCalificacionNotaNumero("P");
+        }
+
+    }
+
+
 
     return resultado;
 }
@@ -192,6 +248,25 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajo(String legajoId, EstadoCo
             obj.setNotaStatus(veredicto.toLegacy().getStatus());
             obj.setNotaIsFecha(veredicto.conFechaIncoherente());
         }
+
+
+
+        if(obj.getNotaEstado() == EstadoNota.CURSANDO){
+            obj.setNotaCalificacionNumero("-");
+        }
+        if(obj.getNotaEstado() == EstadoNota.REGULAR){
+            obj.setNotaCalificacionNumero("R");
+        }
+        if(obj.getNotaEstado() == EstadoNota.LIBRE){
+            obj.setNotaCalificacionNumero("L");
+        }
+        if(obj.getNotaEstado() == EstadoNota.DESAPROBADO){
+            obj.setNotaCalificacionNumero("D");
+        }
+        if(obj.getNotaEstado() == EstadoNota.PENDIENTE){
+            obj.setNotaCalificacionNumero("P");
+        }
+
     });
 
     return resultados;
@@ -343,7 +418,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division,  boolean cursadaInscripto) {
-        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, EstadoCondicion.CURSADA, division);
+        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "CURSADA", division);
         return todasLasNotas;
     }
 
@@ -484,11 +559,8 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
-
-        // 1. Cargar y deduplicar
         List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
         Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>();
-
         for (NotaMateriaDTO obj : resultados) {
             if (obj == null) continue;
             obj.setNotaFinal(definirNotaFinal(obj));
@@ -499,34 +571,84 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                 materiasMap.put(orden, obj);
             }
         }
-
         List<NotaMateriaDTO> notasRefinadas = new ArrayList<>(materiasMap.values())
                 .stream().filter(Objects::nonNull).collect(Collectors.toList());
-
-        // 2. Evaluar correlativas en lote (una sola query)
         Map<Integer, CorrelativaService.Veredicto> veredictos =
                 correlativaService.evaluarLote(legajoId, notasRefinadas, EstadoCondicion.EXAMEN);
-
-        // 3. Aplicar veredicto a cada nota
         for (NotaMateriaDTO obj : notasRefinadas) {
             CorrelativaService.Veredicto veredicto = veredictos.get(obj.getMateriaOrden());
-
             if (veredicto == null) continue;
-
             obj.setCorrelativas(veredicto.desaprobadas());
-
             boolean aprobada = obj.getNotaEstado() == EstadoNota.APROBADO;
             boolean correlativasPendientes = !veredicto.esAceptada();
-
             if (correlativasPendientes && aprobada) {
                 obj.setNotaFinal("(-)");
                 log.warn("Bloqueada por correlativas. Materia: {} - Pendientes: {}",
                         obj.getMateriaNombre(), veredicto.desaprobadas());
             }
         }
-
         return notasRefinadas;
     }
+
+
+    @Override
+    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoCalificador(String legajoId) {
+        List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
+        Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>();
+        for (NotaMateriaDTO obj : resultados) {
+            if (obj == null) continue;
+            obj.setNotaFinal(definirNotaFinal(obj));
+            int orden = obj.getMateriaOrden();
+            if (materiasMap.containsKey(orden)) {
+                materiasMap.put(orden, validadorAnalitico(materiasMap.get(orden), obj));
+            } else {
+                materiasMap.put(orden, obj);
+            }
+        }
+        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>(materiasMap.values())
+                .stream().filter(Objects::nonNull).collect(Collectors.toList());
+        Map<Integer, CorrelativaService.Veredicto> veredictos =
+                correlativaService.evaluarLote(legajoId, notasRefinadas, EstadoCondicion.EXAMEN);
+        for (NotaMateriaDTO obj : notasRefinadas) {
+            CorrelativaService.Veredicto veredicto = veredictos.get(obj.getMateriaOrden());
+            if (veredicto == null) continue;
+            obj.setCorrelativas(veredicto.desaprobadas());
+            boolean aprobada = obj.getNotaEstado() == EstadoNota.APROBADO;
+            boolean correlativasPendientes = !veredicto.esAceptada();
+            if (correlativasPendientes && aprobada) {
+                obj.setNotaFinal("(-)");
+                log.warn("Bloqueada por correlativas. Materia: {} - Pendientes: {}",
+                        obj.getMateriaNombre(), veredicto.desaprobadas());
+            }
+
+
+
+            if (obj.getNotaEstado() == EstadoNota.CURSANDO) {
+                obj.setNotaCalificacionNumero("Cur");
+            }
+
+            if (obj.getNotaEstado() == EstadoNota.REGULAR) {
+                obj.setNotaCalificacionNumero("Reg");
+            }
+
+            if (obj.getNotaEstado() == EstadoNota.LIBRE) {
+                obj.setNotaCalificacionNumero("Lib");
+            }
+
+            if (obj.getNotaEstado() == EstadoNota.DESAPROBADO) {
+                obj.setNotaCalificacionNumero("Des");
+            }
+
+            if (obj.getNotaEstado() == EstadoNota.PENDIENTE) {
+                obj.setNotaCalificacionNumero("Pend");
+            }
+
+
+
+        }
+        return notasRefinadas;
+    }
+
 
 
     private String definirNotaFinal(NotaMateriaDTO nota) {
@@ -756,7 +878,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public void permitirEdicionMateria(String carreraId, String materiaId, boolean editable, String division) {
-        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, EstadoCondicion.CURSADA,division);
+        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, "CURSADA",division);
         for (NotaCursadaConEstadoDTO n : todasLasNotas) {
             Optional<Nota> notaOpt = notaRepository.findById(n.getNotaId());
             if (notaOpt.isPresent()) {

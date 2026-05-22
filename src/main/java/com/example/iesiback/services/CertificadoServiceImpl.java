@@ -1230,7 +1230,7 @@ private final EmailService emailService;
                     altura = altura + filaHeight;
                     if (!mat.getNotaFinal().equals("Desaprobado") && !mat.getNotaFinal().equals("Cursando") && !mat.getNotaFinal().equals("(-)")) {
                         try {
-                            double nota = mat.getNotaCalificacionNumero();
+                            double nota = Double.parseDouble(mat.getNotaCalificacionNumero());
                             nuevoProm += nota;
                             contProm++;
                         } catch (NumberFormatException e) {
@@ -5988,9 +5988,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                     asistencia = fResultado.getAsistencia() != null ? fResultado.getAsistencia().toString() : "-";
                     coloquio = fResultado.getColoquio() != null ? fResultado.getColoquio().toString() : "-";
                     trabajoInstitucional = fResultado.getTrabajoInstitucional() != null ? fResultado.getTrabajoInstitucional().toString() : "-";
-
-
-                  estado=fResultado.getNotaEstado() != null ? fResultado.getNotaEstado() : "-";
+                    estado = fResultado.getNotaEstado() != null
+                            ? fResultado.getNotaEstado().name()
+                            : "-";
 
 //                    estado = (!materiaCarrera.getMateria().getMateriaRegimen().equals("1ER CUATRIMESTRE")
 //                            && LocalDate.now().getMonthValue() < 11)
@@ -6246,7 +6246,9 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
                     estado = (!materiaCarrera.getMateria().getMateriaRegimen().equals("1ER CUATRIMESTRE")
                             && LocalDate.now().getMonthValue() < 11)
                             ? "Cursando"
-                            : (fResultado.getNotaEstado() != null ? fResultado.getNotaEstado() : "-");
+                            : (fResultado.getNotaEstado() != null
+                               ? fResultado.getNotaEstado().name()
+                               : "-");
 
                 }
 
@@ -6915,7 +6917,7 @@ public PDDocument generaCalificador(String legajoId,boolean enBlanco) {
         double nuevoProm = 0;
         int contProm = 0;
         List<NotaMateriaDTO> listaMaterias = new ArrayList<NotaMateriaDTO>();
-        listaMaterias = this.notaService.obtenerTodasNotasPorLegajoAnalitico(legajoId);
+        listaMaterias = this.notaService.obtenerTodasNotasPorLegajoCalificador(legajoId);
         PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
         PDDocument Documento = new PDDocument();
         try {
@@ -7345,13 +7347,36 @@ public PDDocument generaCalificador(String legajoId,boolean enBlanco) {
                             fecha = mat.getNotaFecha().toString();
                             not = String.valueOf(mat.getNotaCalificacionNumero());
 
-                            fol = mat.getNotaFolio();
-                            if (mat.getNotaCondicion().equals("Cursada")) {
-                                vf = mat.getNotaLibro();
-                            } else {
-                                vv = mat.getNotaLibro();
-                            }
+                            //                            if (mat.getNotaCondicion().equals("Cursada")) {
+//                                vf = mat.getNotaLibro();
+//                            } else {
+//                                vv = mat.getNotaLibro();
+//                            }
 
+
+
+                            fol = (mat.getNotaFolio() == null
+                                    || mat.getNotaFolio().trim().isEmpty()
+                                    || mat.getNotaFolio().trim().equalsIgnoreCase("null"))
+                                    ? "X"
+                                    : mat.getNotaFolio();
+
+                            if (mat.getNotaCondicion() == EstadoCondicion.CURSADA) {
+
+                                vf = (mat.getNotaLibro() == null
+                                        || mat.getNotaLibro().trim().isEmpty()
+                                        || mat.getNotaLibro().trim().equalsIgnoreCase("null"))
+                                        ? "X"
+                                        : mat.getNotaLibro();
+
+                            } else {
+
+                                vv = (mat.getNotaLibro() == null
+                                        || mat.getNotaLibro().trim().isEmpty()
+                                        || mat.getNotaLibro().trim().equalsIgnoreCase("null"))
+                                        ? "X"
+                                        : mat.getNotaLibro();
+                            }
 //                        }
                     }
                     // Celda para la columna "Nota numero"

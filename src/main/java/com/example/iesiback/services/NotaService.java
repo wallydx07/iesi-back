@@ -43,6 +43,8 @@ public interface NotaService {
     List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId);
 
 
+    List<NotaMateriaDTO> obtenerTodasNotasPorLegajoCalificador(String legajoId);
+
     List<NotaExamenDTO> obtenerNotasPorCondicion(Long cursadaExamenId, boolean examenInscripto, EstadoCondicion notaCondicion);
 
     @Transactional
