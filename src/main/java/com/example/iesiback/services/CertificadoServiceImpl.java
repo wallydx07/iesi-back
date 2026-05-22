@@ -75,6 +75,7 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final TurnoService turnoService;
     private final PermisoService permisoService;
     private final ExamenService examenService;
+    private final CorrelativaService correlativaService;
 
     private final PersonalHorariosService personalHorariosService;
 private final EmailService emailService;
@@ -87,7 +88,7 @@ private final EmailService emailService;
                                   MateriaCarreraRepository materiaCarreraRepository, DocumentoService documentoService,
                                   LegajoService legajoService,
                                   AlumnoLegajoService alumnoLegajoService,
-                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, PersonalHorariosService personalHorariosService, EmailService emailService) {
+                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, CorrelativaService correlativaService, PersonalHorariosService personalHorariosService, EmailService emailService) {
         this.alumnoService = alumnoService;
         this.carreraService = carreraService;
         this.notaService = notaService;
@@ -107,6 +108,7 @@ private final EmailService emailService;
         this.turnoService = turnoService;
         this.permisoService = permisoService;
         this.examenService = examenService;
+        this.correlativaService = correlativaService;
         this.personalHorariosService = personalHorariosService;
         this.emailService = emailService;
     }
@@ -9402,6 +9404,242 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
     }
 
 
+
+    @Override
+    public PDDocument generarReporteAcademicoPDF(String legajoId) {
+
+        ReporteAcademicoDTO reporte = notaService.generarReporteAcademico(legajoId);
+        if (reporte == null || reporte.getMaterias() == null) return null;
+
+        PDDocument documento = new PDDocument();
+
+        try {
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            documento.addPage(pagina);
+
+            PDType1Font normal  = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+            PDType1Font italica = PDType1Font.HELVETICA_OBLIQUE;
+
+            float margin         = 35;
+            float tableWidth     = pagina.getMediaBox().getWidth() - 2 * margin;
+            float yStart         = pagina.getMediaBox().getHeight() - 15;
+            float yStartNewPage  = pagina.getMediaBox().getHeight() - margin;
+            float bottomMargin   = 60;
+
+            BaseTable tabla = new BaseTable(
+                    yStart, yStartNewPage, bottomMargin,
+                    tableWidth, margin, documento, pagina, true, true);
+
+            // ── ENCABEZADO ────────────────────────────────────────────────────────
+
+            Row<PDPage> filaInstituto = tabla.createRow(18);
+            Cell<PDPage> cInst = filaInstituto.createCell(100,
+                    "INSTITUTO DE EDUCACIÓN SUPERIOR — INFORME DE SITUACIÓN ACADÉMICA");
+            cInst.setFont(negrita);
+            cInst.setFontSize(11);
+            cInst.setFillColor(new Color(30, 60, 100));
+            cInst.setTextColor(Color.WHITE);
+            cInst.setAlign(HorizontalAlignment.CENTER);
+
+            Row<PDPage> filaLegajo = tabla.createRow(14);
+            String fecha = DateTimeFormatter.ofPattern("dd/MM/yyyy").format(LocalDate.now());
+            Cell<PDPage> cLeg = filaLegajo.createCell(60, "Legajo: " + reporte.getLegajoId());
+            cLeg.setFont(negrita);
+            cLeg.setFontSize(10);
+            cLeg.setFillColor(new Color(220, 230, 245));
+
+            Cell<PDPage> cFecha = filaLegajo.createCell(40, "Fecha de emisión: " + fecha);
+            cFecha.setFont(normal);
+            cFecha.setFontSize(10);
+            cFecha.setFillColor(new Color(220, 230, 245));
+            cFecha.setAlign(HorizontalAlignment.RIGHT);
+
+            // ── RESUMEN GLOBAL ────────────────────────────────────────────────────
+
+            Row<PDPage> filaResumenTitulo = tabla.createRow(13);
+            Cell<PDPage> cRt = filaResumenTitulo.createCell(100, "RESUMEN GLOBAL");
+            cRt.setFont(negrita);
+            cRt.setFontSize(9);
+            cRt.setFillColor(new Color(240, 240, 240));
+            cRt.setAlign(HorizontalAlignment.CENTER);
+
+            Row<PDPage> filaResumen = tabla.createRow(13);
+            crearCeldaResumen(filaResumen, "Total materias",
+                    String.valueOf(reporte.getTotalMaterias()), 25, normal, negrita);
+            crearCeldaResumen(filaResumen, "Puede cursar",
+                    String.valueOf(reporte.getPuedeCursar()), 25, normal, negrita);
+            crearCeldaResumen(filaResumen, "Puede rendir",
+                    String.valueOf(reporte.getPuedeRendir()), 25, normal, negrita);
+            crearCeldaResumen(filaResumen, "Con deuda académica",
+                    String.valueOf(reporte.getConDeuda()), 25, normal, negrita);
+
+            // ── DETALLE POR MATERIA ───────────────────────────────────────────────
+
+            for (ReporteAcademicoDTO.MateriaEstadoDTO m : reporte.getMaterias()) {
+
+                // — Nombre de la materia —
+                Row<PDPage> filaMateria = tabla.createRow(14);
+                String encabezadoMateria = m.getMateriaOrden() + " | " + m.getMateriaNombre().toUpperCase();
+                Cell<PDPage> cMat = filaMateria.createCell(75, encabezadoMateria);
+                cMat.setFont(negrita);
+                cMat.setFontSize(10);
+                cMat.setFillColor(new Color(200, 215, 235));
+
+                Cell<PDPage> cEst = filaMateria.createCell(25,
+                        "Estado: " + (m.getNotaEstado() != null ? m.getNotaEstado() : "-")
+                                + "  (" + (m.getCalificacion() != null ? m.getCalificacion() : "-") + ")");
+                cEst.setFont(normal);
+                cEst.setFontSize(9);
+                cEst.setFillColor(new Color(200, 215, 235));
+                cEst.setAlign(HorizontalAlignment.RIGHT);
+
+                // — Encabezado columnas cursada / examen —
+                Row<PDPage> filaColHeaders = tabla.createRow(11);
+                Cell<PDPage> chCur = filaColHeaders.createCell(50, "  CURSADA — " + m.getEstadoCursada());
+                chCur.setFont(negrita);
+                chCur.setFontSize(9);
+                chCur.setFillColor(colorEstado(m.isPuedeCursar()));
+                chCur.setTextColor(Color.WHITE);
+
+                Cell<PDPage> chExa = filaColHeaders.createCell(50, "  EXAMEN FINAL — " + m.getEstadoExamen());
+                chExa.setFont(negrita);
+                chExa.setFontSize(9);
+                chExa.setFillColor(colorEstado(m.isPuedeRendir()));
+                chExa.setTextColor(Color.WHITE);
+
+                // — Explicación principal —
+                int alturaExplicacion = calcularAltura(m.getExplicacionCursada(), m.getExplicacionExamen());
+                Row<PDPage> filaExplicacion = tabla.createRow(alturaExplicacion);
+
+                Cell<PDPage> cExpCur = filaExplicacion.createCell(50,
+                        "  " + (m.getExplicacionCursada() != null ? m.getExplicacionCursada() : "-"));
+                cExpCur.setFont(italica);
+                cExpCur.setFontSize(9);
+                cExpCur.setTopPadding(4);
+                cExpCur.setBottomPadding(4);
+                cExpCur.setLeftPadding(6);
+
+                Cell<PDPage> cExpExa = filaExplicacion.createCell(50,
+                        "  " + (m.getExplicacionExamen() != null ? m.getExplicacionExamen() : "-"));
+                cExpExa.setFont(italica);
+                cExpExa.setFontSize(9);
+                cExpExa.setTopPadding(4);
+                cExpExa.setBottomPadding(4);
+                cExpExa.setLeftPadding(6);
+
+                // — Correlativas pendientes (solo si las hay) —
+                boolean tienePendientesCursada = tienePendientes(m.getCorrelativasCursadaPendientes());
+                boolean tienePendientesExamen  = tienePendientes(m.getCorrelativasExamenPendientes());
+
+                if (tienePendientesCursada || tienePendientesExamen) {
+                    Row<PDPage> filaPend = tabla.createRow(11);
+
+                    String pendCur = tienePendientesCursada
+                            ? "Pendientes: " + String.join(", ", m.getCorrelativasCursadaPendientes())
+                            : "";
+                    Cell<PDPage> cPendCur = filaPend.createCell(50, "  " + pendCur);
+                    cPendCur.setFont(normal);
+                    cPendCur.setFontSize(8);
+                    cPendCur.setTextColor(new Color(150, 50, 50));
+                    cPendCur.setTopPadding(2);
+
+                    String pendExa = tienePendientesExamen
+                            ? "Pendientes: " + String.join(", ", m.getCorrelativasExamenPendientes())
+                            : "";
+                    Cell<PDPage> cPendExa = filaPend.createCell(50, "  " + pendExa);
+                    cPendExa.setFont(normal);
+                    cPendExa.setFontSize(8);
+                    cPendExa.setTextColor(new Color(150, 50, 50));
+                    cPendExa.setTopPadding(2);
+                }
+
+                // — Observaciones de fecha (solo si las hay) —
+                boolean tieneObsCursada = tieneObservaciones(m.getObservacionesCursada());
+                boolean tieneObsExamen  = tieneObservaciones(m.getObservacionesExamen());
+
+                if (tieneObsCursada || tieneObsExamen) {
+                    Row<PDPage> filaObs = tabla.createRow(11);
+
+                    String obsCur = tieneObsCursada
+                            ? "Obs: " + String.join(" | ", m.getObservacionesCursada())
+                            : "";
+                    Cell<PDPage> cObsCur = filaObs.createCell(50, "  " + obsCur);
+                    cObsCur.setFont(italica);
+                    cObsCur.setFontSize(8);
+                    cObsCur.setTextColor(new Color(130, 90, 0));
+
+                    String obsExa = tieneObsExamen
+                            ? "Obs: " + String.join(" | ", m.getObservacionesExamen())
+                            : "";
+                    Cell<PDPage> cObsExa = filaObs.createCell(50, "  " + obsExa);
+                    cObsExa.setFont(italica);
+                    cObsExa.setFontSize(8);
+                    cObsExa.setTextColor(new Color(130, 90, 0));
+                }
+
+                // — Separador visual entre materias —
+                Row<PDPage> filaSep = tabla.createRow(3);
+                Cell<PDPage> cSep = filaSep.createCell(100, "");
+                cSep.setFillColor(new Color(180, 195, 215));
+            }
+
+            // ── PIE DE PÁGINA ─────────────────────────────────────────────────────
+
+            Row<PDPage> filaPie = tabla.createRow(12);
+            Cell<PDPage> cPie = filaPie.createCell(100,
+                    "Documento generado automáticamente por el sistema académico. " +
+                            "La información refleja el estado al momento de la emisión.");
+            cPie.setFont(italica);
+            cPie.setFontSize(8);
+            cPie.setFillColor(new Color(240, 240, 240));
+            cPie.setTextColor(new Color(100, 100, 100));
+            cPie.setAlign(HorizontalAlignment.CENTER);
+
+            tabla.draw();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return documento;
+    }
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+
+    private void crearCeldaResumen(Row<PDPage> fila, String label, String valor,
+                                   float ancho, PDType1Font normal, PDType1Font negrita) {
+        Cell<PDPage> c = fila.createCell(ancho, label + ": " + valor);
+        c.setFont(negrita);
+        c.setFontSize(9);
+        c.setAlign(HorizontalAlignment.CENTER);
+    }
+
+    private Color colorEstado(boolean habilitado) {
+        return habilitado
+                ? new Color(34, 110, 70)   // verde oscuro
+                : new Color(160, 40, 40);  // rojo oscuro
+    }
+
+    private int calcularAltura(String textoA, String textoB) {
+        int lenMax = Math.max(
+                textoA != null ? textoA.length() : 0,
+                textoB != null ? textoB.length() : 0);
+        // ~65 caracteres por línea a font 9, cada línea ~11pt de alto
+        int lineas = (int) Math.ceil(lenMax / 65.0);
+        return Math.max(22, lineas * 11 + 8);
+    }
+
+    private boolean tienePendientes(List<String> lista) {
+        return lista != null && !lista.isEmpty()
+                && lista.stream().anyMatch(s -> !s.equals("Ninguna"));
+    }
+
+    private boolean tieneObservaciones(List<String> lista) {
+        return lista != null && !lista.isEmpty()
+                && lista.stream().anyMatch(s -> !s.equals("No"));
+    }
 
 }
 

@@ -32,6 +32,7 @@ public class NotaCursadaConEstadoDTO {
     private Double coloquio;
     private Double trabajoInstitucional;
 
+
     // Constructor que mapea desde la projection + estado
     public NotaCursadaConEstadoDTO(NotaCursadaDTO dto, String estadoCorrelativa) {
         this.notaId = dto.getNotaId();

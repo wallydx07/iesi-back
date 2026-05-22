@@ -248,6 +248,7 @@ ORDER BY p.personaApellido, p.personaNombre
     @Query(value = """
     SELECT nota.nota_id , persona.persona_dni,
            persona.persona_apellido , persona.persona_nombre ,
+           legajo.legajo_id AS persona_legajo_id,
            nota.nota_fecha_nota ,
            nota.nota_calificacion_nota_numero ,
            nota.nota_calificacion_nota_letra ,
@@ -276,7 +277,7 @@ ORDER BY p.personaApellido, p.personaNombre
              AND materia_carrera.division = :division
     ORDER BY persona.persona_apellido, persona.persona_nombre ASC
    """, nativeQuery = true)
-    List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(
+    List<NotaCursadaDTO> findNotasByCarreraAndMateriaAll(
             @Param("carreraId") String carreraId,
             @Param("materiaId") String materiaId,
             @Param("notaCondicion") String notaCondicion,

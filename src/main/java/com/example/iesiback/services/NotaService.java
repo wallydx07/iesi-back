@@ -74,4 +74,6 @@ public interface NotaService {
 
     //Regularizado para cursar
     List<ProcesadoReinscripcionMateriaDTO> obtenerReinscripciones(Integer cicloLectivo, String legajoId, String division);
+
+    ReporteAcademicoDTO generarReporteAcademico(String legajoId);
 }

@@ -66,4 +66,6 @@ public interface CertificadoService {
     PDDocument generaPermiso(String libreta, String turno, String usuarioNombre);
 
     void enviarPermisoPorEmail(String libreta, String turno, String usuarioNombre, String destinatario);
+
+    PDDocument generarReporteAcademicoPDF(String legajoId);
 }

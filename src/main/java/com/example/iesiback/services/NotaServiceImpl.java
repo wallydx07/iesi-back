@@ -288,45 +288,6 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
 
 
-
-
-
-
-
-
-
-//    public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
-//        List<Object[]> results = notaRepository.findNotasPorLegajo(legajoId);
-//        List<NotaMateriaDTO> resultados=mapResultsToDTO(results);
-//        return resultados.stream()
-//                .filter(obj -> {
-//                    String estadoNota = obj.getNotaEstado(); // Acceso directo al estado de la nota
-//                    return !estadoNota.equalsIgnoreCase("Aprobado")
-//                            && !estadoNota.equalsIgnoreCase("Cursando");
-//                })
-//                .map(obj -> {
-//                    // 📌 Manejamos la fecha de forma más segura
-//                    LocalDate fechaNota = null;
-//                    try {
-//                        if (obj.getNotaFecha() != null) {
-//                            fechaNota = obj.getNotaFecha(); // Ya es un objeto LocalDate, no necesitamos parsear
-//                        }
-//                    } catch (DateTimeParseException e) {
-//                        System.err.println("Error al parsear la fecha: " + obj.getNotaFecha());
-//                    }
-//
-//                    // 📌 Obtener cursadaId correctamente
-//                    Integer cursadaId = obj.getCursadaId(); // Obtención directa de cursadaId
-//                    List<String> correlativas = (cursadaId != null) ? correlativasCursadaId(cursadaId) : List.of(); // Evitar null
-//
-//                    // Retornar el objeto NotaMateriaDTO con las correlativas
-//                    obj.setCorrelativas(correlativas); // Seteamos las correlativas en el mismo objeto
-//
-//                    return obj;
-//                }).collect(Collectors.toList());
-//    }
-
-
     @Override
     public List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId) {
         List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
@@ -415,12 +376,115 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 //    }
 
 
+//
+//    @Override
+//    public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division,  boolean cursadaInscripto) {
+//        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "CURSADA", division);
+//        return todasLasNotas;
+//    }
+//
+
+
 
     @Override
     public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division,  boolean cursadaInscripto) {
-        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "CURSADA", division);
-        return todasLasNotas;
+        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "CURSADA", division);
+        Materia mnateria= materiaService.findMateriaById(materaId);
+
+        int ordenMateria =mnateria.getMateriaOrden();
+
+        List<NotaMateriaDTO> materiaWrapper = List.of(
+                new NotaMateriaDTO() {{
+                    setMateriaOrden(ordenMateria);
+                    setMateriaId(materaId); // <--- Agrega esta línea
+                }}
+        );
+
+        Map<String, List<NotaCursadaDTO>> porLegajo = todasLasNotas.stream()
+                .filter(nota -> nota != null && nota.getPersonaLegajoId() != null) // <--- Filtro de seguridad
+                .collect(Collectors.groupingBy(NotaCursadaDTO::getPersonaLegajoId));
+
+        List<NotaCursadaConEstadoDTO> resultado = new ArrayList<>();
+
+        for (Map.Entry<String, List<NotaCursadaDTO>> entry : porLegajo.entrySet()) {
+            String legajoId = entry.getKey();
+
+            // Una sola query al repo por alumno — evalúa CURSADA y EXAMEN juntos
+            Map<Integer, CorrelativaService.VeredictoDoble> veredictos =
+                    correlativaService.evaluarLoteDoble(legajoId, materiaWrapper);
+
+            CorrelativaService.VeredictoDoble vd = veredictos.get(ordenMateria);
+
+            if (vd == null || vd.rechazado()) {
+                log.debug("Omitido por correlativas de cursada. Legajo={} Materia={}",
+                        legajoId, ordenMateria);
+                continue;
+            }
+
+
+            entry.getValue().forEach(nota ->
+                    resultado.add(new NotaCursadaConEstadoDTO(nota, vd.estado()))
+            );
+
+
+
+        }
+
+        // Al final antes del return, reordenar por apellido y nombre
+        resultado.sort(Comparator.comparing(NotaCursadaConEstadoDTO::getPersonaApellido)
+                .thenComparing(NotaCursadaConEstadoDTO::getPersonaNombre));
+
+
+
+
+        for (NotaCursadaConEstadoDTO dto : resultado) {
+
+            if(dto.getNotaEstado() == EstadoNota.CURSANDO){
+                dto.setNotaCalificacionNotaLetra("CURSANDO");
+                dto.setNotaCalificacionNotaNumero("-");
+            }
+            if(dto.getNotaEstado() == EstadoNota.REGULAR){
+                dto.setNotaCalificacionNotaLetra("REGULAR");
+                dto.setNotaCalificacionNotaNumero("R");
+            }
+            if(dto.getNotaEstado() == EstadoNota.LIBRE){
+                dto.setNotaCalificacionNotaLetra("LIBRE");
+                dto.setNotaCalificacionNotaNumero("L");
+            }
+            if(dto.getNotaEstado() == EstadoNota.DESAPROBADO){
+                dto.setNotaCalificacionNotaLetra("DESAPROBADO");
+                dto.setNotaCalificacionNotaNumero("D-");
+            }
+            if(dto.getNotaEstado() == EstadoNota.PENDIENTE){
+                dto.setNotaCalificacionNotaLetra("PENDIENTE");
+                dto.setNotaCalificacionNotaNumero("P");
+            }
+
+        }
+
+
+
+        return resultado;
     }
+
+
+
+
+    //====================================================================================================
+    //====================================================================================================
+    //====================================================================================================
+    //====================================================================================================
+
+
+
+
+    //====================================================================================================
+    //====================================================================================================
+    //====================================================================================================
+    //====================================================================================================
+
+
+
 
 
     @Override
@@ -878,7 +942,10 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     @Override
     public void permitirEdicionMateria(String carreraId, String materiaId, boolean editable, String division) {
-        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, "CURSADA",division);
+//        List<NotaCursadaConEstadoDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materiaId, "CURSADA",division);
+
+        List<NotaCursadaConEstadoDTO> todasLasNotas = this.findNotasByCarreraAndMateriaAll(carreraId, materiaId, division, true);
+
         for (NotaCursadaConEstadoDTO n : todasLasNotas) {
             Optional<Nota> notaOpt = notaRepository.findById(n.getNotaId());
             if (notaOpt.isPresent()) {
@@ -1165,5 +1232,355 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         procesado.setMateriaCarreraId(dto.getMateriaCarreraId());
         procesado.setDivision(dto.getDivision());
         return procesado;
+    }
+
+
+    /**
+     * Genera un reporte académico completo del alumno para un legajo dado.
+     * Evalúa cursada y examen en una sola query usando el motor de correlativas.
+     */
+
+    @Override
+    public ReporteAcademicoDTO generarReporteAcademico(String legajoId) {
+
+        // Todas las notas del legajo (puede haber varias por materia)
+        List<NotaMateriaDTO> todasLasNotas = notaRepository
+                .findNotasPorLegajo(legajoId)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Agrupar por materia y quedarse con la nota de mayor prioridad
+        List<NotaMateriaDTO> notasRepresentativas = todasLasNotas.stream()
+                .collect(Collectors.groupingBy(NotaMateriaDTO::getMateriaOrden))
+                .values().stream()
+                .map(this::resolverNotaRepresentativa)
+                .sorted(Comparator.comparing(NotaMateriaDTO::getMateriaOrden))
+                .collect(Collectors.toList());
+
+        // El resto del método trabaja solo con notasRepresentativas
+        Map<Integer, CorrelativaService.VeredictoDoble> veredictos =
+                correlativaService.evaluarLoteDoble(legajoId, notasRepresentativas);
+
+        List<ReporteAcademicoDTO.MateriaEstadoDTO> materias = notasRepresentativas.stream()
+                .map(nota -> construirMateriaEstado(nota, veredictos.get(nota.getMateriaOrden())))
+                .collect(Collectors.toList());
+
+        return ReporteAcademicoDTO.builder()
+                .legajoId(legajoId)
+                .totalMaterias(materias.size())
+                .puedeCursar((int) materias.stream().filter(ReporteAcademicoDTO.MateriaEstadoDTO::isPuedeCursar).count())
+                .puedeRendir((int) materias.stream().filter(ReporteAcademicoDTO.MateriaEstadoDTO::isPuedeRendir).count())
+                .conDeuda((int) materias.stream()
+                        .filter(m -> !m.isPuedeCursar() && !m.isPuedeRendir()).count())
+                .materias(materias)
+                .build();
+    }
+// ─────────────────────────────────────────────────────────────────────────────
+
+    private ReporteAcademicoDTO.MateriaEstadoDTO construirMateriaEstado(
+            NotaMateriaDTO nota,
+            CorrelativaService.VeredictoDoble veredicto) {
+
+        // Veredictos individuales (con fallback si la materia no tiene correlativas cargadas)
+        CorrelativaService.Veredicto vCursada = veredicto != null ? veredicto.getCursada() : null;
+        CorrelativaService.Veredicto vExamen  = veredicto != null ? veredicto.getExamen()  : null;
+
+        boolean puedeCursar = vCursada != null && vCursada.esAceptada();
+        boolean puedeRendir = vExamen  != null && vExamen.esAceptada();
+
+        return ReporteAcademicoDTO.MateriaEstadoDTO.builder()
+                .materiaOrden(nota.getMateriaOrden())
+                .materiaNombre(nota.getMateriaNombre())
+                .notaEstado(nota.getNotaEstado() != null ? nota.getNotaEstado().name() : null)
+                .calificacion(resolverCalificacion(nota))
+
+                // cursada
+                .puedeCursar(puedeCursar)
+                .estadoCursada(vCursada != null ? vCursada.toLegacy().getStatus() : "-")
+                .correlativasCursadaPendientes(vCursada != null ? vCursada.desaprobadas() : List.of())
+                .observacionesCursada(vCursada != null ? vCursada.conFechaIncoherente() : List.of())
+                .explicacionCursada(explicarCursada(nota, vCursada))
+
+                // examen
+                .puedeRendir(puedeRendir)
+                .estadoExamen(vExamen != null ? vExamen.toLegacy().getStatus() : "-")
+                .correlativasExamenPendientes(vExamen != null ? vExamen.desaprobadas() : List.of())
+                .observacionesExamen(vExamen != null ? vExamen.conFechaIncoherente() : List.of())
+                .explicacionExamen(explicarExamen(nota, vExamen))
+
+                .build();
+    }
+
+    private String explicarCursada(NotaMateriaDTO nota, CorrelativaService.Veredicto v) {
+        String nombre = nota.getMateriaNombre();
+        EstadoNota estado = nota.getNotaEstado();
+
+        // Casos terminales — no hay nada que evaluar
+        if (estado == EstadoNota.APROBADO) {
+            return nombre + " ya está aprobada. No necesita volver a cursarla.";
+        }
+//        if (estado == EstadoNota.EQUIVALENCIA) {
+//            return nombre + " fue acreditada por equivalencia. No requiere cursada.";
+//        }
+        if (estado == EstadoNota.CURSANDO) {
+            return "Actualmente está cursando " + nombre + ". No puede volver a inscribirse mientras tenga la cursada activa.";
+        }
+
+        if (v == null) {
+            return "No se pudo determinar el estado de correlativas para cursar " + nombre + ".";
+        }
+
+        return switch (v.getTipo()) {
+
+            case SIN_CORRELATIVAS ->
+                    nombre + " no tiene correlativas de cursada. " +
+                            "El alumno puede inscribirse en cualquier momento sin restricciones previas.";
+
+            case ACEPTADA -> {
+                if (estado == EstadoNota.REGULAR) {
+                    yield "El alumno ya tiene " + nombre + " regularizada y cumple todas las correlativas. " +
+                            "Si quisiera volver a cursarla, está habilitado para hacerlo.";
+                }
+                yield "Cumple todas las correlativas necesarias para cursar " + nombre + ". " +
+                        "Puede inscribirse sin inconvenientes.";
+            }
+
+            case PROVISORIA -> {
+                List<String> pendientes = v.desaprobadas().stream()
+                        .filter(s -> !s.equals("Ninguna"))
+                        .toList();
+                String listaPendientes = String.join(", ", pendientes);
+                yield "No puede inscribirse a cursar " + nombre + " todavía. " +
+                        "Para hacerlo necesita tener regularizadas o aprobadas las siguientes materias: " +
+                        listaPendientes + ". " +
+                        "Una vez que regularice " + (pendientes.size() == 1 ? "esa materia" : "esas materias") +
+                        ", quedará habilitado automáticamente.";
+            }
+
+            case SIN_CURSADA ->
+                    "El alumno nunca cursó " + nombre + " y tampoco tiene correlativas aprobadas. " +
+                            "Deberá regularizar las materias previas antes de poder inscribirse.";
+
+            case FECHA_INCOHERENTE -> {
+                List<String> inconsistentes = v.conFechaIncoherente().stream()
+                        .filter(s -> !s.equals("No"))
+                        .toList();
+                yield "Las correlativas de cursada para " + nombre + " figuran como aprobadas, " +
+                        "pero se detectaron inconsistencias en las fechas de algunas de ellas: " +
+                        String.join("; ", inconsistentes) + ". " +
+                        "Se lo habilita provisionalmente para cursar, pero se recomienda revisar el historial.";
+            }
+        };
+    }
+
+//    private String explicarExamen(NotaMateriaDTO nota, CorrelativaService.Veredicto v) {
+//        String nombre = nota.getMateriaNombre();
+//        EstadoNota estado = nota.getNotaEstado();
+//
+//        // Casos terminales
+//        if (estado == EstadoNota.APROBADO) {
+//            return nombre + " ya está aprobada. No tiene examen pendiente.";
+//        }
+////        if (estado == EstadoNota.EQUIVALENCIA) {
+////            return nombre + " fue acreditada por equivalencia. No requiere rendir examen.";
+////        }
+//        if (estado == EstadoNota.LIBRE) {
+//            return "El alumno figura como libre en " + nombre + ". " +
+//                    "Para poder rendir el examen final primero debe volver a regularizar la materia.";
+//        }
+//        if (estado == EstadoNota.DESAPROBADO) {
+//            return "El alumno desaprobó el examen final de " + nombre + ". " +
+//                    "Puede volver a inscribirse en el próximo turno siempre que mantenga la regularidad vigente.";
+//        }
+//
+//        if (v == null) {
+//            return "No se pudo determinar el estado de correlativas para rendir " + nombre + ".";
+//        }
+//
+//        return switch (v.getTipo()) {
+//
+//            case SIN_CORRELATIVAS ->
+//                    nombre + " no tiene correlativas de examen. " +
+//                            "El alumno puede anotarse a rendir en cualquier turno disponible.";
+//
+//            case ACEPTADA -> {
+//                if (estado == EstadoNota.REGULAR) {
+//                    yield "Tiene " + nombre + " regularizada y todas las correlativas de examen aprobadas. " +
+//                            "Está en condiciones de rendir el final en el próximo turno que se habilite.";
+//                }
+//                yield "Cumple todas las correlativas de examen para " + nombre + ". " +
+//                        "Puede anotarse a rendir sin ningún inconveniente.";
+//            }
+//
+//            case PROVISORIA -> {
+//                List<String> pendientes = v.desaprobadas().stream()
+//                        .filter(s -> !s.equals("Ninguna"))
+//                        .toList();
+//                String listaPendientes = String.join(", ", pendientes);
+//                yield "No puede rendir el examen final de " + nombre + " en este momento. " +
+//                        "Para habilitarse necesita tener aprobadas " +
+//                        (pendientes.size() == 1 ? "la siguiente materia: " : "las siguientes materias: ") +
+//                        listaPendientes + ". " +
+//                        "Mientras no cumpla ese requisito, la inscripción al examen no será válida.";
+//            }
+//
+//            case SIN_CURSADA ->
+//                    "El alumno no tiene cursada registrada para " + nombre + ". " +
+//                            "Para rendir el examen final primero debe cursar y regularizar la materia.";
+//
+//            case FECHA_INCOHERENTE -> {
+//                List<String> inconsistentes = v.conFechaIncoherente().stream()
+//                        .filter(s -> !s.equals("No"))
+//                        .toList();
+//                yield "Las correlativas de examen para " + nombre + " están aprobadas, " +
+//                        "aunque se encontraron fechas que no parecen coherentes con el historial del alumno: " +
+//                        String.join("; ", inconsistentes) + ". " +
+//                        "Se lo habilita para rendir, pero se sugiere que secretaría revise el legajo antes del turno.";
+//            }
+//        };
+//    }
+
+
+private String explicarExamen(NotaMateriaDTO nota, CorrelativaService.Veredicto v) {
+    String nombre   = nota.getMateriaNombre();
+    EstadoNota estado = nota.getNotaEstado();
+
+    // ── Casos terminales ─────────────────────────────────────────────────────
+
+    if (estado == EstadoNota.APROBADO) {
+        return nombre + " ya está aprobada. No tiene examen ni promoción pendiente.";
+    }
+    if (estado == EstadoNota.LIBRE) {
+        return "El alumno figura como libre en " + nombre + ". " +
+                "Perdió la regularidad y deberá volver a cursar la materia desde el principio " +
+                "antes de poder rendir o promocionar.";
+    }
+    if (estado == EstadoNota.DESAPROBADO) {
+        return "El alumno desaprobó el examen final de " + nombre + ". " +
+                "Puede volver a inscribirse a rendir en el próximo turno, " +
+                "siempre que su regularidad siga vigente. " +
+                "Si la regularidad venció, deberá recursar.";
+    }
+
+    if (v == null) {
+        return "No se pudo determinar el estado de correlativas para " + nombre + ".";
+    }
+
+    // ── Con correlativas pendientes: bloqueado en ambas vías ─────────────────
+
+    if (v.getTipo() == CorrelativaService.TipoVeredicto.PROVISORIA) {
+        List<String> pendientes = v.desaprobadas().stream()
+                .filter(s -> !s.equals("Ninguna"))
+                .toList();
+        String listaPendientes = String.join(", ", pendientes);
+
+        if (estado == EstadoNota.CURSANDO) {
+            return "Está cursando " + nombre + " pero tiene correlativas de examen pendientes: " +
+                    listaPendientes + ". " +
+                    "Aunque llegue a los requisitos de promoción, no podrá promocionar ni rendir el final " +
+                    "hasta que apruebe " + (pendientes.size() == 1 ? "esa materia." : "esas materias.");
+        }
+        if (estado == EstadoNota.REGULAR) {
+            return "Tiene " + nombre + " regularizada, pero no puede rendir ni promocionar todavía. " +
+                    "Le falta tener aprobadas las siguientes correlativas de examen: " +
+                    listaPendientes + ". " +
+                    "Una vez que las apruebe, quedará habilitado para el próximo turno.";
+        }
+    }
+
+    if (v.getTipo() == CorrelativaService.TipoVeredicto.SIN_CURSADA) {
+        return "El alumno no tiene cursada registrada para " + nombre + ". " +
+                "Para poder rendir o promocionar primero debe cursar y regularizar la materia.";
+    }
+
+    // ── Correlativas ok: evaluar si puede promocionar o solo rendir ──────────
+
+    boolean correlativasOk = v.getTipo() == CorrelativaService.TipoVeredicto.ACEPTADA
+            || v.getTipo() == CorrelativaService.TipoVeredicto.SIN_CORRELATIVAS
+            || v.getTipo() == CorrelativaService.TipoVeredicto.FECHA_INCOHERENTE;
+
+    if (!correlativasOk) {
+        return "No se pudo verificar el estado de correlativas para " + nombre + ".";
+    }
+
+    // Advertencia de fecha incoherente (no bloquea pero se menciona)
+    String advertenciaFecha = "";
+    if (v.getTipo() == CorrelativaService.TipoVeredicto.FECHA_INCOHERENTE) {
+        List<String> inconsistentes = v.conFechaIncoherente().stream()
+                .filter(s -> !s.equals("No"))
+                .toList();
+        advertenciaFecha = " Nota: se detectaron fechas inconsistentes en las correlativas (" +
+                String.join("; ", inconsistentes) +
+                "), secretaría debería revisarlo antes del turno.";
+    }
+
+//    if (estado == EstadoNota.CURSANDO) {
+//        if (nota.isAptaPromocion()) {
+//            return "Está cursando " + nombre + " y hasta el momento cumple los requisitos de promoción " +
+//                    "(nota promedio: " + nota.getNotaPromedio() + ", asistencia: " + nota.getAsistencia() + "%). " +
+//                    "Si mantiene ese rendimiento hasta el cierre de la cursada, " +
+//                    "podrá promocionar sin rendir examen final." + advertenciaFecha;
+//        } else {
+//            return "Está cursando " + nombre + ". " +
+//                    "Por el momento no alcanza los requisitos de promoción " +
+//                    "(nota promedio: " + nota.getNotaPromedio() + ", asistencia: " + nota.getAsistencia() + "%). " +
+//                    "Si regulariza la materia, podrá rendir el examen final en los turnos habilitados." +
+//                    advertenciaFecha;
+//        }
+//    }
+//
+//    if (estado == EstadoNota.REGULAR) {
+//        if (nota.isAptaPromocion()) {
+//            return "Cerró la cursada de " + nombre + " en condiciones de promocionar " +
+//                    "(nota promedio: " + nota.getNotaPromedio() + ", asistencia: " + nota.getAsistencia() + "%). " +
+//                    "Tiene todas las correlativas aprobadas. " +
+//                    "Puede promocionar directamente en el próximo turno habilitado, " +
+//                    "sin necesidad de rendir examen final." + advertenciaFecha;
+//        } else {
+//            return "Tiene " + nombre + " regularizada y todas las correlativas de examen aprobadas. " +
+//                    "Está en condiciones de rendir el examen final en el próximo turno que se habilite. " +
+//                    "No reúne los requisitos para promocionar " +
+//                    "(nota promedio: " + nota.getNotaPromedio() + ", asistencia: " + nota.getAsistencia() + "%)." +
+//                    advertenciaFecha;
+//        }
+//    }
+
+    // Fallback
+    return "Cumple las correlativas de examen para " + nombre + ". " +
+            "Puede anotarse a rendir en el próximo turno disponible." + advertenciaFecha;
+}
+
+    private String resolverCalificacion(NotaMateriaDTO nota) {
+        if (nota.getNotaEstado() == null) return "-";
+        return switch (nota.getNotaEstado()) {
+            case CURSANDO    -> "-";
+            case REGULAR     -> "R";
+            case LIBRE       -> "L";
+            case DESAPROBADO -> "D";
+            case PENDIENTE   -> "P";
+            case APROBADO    -> nota.getNotaCalificacionNumero() != null
+                    ? nota.getNotaCalificacionNumero() : "A";
+            default          -> "-";
+        };
+    }
+
+
+    // En NotaService o como helper en CorrelativaService
+
+    private static final Map<EstadoNota, Integer> PRIORIDAD_ESTADO = Map.of(
+            EstadoNota.APROBADO,     5,
+            EstadoNota.REGULAR,      4,
+            EstadoNota.CURSANDO,     3,
+            EstadoNota.LIBRE,        2,
+            EstadoNota.DESAPROBADO,  1,
+            EstadoNota.PENDIENTE,    0
+    );
+
+    private NotaMateriaDTO resolverNotaRepresentativa(List<NotaMateriaDTO> notasDeMateria) {
+        return notasDeMateria.stream()
+                .max(Comparator.comparingInt(n ->
+                        PRIORIDAD_ESTADO.getOrDefault(n.getNotaEstado(), -1)))
+                .orElseThrow();
     }
 }

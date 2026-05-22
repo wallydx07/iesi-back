@@ -1,9 +1,6 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.CorrelativasFaltantesEstadoDTO;
-import com.example.iesiback.dto.EvaluacionCorrelativaResponse;
-import com.example.iesiback.dto.NotaCursandoProjection;
-import com.example.iesiback.dto.NotaMateriaDTO;
+import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.enums.EstadoNota;
@@ -475,4 +472,6 @@ public class CorrelativaService {
     private boolean sinDatos(List<NotaCursandoProjection> notas) {
         return notas == null || notas.isEmpty();
     }
+
+
 }

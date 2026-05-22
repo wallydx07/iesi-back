@@ -7,5 +7,5 @@ public enum EstadoNota {
     APROBADO,
     REGULAR,
     LIBRE,
-    DESAPROBADO
+    DESAPROBADO,
 }

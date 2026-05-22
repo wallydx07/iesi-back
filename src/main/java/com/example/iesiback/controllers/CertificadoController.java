@@ -590,6 +590,8 @@ public class CertificadoController {
         }
     }
 
+
+
     @GetMapping("/generaPlanillaSeguimiento")
     public ResponseEntity<ByteArrayResource> generaPlanillaSeguimiento(
             @RequestParam Long materiaCarreraId,
@@ -736,5 +738,28 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    @GetMapping("/generarReporteAcademicoPDF")
+    public ResponseEntity<ByteArrayResource> generarReporteAcademicoPDF(
+            @RequestParam String legajoId
+    ) {
+        try {
+            PDDocument document = certificadoService.generarReporteAcademicoPDF(legajoId);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaTroquelIngresoNota.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 }
