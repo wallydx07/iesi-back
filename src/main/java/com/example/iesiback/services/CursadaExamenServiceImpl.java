@@ -310,21 +310,24 @@ public class CursadaExamenServiceImpl implements CursadaExamenService {
         if (dto.getFecha() != null) {
             e.setFecha(LocalDate.parse(dto.getFecha().toString()));
         }
-
-        // Hora
         if (dto.getHora() != null) {
             e.setHora(dto.getHora());
         }
-
-        // Turno (ManyToOne)
         if (dto.getTurno() != null && dto.getTurno().getTurnoId() != null) {
             Turno turno = turnoService.findById(dto.getTurno().getTurnoId())
                     .orElseThrow(() -> new RuntimeException("Turno no encontrado"));
             e.setTurno(turno);
         }
 
+
+//        notaService
+//
+
         return cursadaExamenRepository.save(e);
     }
+
+
+
 
     @Override
     public Optional<CursadaExamen> findById(Integer cursadaExamenId) {

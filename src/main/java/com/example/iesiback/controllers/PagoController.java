@@ -4,6 +4,7 @@ import com.example.iesiback.dto.PagoRequestDTO;
 import com.example.iesiback.dto.ProductoDTO;
 import com.example.iesiback.dto.ResumenOperadorDTO;
 import com.example.iesiback.dto.ResumenRecaudacionDTO;
+import com.example.iesiback.entities.User;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.PagoDetalle;
@@ -11,6 +12,7 @@ import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.services.PagoDetalleService;
 import com.example.iesiback.services.PagoService;
 import com.example.iesiback.services.TramiteService;
+import com.example.iesiback.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,15 +31,17 @@ public class PagoController {
     private final PagoService pagoService;
     private final TramiteService tramiteService;
     private final PagoDetalleService pagoDetalleService;
+    private final UserService userService;
 
     public PagoController(
             PagoService pagoService,
             TramiteService tramiteService,
-            PagoDetalleService pagoDetalleService
+            PagoDetalleService pagoDetalleService, UserService userService
     ) {
         this.pagoService = pagoService;
         this.tramiteService = tramiteService;
         this.pagoDetalleService = pagoDetalleService;
+        this.userService = userService;
     }
 
     // =====================================================
@@ -48,14 +52,14 @@ public class PagoController {
     public ResponseEntity<List<ResumenOperadorDTO>> getResumen(
             @PathVariable LocalDate fecha
     ) {
-
+        User user= userService.getAuthenticatedUser().get();
         return ResponseEntity.ok(
-                pagoService.obtenerResumenPorOperador(fecha)
+                pagoService.obtenerResumenPorOperador(fecha,user)
         );
     }
 
     // =====================================================
-    // VALIDAR PAGO INDIVIDUAL
+    //______________VALIDAR PAGO INDIVIDUAL________________
     // =====================================================
 
     @PatchMapping("/{id}/validar")

@@ -4,6 +4,7 @@ import com.example.iesiback.dto.ProductoDTO;
 import com.example.iesiback.dto.ResumenOperadorDTO;
 import com.example.iesiback.dto.ResumenRecaudacionDTO;
 import com.example.iesiback.entities.Pago;
+import com.example.iesiback.entities.User;
 import com.example.iesiback.enums.EstadoPago;
 
 import java.time.Instant;
@@ -32,7 +33,7 @@ public interface PagoService {
     );
 
     List<ResumenOperadorDTO> obtenerResumenPorOperador(
-            LocalDate fechaPago
+            LocalDate fechaPago, User user
     );
 
     /**

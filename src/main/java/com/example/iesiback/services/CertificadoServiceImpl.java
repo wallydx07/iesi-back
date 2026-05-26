@@ -5,6 +5,7 @@ import be.quodlibet.boxable.line.LineStyle;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoCondicion;
+import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.repositories.HtmlService;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
 import com.google.zxing.EncodeHintType;
@@ -31,6 +32,7 @@ import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +55,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+
+import static com.example.iesiback.enums.EstadoPago.*;
 
 @Service
 public class CertificadoServiceImpl implements CertificadoService {
@@ -9640,6 +9644,319 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
         return lista != null && !lista.isEmpty()
                 && lista.stream().anyMatch(s -> !s.equals("No"));
     }
+
+
+
+@Override
+public PDDocument generarReciboPago(Integer pagoId) {
+    Pago pago = pagoService.buscarPorId(pagoId)
+            .orElseThrow(() -> new RuntimeException("Pago no encontrado: " + pagoId));
+    PDDocument documento = new PDDocument();
+    try {
+        // A6 = 105 x 148 mm → puntos PDF
+        PDRectangle a6 = new PDRectangle(298f, 420f);
+        PDPage pagina  = new PDPage(a6);
+        documento.addPage(pagina);
+
+        PDType1Font normal  = PDType1Font.HELVETICA;
+        PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+        PDType1Font italica = PDType1Font.HELVETICA_OBLIQUE;
+
+        float pageW  = a6.getWidth();   // 298
+        float pageH  = a6.getHeight();  // 420
+        float margin = 16f;
+
+        // ── LÍNEA SUPERIOR DECORATIVA ─────────────────────────────────────────
+        try (PDPageContentStream cs = new PDPageContentStream(
+                documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
+
+            // Línea azul institucional arriba
+            cs.setStrokingColor(new Color(0, 51, 102));
+            cs.setLineWidth(2.5f);
+            cs.moveTo(margin, pageH - 4);
+            cs.lineTo(pageW - margin, pageH - 4);
+            cs.stroke();
+
+            // ── ENCABEZADO INSTITUCIONAL (texto directo, sin tabla) ───────────
+            cs.beginText();
+            cs.setNonStrokingColor(new Color(0, 51, 102));
+            cs.setFont(negrita, 7.5f);
+            cs.newLineAtOffset(margin, pageH - 18);
+            cs.showText("INSTITUTO DE EDUCACIÓN SUPERIOR INTERCULTURAL");
+            cs.endText();
+
+            cs.beginText();
+            cs.setNonStrokingColor(new Color(0, 51, 102));
+            cs.setFont(negrita, 7f);
+            cs.newLineAtOffset(margin, pageH - 27);
+            cs.showText("\u201CCAMPINTA GUAZ\u00DA GLORIA P\u00C9REZ\u201D");
+            cs.endText();
+
+            cs.beginText();
+            cs.setNonStrokingColor(new Color(60, 60, 60));
+            cs.setFont(normal, 6.5f);
+            cs.newLineAtOffset(margin, pageH - 36);
+            cs.showText("Incorporado a la Ense\u00F1anza Oficial \u2013 Resol. N\u00BA 2936-E-15");
+            cs.endText();
+
+            cs.beginText();
+            cs.setFont(normal, 6.5f);
+            cs.newLineAtOffset(margin, pageH - 44);
+            cs.showText("Bah\u00EDa Blanca N\u00BA 235, B\u00BA Kennedy \u2013 Tel. (0388) 3428370");
+            cs.endText();
+
+            cs.beginText();
+            cs.setFont(normal, 6.5f);
+            cs.newLineAtOffset(margin, pageH - 52);
+            cs.showText("(C.P. 4600) \u2013 SAN SALVADOR DE JUJUY \u2013 Prov. de Jujuy \u2013 Rep\u00FAblica Argentina");
+            cs.endText();
+
+            // Línea divisoria bajo encabezado
+            cs.setStrokingColor(new Color(180, 180, 180));
+            cs.setLineWidth(0.5f);
+            cs.moveTo(margin, pageH - 58);
+            cs.lineTo(pageW - margin, pageH - 58);
+            cs.stroke();
+
+            // ── TÍTULO DEL COMPROBANTE ────────────────────────────────────────
+            cs.beginText();
+            cs.setNonStrokingColor(new Color(30, 30, 30));
+            cs.setFont(negrita, 9f);
+            // Centrado manual
+            float tituloW = negrita.getStringWidth("RECIBO DE PAGO") / 1000 * 9f;
+            cs.newLineAtOffset((pageW - tituloW) / 2f, pageH - 72);
+            cs.showText("RECIBO DE PAGO");
+            cs.endText();
+
+            // Línea bajo título
+            cs.setStrokingColor(new Color(0, 51, 102));
+            cs.setLineWidth(1f);
+            cs.moveTo(margin, pageH - 76);
+            cs.lineTo(pageW - margin, pageH - 76);
+            cs.stroke();
+        }
+
+        // ── TABLA DE DATOS (desde y=340 hacia abajo) ─────────────────────────
+        float tableWidth    = pageW - 2 * margin;
+        float yStart        = pageH - 80f;
+        float yStartNewPage = pageH - margin;
+        float bottomMargin  = 30f;
+
+        BaseTable tabla = new BaseTable(
+                yStart, yStartNewPage, bottomMargin,
+                tableWidth, margin, documento, pagina, true, true);
+
+        DateTimeFormatter fmt = DateTimeFormatter
+                .ofPattern("dd/MM/yyyy HH:mm")
+                .withZone(ZoneId.systemDefault());
+
+        // ── DATOS DEL RECIBO ──────────────────────────────────────────────────
+
+        Row<PDPage> filaIds = tabla.createRow(11);
+        Cell<PDPage> cNro = filaIds.createCell(50, "Recibo N\u00BA: " + pago.getId());
+        cNro.setFont(negrita);
+        cNro.setFontSize(8);
+        cNro.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
+        cNro.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
+        cNro.setTopBorderStyle(new LineStyle(Color.WHITE, 0));
+
+        String fechaStr = pago.getFechaPago() != null ? fmt.format(pago.getFechaPago()) : "\u2014";
+        Cell<PDPage> cFecha = filaIds.createCell(50, "Fecha: " + fechaStr);
+        cFecha.setFont(normal);
+        cFecha.setFontSize(8);
+        cFecha.setAlign(HorizontalAlignment.RIGHT);
+        cFecha.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
+        cFecha.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
+        cFecha.setTopBorderStyle(new LineStyle(Color.WHITE, 0));
+
+        if (pago.getTramite() != null) {
+            Row<PDPage> filaTram = tabla.createRow(10);
+            Cell<PDPage> cTram = filaTram.createCell(100,
+                    "Tr\u00E1mite asociado N\u00BA: " + pago.getTramite().getId());
+            cTram.setFont(normal);
+            cTram.setFontSize(8);
+            sinBordes(cTram);
+        }
+
+        if (pago.getResponsable() != null && !pago.getResponsable().isBlank()) {
+            Row<PDPage> filaResp = tabla.createRow(10);
+            Cell<PDPage> cResp = filaResp.createCell(100,
+                    "Responsable: " + pago.getResponsable());
+            cResp.setFont(normal);
+            cResp.setFontSize(8);
+            sinBordes(cResp);
+        }
+
+        Row<PDPage> filaMetodo = tabla.createRow(10);
+        String metodo = pago.getMetodoPago() != null ? pago.getMetodoPago() : "\u2014";
+        String tipo   = pago.getTipoPago()   != null ? pago.getTipoPago()   : "\u2014";
+        Cell<PDPage> cMet = filaMetodo.createCell(50, "M\u00E9todo: " + metodo);
+        cMet.setFont(normal);
+        cMet.setFontSize(8);
+        sinBordes(cMet);
+        Cell<PDPage> cTipo = filaMetodo.createCell(50, "Tipo: " + tipo);
+        cTipo.setFont(normal);
+        cTipo.setFontSize(8);
+        cTipo.setAlign(HorizontalAlignment.RIGHT);
+        sinBordes(cTipo);
+
+        if (pago.getMpPaymentId() != null) {
+            Row<PDPage> filaMp = tabla.createRow(10);
+            Cell<PDPage> cMp = filaMp.createCell(100,
+                    "ID transacci\u00F3n: " + pago.getMpPaymentId());
+            cMp.setFont(italica);
+            cMp.setFontSize(7);
+            cMp.setTextColor(new Color(120, 120, 120));
+            sinBordes(cMp);
+        }
+
+        // ── LÍNEA SEPARADORA ──────────────────────────────────────────────────
+
+        Row<PDPage> filaSep = tabla.createRow(2);
+        Cell<PDPage> cSep = filaSep.createCell(100, "");
+        cSep.setFillColor(new Color(200, 200, 200));
+        cSep.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
+        cSep.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
+
+        // ── ENCABEZADO DETALLE ────────────────────────────────────────────────
+
+        Row<PDPage> filaColH = tabla.createRow(11);
+        Cell<PDPage> chCon = filaColH.createCell(55, "Concepto");
+        chCon.setFont(negrita);
+        chCon.setFontSize(8);
+        chCon.setFillColor(new Color(230, 235, 242));
+
+        Cell<PDPage> chCant = filaColH.createCell(15, "Cant.");
+        chCant.setFont(negrita);
+        chCant.setFontSize(8);
+        chCant.setFillColor(new Color(230, 235, 242));
+        chCant.setAlign(HorizontalAlignment.CENTER);
+
+        Cell<PDPage> chMon = filaColH.createCell(30, "Importe");
+        chMon.setFont(negrita);
+        chMon.setFontSize(8);
+        chMon.setFillColor(new Color(230, 235, 242));
+        chMon.setAlign(HorizontalAlignment.RIGHT);
+
+        // ── FILAS DE DETALLE ──────────────────────────────────────────────────
+
+        if (pago.getDetalles() != null && !pago.getDetalles().isEmpty()) {
+            boolean par = false;
+            for (PagoDetalle d : pago.getDetalles()) {
+                Color bg = par ? new Color(247, 249, 252) : Color.WHITE;
+                par = !par;
+                int cant = d.getCantidad() != null ? d.getCantidad() : 1;
+                BigDecimal subtotal = d.getMonto().multiply(BigDecimal.valueOf(cant));
+
+                Row<PDPage> fila = tabla.createRow(11);
+                Cell<PDPage> cc = fila.createCell(55,
+                        d.getConcepto() != null ? d.getConcepto() : "\u2014");
+                cc.setFont(normal); cc.setFontSize(8); cc.setFillColor(bg);
+
+                Cell<PDPage> cq = fila.createCell(15, String.valueOf(cant));
+                cq.setFont(normal); cq.setFontSize(8);
+                cq.setAlign(HorizontalAlignment.CENTER); cq.setFillColor(bg);
+
+                Cell<PDPage> cm = fila.createCell(30,
+                        formatearMonto(subtotal, pago.getMoneda()));
+                cm.setFont(normal); cm.setFontSize(8);
+                cm.setAlign(HorizontalAlignment.RIGHT); cm.setFillColor(bg);
+            }
+        } else {
+            Row<PDPage> fsd = tabla.createRow(11);
+            Cell<PDPage> csd = fsd.createCell(100, "Sin detalle de conceptos registrado.");
+            csd.setFont(italica); csd.setFontSize(8);
+            csd.setTextColor(new Color(140, 140, 140));
+        }
+
+        // ── TOTAL ─────────────────────────────────────────────────────────────
+
+        Row<PDPage> filaSep2 = tabla.createRow(2);
+        Cell<PDPage> cSep2 = filaSep2.createCell(100, "");
+        cSep2.setFillColor(new Color(0, 51, 102));
+        cSep2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
+        cSep2.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
+
+        Row<PDPage> filaTotal = tabla.createRow(14);
+        Cell<PDPage> cLbl = filaTotal.createCell(60, "TOTAL ABONADO");
+        cLbl.setFont(negrita); cLbl.setFontSize(9);
+        cLbl.setFillColor(new Color(240, 243, 248));
+
+        Cell<PDPage> cVal = filaTotal.createCell(40,
+                formatearMonto(pago.getMontoTotal(), pago.getMoneda()));
+        cVal.setFont(negrita); cVal.setFontSize(9);
+        cVal.setFillColor(new Color(240, 243, 248));
+        cVal.setAlign(HorizontalAlignment.RIGHT);
+
+        // ── ESTADO ────────────────────────────────────────────────────────────
+
+        Row<PDPage> filaEst = tabla.createRow(12);
+        String estadoTxt = pago.getEstado() != null ? pago.getEstado().name() : "\u2014";
+        String detTxt    = pago.getStatusDetail() != null
+                ? "  \u2013  " + pago.getStatusDetail() : "";
+        Cell<PDPage> cEst = filaEst.createCell(100, estadoTxt + detTxt);
+        cEst.setFont(negrita); cEst.setFontSize(8);
+        cEst.setTextColor(colorEstadoPago(pago.getEstado()));
+        cEst.setAlign(HorizontalAlignment.CENTER);
+        sinBordes(cEst);
+
+        // ── PIE ───────────────────────────────────────────────────────────────
+
+        Row<PDPage> filaPie = tabla.createRow(11);
+        Cell<PDPage> cPie = filaPie.createCell(100,
+                "El presente comprobante acredita el pago realizado ante esta instituci\u00F3n.");
+        cPie.setFont(italica); cPie.setFontSize(7);
+        cPie.setTextColor(new Color(130, 130, 130));
+        cPie.setAlign(HorizontalAlignment.CENTER);
+        sinBordes(cPie);
+
+        tabla.draw();
+
+        // ── LÍNEA INFERIOR DECORATIVA ─────────────────────────────────────────
+        try (PDPageContentStream cs = new PDPageContentStream(
+                documento, pagina, PDPageContentStream.AppendMode.APPEND, false)) {
+            cs.setStrokingColor(new Color(0, 51, 102));
+            cs.setLineWidth(2.5f);
+            cs.moveTo(margin, 6);
+            cs.lineTo(pageW - margin, 6);
+            cs.stroke();
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
+
+    return documento;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+
+    /** Elimina bordes visibles de una celda (fondo blanco, sin líneas). */
+    private void sinBordes(Cell<PDPage> c) {
+        LineStyle invisible = new LineStyle(Color.WHITE, 0f);
+        c.setLeftBorderStyle(invisible);
+        c.setRightBorderStyle(invisible);
+        c.setTopBorderStyle(invisible);
+        c.setBottomBorderStyle(invisible);
+    }
+
+    private String formatearMonto(BigDecimal monto, String moneda) {
+        String simbolo = "ARS".equals(moneda) || moneda == null ? "$" : moneda + " ";
+        return simbolo + " " + String.format("%,.2f", monto);
+    }
+
+    private Color colorEstadoPago(EstadoPago estado) {
+        if (estado == null) return new Color(100, 100, 100);
+        return switch (estado) {
+            case APROBADO  -> new Color(20, 100, 55);
+            case PENDIENTE -> new Color(140, 100, 0);
+            case RECHAZADO,
+                 CANCELADO -> new Color(150, 30, 30);
+            default        -> new Color(80, 80, 80);
+        };
+    }
+
 
 }
 

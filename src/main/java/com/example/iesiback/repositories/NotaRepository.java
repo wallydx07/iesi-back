@@ -226,7 +226,6 @@ ORDER BY p.personaApellido, p.personaNombre
            cursada.asistencia AS asistencia,
            cursada.coloquio AS coloquio,
            cursada.trabajo_institucional AS trabajoInstitucional
-
     FROM persona
     INNER JOIN legajo ON persona.persona_dni = legajo.legajo_alumno_dni
     INNER JOIN cursada ON legajo.legajo_id = cursada.cursada_legajo_id

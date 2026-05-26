@@ -84,19 +84,36 @@ public class ExamenController {
 
 
     @PostMapping("/cursadas/registrar")
-    public ResponseEntity<Examen> registrarExamen(@RequestBody ExamenRequestDTO request) {
+    public ResponseEntity<?> registrarExamen(@RequestBody ExamenRequestDTO request) {
 
-        Examen nuevoExamen = examenService.registrarExamen(
-           //     request.getExamen(),
-                request.getLegajoId(),
-                turnoService.obtenerTurnoPorId(request.getTurnoId()),
-                materiaService.findMateriaById( request.getMateriaId()),
-                request.getExamenCondicion(),
-                request.getCursadaId()
-        );
-        return ResponseEntity.ok(nuevoExamen);
+        try {
+
+            System.out.println("=== REGISTRAR EXAMEN ===");
+            System.out.println("legajoId: " + request.getLegajoId());
+            System.out.println("turnoId: " + request.getTurnoId());
+            System.out.println("materiaId: " + request.getMateriaId());
+            System.out.println("condicion: " + request.getExamenCondicion());
+            System.out.println("cursadaId: " + request.getCursadaId());
+
+            Examen nuevoExamen = examenService.registrarExamen(
+                    request.getLegajoId(),
+                    turnoService.obtenerTurnoPorId(request.getTurnoId()),
+                    materiaService.findMateriaById(request.getMateriaId()),
+                    request.getExamenCondicion(),
+                    request.getCursadaId()
+            );
+
+            return ResponseEntity.ok(nuevoExamen);
+
+        } catch (Exception e) {
+
+            System.out.println("ERROR REGISTRANDO EXAMEN");
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
     }
-
 
     @PutMapping("/baja/{examenId}")
     public ResponseEntity<String> darDeBajaExamen(@PathVariable Long examenId) {

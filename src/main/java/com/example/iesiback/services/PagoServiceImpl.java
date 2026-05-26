@@ -56,20 +56,16 @@ public class PagoServiceImpl implements PagoService {
 
     @Override
     public Pago guardar(Pago pago) {
-
         User user = userService.getAuthenticatedUser()
                 .orElseThrow(() ->
                         new RuntimeException("Usuario no autenticado"));
 
         pago.setResponsable(user.getUsername());
-
         if (pago.getDetalles() != null) {
             pago.getDetalles().forEach(detalle -> {
                 detalle.setPago(pago);
             });
         }
-
-        // Estado por defecto
         if (pago.getEstado() == null) {
             pago.setEstado(EstadoPago.PENDIENTE);
         }
@@ -355,54 +351,41 @@ public class PagoServiceImpl implements PagoService {
         return Optional.of(resumen);
     }
 
+
+
+
     @Override
     public List<ResumenOperadorDTO> obtenerResumenPorOperador(
-            LocalDate fechaPago
+            LocalDate fechaPago,User user
     ) {
-
-        ZoneId zona =
-                ZoneId.of("America/Argentina/Buenos_Aires");
-
-        Instant inicio =
-                fechaPago.atStartOfDay(zona).toInstant();
-
-        Instant fin =
-                fechaPago.plusDays(1)
+        ZoneId zona = ZoneId.of("America/Argentina/Buenos_Aires");
+        Instant inicio =fechaPago.atStartOfDay(zona).toInstant();
+        Instant fin =fechaPago.plusDays(1)
                         .atStartOfDay(zona)
                         .toInstant();
-
         List<Pago> pagos =
                 pagoRepository.findByFechaPagoBetween(
                         inicio,
                         fin
                 );
-
         if (pagos.isEmpty()) {
             return List.of();
         }
-
         List<ReciboDTO> recibos = pagos.stream().map(pago -> {
-
             ReciboDTO dto = new ReciboDTO();
-
             dto.setAporteId(Long.valueOf(pago.getId()));
-
             dto.setAporteMonto(
                     pago.getMontoTotal() != null
                             ? pago.getMontoTotal()
                             : BigDecimal.ZERO
             );
-
             dto.setMetodo(pago.getMetodoPago());
-
             if (pago.getFechaPago() != null) {
-
                 dto.setAporteFecha(
                         pago.getFechaPago()
                                 .atZone(zona)
                                 .toLocalDate()
                 );
-
                 dto.setHora(
                         pago.getFechaPago()
                                 .atZone(zona)
@@ -410,16 +393,11 @@ public class PagoServiceImpl implements PagoService {
                                 .toString()
                 );
             }
-
             dto.setUsuario(
                     pago.getResponsable() != null
                             ? pago.getResponsable()
                             : "SIN_USUARIO"
             );
-
-//            dto.setValidado(
-//                    pago.getEstado() == EstadoPago.APROBADO
-//            );
 
             dto.setEstado(
                     pago.getEstado()
@@ -429,25 +407,19 @@ public class PagoServiceImpl implements PagoService {
                     pago.getTramite() != null
                             && pago.getTramite().getTramiteDni() != null
             ) {
-
                 try {
-
                     PersonaDTO personaDTO =
                             personaService.findPersonaDTOById(
                                     pago.getTramite()
                                             .getTramiteDni()
                             );
-
                     if (personaDTO != null) {
-
                         dto.setAlumnoApellido(
                                 personaDTO.getPersonaApellido()
                         );
-
                         dto.setAlumnoNombre(
                                 personaDTO.getPersonaNombre()
                         );
-
                         dto.setAlumnoDni(
                                 personaDTO.getPersonaDni() != null
                                         ? personaDTO.getPersonaDni()
@@ -455,36 +427,28 @@ public class PagoServiceImpl implements PagoService {
                                         : ""
                         );
                     }
-
                 } catch (Exception e) {
-
                     System.out.println(
                             "❌ Error al buscar persona: "
                                     + e.getMessage()
                     );
                 }
             }
-
             if (pago.getTramite() != null) {
                 dto.setConcepto(
                         pago.getTramite().getTramiteTipo()
                 );
             }
-
             dto.setAporteNroRecibo(
                     pago.getExternalReference()
             );
-
             dto.setPagoDetalles(
                     pagoDetalleService.obtenerPorPago(
                             pago.getId()
                     )
             );
-
             return dto;
-
         }).toList();
-
         Map<String, List<ReciboDTO>> agrupado =
                 recibos.stream()
                         .collect(Collectors.groupingBy(
@@ -503,6 +467,8 @@ public class PagoServiceImpl implements PagoService {
                 )
                 .toList();
     }
+
+
 
     @Override
     public void actualizarEstadoValidacion(Long id) {
