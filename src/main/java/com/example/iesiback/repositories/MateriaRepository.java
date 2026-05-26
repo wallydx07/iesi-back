@@ -84,24 +84,46 @@ public interface MateriaRepository extends JpaRepository<Materia, String> {
 
 
 
+//    @Query(value = """
+//    SELECT m.*
+//    FROM materia m
+//    JOIN materia_carrera mc
+//        ON mc.materia_id = m.materia_id
+//    JOIN carrera c
+//        ON c.carrera_id = mc.carrera_id
+//    JOIN inscripcion i
+//        ON i.carrera_id = c.carrera_id
+//    JOIN legajo l
+//        ON i.legajo_id = l.legajo_id
+//    WHERE m.materia_orden = :materiaOrden
+//    AND l.legajo_id = :legajoId
+//    LIMIT 1
+//    """, nativeQuery = true)
+//    Optional<Materia> findByMateriaOrdenAndLegajoId(
+//            @Param("materiaOrden") Integer materiaOrden,
+//            @Param("legajoId") String legajoId);
+
+
     @Query(value = """
-    SELECT m.*
-    FROM materia m
-    JOIN materia_carrera mc 
-        ON mc.materia_id = m.materia_id
-    JOIN carrera c 
-        ON c.carrera_id = mc.carrera_id
-    JOIN inscripcion i
-        ON i.carrera_id = c.carrera_id
-    JOIN legajo l 
-        ON i.legajo_id = l.legajo_id
-    WHERE m.materia_orden = :materiaOrden
-    AND l.legajo_id = :legajoId
-    LIMIT 1
-    """, nativeQuery = true)
+SELECT m.*
+FROM materia m
+JOIN materia_carrera mc 
+    ON mc.materia_id = m.materia_id
+JOIN carrera c 
+    ON c.carrera_id = mc.carrera_id
+JOIN inscripcion i
+    ON SPLIT_PART(i.carrera_id, '-', 1) =
+       SPLIT_PART(c.carrera_id, '-', 1)
+JOIN legajo l 
+    ON i.legajo_id = l.legajo_id
+WHERE m.materia_orden = :materiaOrden
+AND l.legajo_id = :legajoId
+LIMIT 1
+""", nativeQuery = true)
     Optional<Materia> findByMateriaOrdenAndLegajoId(
             @Param("materiaOrden") Integer materiaOrden,
             @Param("legajoId") String legajoId);
+
 
     List<Materia> findAllByMateriaIdIn(Set<String> ids);
 

@@ -196,8 +196,20 @@ public class CorrelativaService {
                         materiaOrden
                 );
 
-        Materia materia = materiaRepository
-                .findByMateriaOrdenAndLegajoId(materiaOrden, legajoId)
+//        Materia materia = materiaRepository
+//                .findByMateriaOrdenAndLegajoId(materiaOrden, legajoId)
+//                .orElseThrow(() ->
+//                        new RuntimeException("Materia no encontrada"));
+
+
+        log.info("Buscando materia orden={} legajo={}  condicion={}", materiaOrden, legajoId, condicion);
+
+        Optional<Materia> materiaOpt =
+                materiaRepository.findByMateriaOrdenAndLegajoId(materiaOrden, legajoId);
+
+        log.info("Materia encontrada? {}", materiaOpt.isPresent());
+
+        Materia materia = materiaOpt
                 .orElseThrow(() ->
                         new RuntimeException("Materia no encontrada"));
 
