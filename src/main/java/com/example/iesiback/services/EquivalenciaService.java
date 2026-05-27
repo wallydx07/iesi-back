@@ -3,6 +3,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.EquivalenciaDTO;
 import com.example.iesiback.dto.EquivalenciaDetalleDTO;
 import com.example.iesiback.entities.Equivalencia;
+import com.example.iesiback.entities.Nota;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -25,6 +26,9 @@ public interface EquivalenciaService {
 
     @Transactional
     Equivalencia crearEquivalenciaConNota(Equivalencia equivalencia, Integer cursadaId);
+
+    @Transactional
+    Equivalencia crearEquivalenciaNota(Equivalencia equivalencia, Nota nuevaNota);
 
     List<EquivalenciaDetalleDTO> obtenerEquivalenciasConDetalle();
 }

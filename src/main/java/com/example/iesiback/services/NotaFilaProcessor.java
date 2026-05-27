@@ -5,6 +5,8 @@ import com.example.iesiback.dto.TurnoExamenDTO;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoNota;
 import com.example.iesiback.enums.EstadoCondicion;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.example.iesiback.dto.NotaImportDTO;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,8 @@ public class NotaFilaProcessor {
     private final ExamenService examenService;
     private final MateriaService materiaService;
     private final PersonaService personaService;
+    private final EquivalenciaService equivalenciaService;
+
 
     /**
      * Procesa una única fila del import de forma atómica.
@@ -91,7 +96,7 @@ public class NotaFilaProcessor {
 
             case EQUIVALENCIA -> {
                 log.info("---- Flujo EQUIVALENCIA ----");
-                procesarEquivalencia(materiaCarrera, fila, notasExistentes);
+                procesarEquivalencia(legajo,materiaCarrera, fila, notasExistentes);
             }
 
             default -> throw new IllegalArgumentException(
@@ -271,28 +276,89 @@ public class NotaFilaProcessor {
         log.info("Examen FINAL LIBRE registrado correctamente.");
     }
 
-    private void procesarEquivalencia(MateriaCarrera materiaCarrera,
-                                      NotaImportDTO fila,
-                                      List<NotaMateriaDTO> existentes) {
+//    private void procesarEquivalencia(Legajo legajo, MateriaCarrera materiaCarrera,
+//                                      NotaImportDTO fila,
+//                                      List<NotaMateriaDTO> existentes) {
+//
+//        log.info("Procesando EQUIVALENCIA para materia {}", materiaCarrera.getId());
+//
+//        NotaMateriaDTO eq = existentes.stream()
+//                .filter(n -> "Equivalencia".equals(n.getNotaCondicion())
+//                        && n.getMateriaCarreraId().equals(materiaCarrera.getId()))
+//                .findFirst()
+//                .orElse(null);
+//
+//        if (eq != null) {
+//            log.info("Equivalencia existente encontrada ID: {}", eq.getNotaId());
+//            Nota nota = notaService.obtenerNotaPorId(eq.getNotaId());
+//            actualizarNota(nota, fila);
+//            notaService.guardarNota(nota);
+//            log.info("Equivalencia actualizada.");
+//        } else {
+//            log.info("No existe equivalencia previa. Creando nueva nota.");
+//            Nota nueva = crearNota(fila, EstadoCondicion.EQUIVALENCIA);
+//            notaService.guardarNota(nueva);
+//
+//            Equivalencia equivalencia = new Equivalencia();
+//            equivalencia.setNota(nueva);
+//            equivalencia.setLegajoId(legajo.getLegajoId());
+//            equivalencia.setMateriaId(materiaCarrera.getMateria().getMateriaId()); // Asegúrate de pasarle el ID correspondiente
+//            equivalencia.setInstitucionOrigen("Pendiente");
+//            equivalencia.setMateriaOrigen("Pendiente");
+//            equivalencia.setCarreraOrigen("Pendiente");
+//            equivalencia.setResolucion("Pendiente");
+//            equivalencia.setStatus("ACEPTADA");
+//       equivalenciaService.crearEquivalenciaNota(equivalencia, nueva);
+//
+//        }
+//    }
 
+
+    private void procesarEquivalencia(Legajo legajo, MateriaCarrera materiaCarrera, NotaImportDTO fila, List<NotaMateriaDTO> existentes) {
         log.info("Procesando EQUIVALENCIA para materia {}", materiaCarrera.getId());
 
-        NotaMateriaDTO eq = existentes.stream()
-                .filter(n -> "Equivalencia".equals(n.getNotaCondicion())
-                        && n.getMateriaCarreraId().equals(materiaCarrera.getId()))
-                .findFirst()
-                .orElse(null);
+        // Buscar si ya existe una equivalencia para esta materia
+        Optional<NotaMateriaDTO> eqExistente = existentes.stream()
+                .filter(n -> "Equivalencia".equals(n.getNotaCondicion()) && n.getMateriaCarreraId().equals(materiaCarrera.getId()))
+                .findFirst();
 
-        if (eq != null) {
-            log.info("Equivalencia existente encontrada ID: {}", eq.getNotaId());
-            Nota nota = notaService.obtenerNotaPorId(eq.getNotaId());
+        if (eqExistente.isPresent()) {
+            Long notaId = eqExistente.get().getNotaId();
+            log.info("Equivalencia existente encontrada ID: {}", notaId);
+            Nota nota = notaService.obtenerNotaPorId(notaId);
             actualizarNota(nota, fila);
             notaService.guardarNota(nota);
+
             log.info("Equivalencia actualizada.");
         } else {
             log.info("No existe equivalencia previa. Creando nueva nota.");
-            Nota nueva = crearNota(fila, EstadoCondicion.EQUIVALENCIA);
-            notaService.guardarNota(nueva);
+
+            Cursada cursada = cursadaService.obtenerORegistrarCursada(legajo, materiaCarrera.getId().longValue());
+//            cursada.getNotas()
+
+
+
+            Nota nuevaNota = crearNota(fila, EstadoCondicion.EQUIVALENCIA, EstadoNota.APROBADO,cursada);
+            // Si el servicio de equivalencia guarda en cascada, podrías omitir este guardarNota
+            nuevaNota = notaService.guardarNota(nuevaNota);
+
+            Equivalencia equivalencia = new Equivalencia();
+            equivalencia.setNota(nuevaNota);
+            equivalencia.setLegajoId(legajo.getLegajoId());
+            equivalencia.setMateriaId(materiaCarrera.getMateria().getMateriaId());
+
+            // Valores iniciales por defecto
+            equivalencia.setInstitucionOrigen("Pendiente");
+            equivalencia.setMateriaOrigen("Pendiente");
+            equivalencia.setCarreraOrigen("Pendiente");
+            equivalencia.setResolucion("Pendiente");
+            equivalencia.setStatus("ACEPTADA");
+
+            // Sincronizar el lado @OneToMany en memoria
+            nuevaNota.getEquivalencias().add(equivalencia);
+
+            equivalenciaService.crearEquivalenciaNota(equivalencia, nuevaNota);
+            log.info("Nueva equivalencia creada con éxito.");
         }
     }
 
@@ -300,13 +366,15 @@ public class NotaFilaProcessor {
     // Helpers
     // ─────────────────────────────────────────────────────────────
 
-    private Nota crearNota(NotaImportDTO fila, EstadoCondicion condicion) {
+    private Nota crearNota(NotaImportDTO fila, EstadoCondicion condicion, EstadoNota estado,Cursada cursada) {
         Nota nota = new Nota();
         nota.setNotaFechaNota(fila.getFecha());
         nota.setNotaLibroNota(fila.getLibro());
         nota.setNotaFolioNota(fila.getFolio());
         nota.setNotaCalificacionNotaNumero(fila.getNota());
+        nota.setNotaEstado(estado);
         nota.setNotaCondicion(condicion);
+        nota.setCursada(cursada);
         return nota;
     }
 

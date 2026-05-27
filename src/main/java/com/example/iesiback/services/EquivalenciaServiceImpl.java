@@ -62,8 +62,14 @@ public class EquivalenciaServiceImpl implements EquivalenciaService {
         nuevaNota.setNotaEstado(EstadoNota.PENDIENTE);
         nuevaNota.setNotaFechaNota(LocalDate.now());
         notaService.saveNotaWithCursadsa(nuevaNota, cursadaId);
+        equivalencia.setNota(nuevaNota);
+        return equivalenciaRepository.save(equivalencia);
+    }
 
-        // 2️⃣ Asignar el ID de la nota a la equivalencia
+
+    @Transactional
+    @Override
+    public Equivalencia crearEquivalenciaNota(Equivalencia equivalencia, Nota nuevaNota) {
         equivalencia.setNota(nuevaNota);
         return equivalenciaRepository.save(equivalencia);
     }

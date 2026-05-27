@@ -283,11 +283,6 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         return results;
     }
 
-
-
-
-
-
     @Override
     public List<NotaMateriaDTO> obtenerNotasNoAprobadasCursadas(String legajoId) {
         List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
@@ -323,6 +318,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
     }
 
+
     @Override
     public List<NotaMateriaDTO> obtenerNotasNoAprobadasPorLegajo(String legajoId) {
         List<NotaMateriaDTO> resultados = notaRepository.findNotasPorLegajo(legajoId);
@@ -354,6 +350,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                     return obj;
                 }).collect(Collectors.toList());
     }
+
 
     @Override
     public boolean isMateriaAprobada(String legajoId, String materiaId) {
@@ -459,32 +456,9 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                 dto.setNotaCalificacionNotaLetra("PENDIENTE");
                 dto.setNotaCalificacionNotaNumero("P");
             }
-
         }
-
-
-
         return resultado;
     }
-
-
-
-
-    //====================================================================================================
-    //====================================================================================================
-    //====================================================================================================
-    //====================================================================================================
-
-
-
-
-    //====================================================================================================
-    //====================================================================================================
-    //====================================================================================================
-    //====================================================================================================
-
-
-
 
 
     @Override
@@ -499,7 +473,6 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                     dto.getMateriaOrden(),
                     EstadoCondicion.EXAMEN
             );
-
             String status = veredicto.getTipo().name();
             dto.setStatus(status);
             aux.add(dto);
@@ -507,15 +480,12 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         return aux;
     }
 
-    public List<NotaExamenDTO> obtenerNotasPorCondicionDTO(Long cursadaExamenId, boolean examenInscripto) {
 
+    public List<NotaExamenDTO> obtenerNotasPorCondicionDTO(Long cursadaExamenId, boolean examenInscripto) {
         List<Map<String, Object>> rows =
                 notaRepository.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto);
-
         List<NotaExamenDTO> salida = new ArrayList<>();
-
         for (Map<String, Object> r : rows) {
-
             NotaExamenDTO dto = new NotaExamenDTO(
                     String.valueOf(r.get("personaDni")),
                     (String) r.get("personaNombre"),
@@ -570,56 +540,6 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         // Guarda la nota actualizada y la retorna
         return notaRepository.save(notaExistente);
     }
-
-
-//
-//    @Override
-//    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
-//        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId);
-//        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>();
-//        Set<Integer> materiasProcesadas = new HashSet<>(); // Almacena los órdenes de materias ya procesadas
-//        boolean checkCorrelativas = true;
-//        for (NotaMateriaDTO nota : notasOrigen) {
-//            nota.setNotaFinal(definirNotaFinal(nota));
-//            int ordenMateria = nota.getMateriaOrden(); // Suponiendo que hay un campo que indica el orden de la materia
-//            if (materiasProcesadas.contains(ordenMateria)) {
-//                notasRefinadas = validadorAnalitico(notasRefinadas, nota);
-//            } else {
-//                materiasProcesadas.add(ordenMateria);
-//                notasRefinadas.add(nota);
-//            }
-//        }
-//        if (checkCorrelativas) {
-//            validarCorrelativas(notasRefinadas);
-//        }
-//        return notasRefinadas;
-//    }
-
-//
-//    @Override
-//    public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
-//        List<NotaMateriaDTO> notasOrigen = this.obtenerTodasNotasPorLegajo(legajoId,"");
-//        Map<Integer, NotaMateriaDTO> materiasMap = new HashMap<>();
-//        boolean checkCorrelativas = true;
-//        for (NotaMateriaDTO nota : notasOrigen) {
-//            nota.setNotaFinal(definirNotaFinal(nota));
-//            int ordenMateria = nota.getMateriaOrden();
-//            if (materiasMap.containsKey(ordenMateria)) {
-//                NotaMateriaDTO mejorNota = validadorAnalitico(materiasMap.get(ordenMateria), nota);
-//                materiasMap.put(ordenMateria, mejorNota);
-//            } else {
-//                materiasMap.put(ordenMateria, nota);
-//            }
-//        }
-//
-//        List<NotaMateriaDTO> notasRefinadas = new ArrayList<>(materiasMap.values());
-//
-//        if (checkCorrelativas) {
-//            validarCorrelativas(notasRefinadas);
-//        }
-//
-//        return notasRefinadas;
-//    }
 
     @Override
     public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoAnalitico(String legajoId) {
@@ -684,36 +604,24 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
                 log.warn("Bloqueada por correlativas. Materia: {} - Pendientes: {}",
                         obj.getMateriaNombre(), veredicto.desaprobadas());
             }
-
-
-
             if (obj.getNotaEstado() == EstadoNota.CURSANDO) {
                 obj.setNotaCalificacionNumero("Cur");
             }
-
             if (obj.getNotaEstado() == EstadoNota.REGULAR) {
                 obj.setNotaCalificacionNumero("Reg");
             }
-
             if (obj.getNotaEstado() == EstadoNota.LIBRE) {
                 obj.setNotaCalificacionNumero("Lib");
             }
-
             if (obj.getNotaEstado() == EstadoNota.DESAPROBADO) {
                 obj.setNotaCalificacionNumero("Des");
             }
-
             if (obj.getNotaEstado() == EstadoNota.PENDIENTE) {
                 obj.setNotaCalificacionNumero("Pend");
             }
-
-
-
         }
         return notasRefinadas;
     }
-
-
 
     private String definirNotaFinal(NotaMateriaDTO nota) {
         Set<EstadoNota> desaprobados = Set.of(
@@ -749,30 +657,23 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
         }
     }
 
-
     public boolean buscarClaveAnalitico(List<NotaMateriaDTO> analitico, NotaMateriaDTO materia) {
         return analitico.stream()
                 .anyMatch(xd -> Objects.equals(xd.getMateriaNombre(), materia.getMateriaNombre()));
     }
 
-
     public NotaMateriaDTO validadorAnalitico(NotaMateriaDTO nota1, NotaMateriaDTO nota2) {
         if (nota1 == null || nota2 == null) {
             throw new IllegalArgumentException("Las notas no pueden ser nulas");
         }
-
-        // NORMALIZAMOS ANTES DE TODO
         String cond1 = normalizarEstado(nota1.getNotaEstado());
         String cond2 = normalizarEstado(nota2.getNotaEstado());
         System.out.println("Estado recibido cond1: " + cond1);
         System.out.println("Estado recibido cond2: " + cond2);
-
-        // VALIDAMOS
         if (!esEstadoValido(cond1) || !esEstadoValido(cond2)) {
             throw new IllegalArgumentException("Estado de la nota no válido");
         }
 
-        // PRIORIDADES
         int prioridad1 = obtenerPrioridad(cond1);
         int prioridad2 = obtenerPrioridad(cond2);
 
@@ -802,13 +703,6 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
             case PENDIENTE -> "Pendiente";
         };
     }
-
-    // Método para validar si el estado es uno de los valores esperados
-//    private boolean esEstadoValido(String estado) {
-//        return estado.equals("Aprobado") || estado.equals("Regular") || estado.equals("Cursando") ||
-//               estado.equals("Desaprobado") || estado.equals("Ausente") || estado.equals("Pendiente") || estado.equals("Libre");
-//    }
-
 
     private boolean esEstadoValido(String estado) {
         return estado.equals("Aprobado") ||
