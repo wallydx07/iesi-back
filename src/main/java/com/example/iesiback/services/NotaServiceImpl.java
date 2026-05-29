@@ -762,7 +762,7 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
             EstadoCondicion notaCondicion
     ) {
 
-        List<Object[]> rows = notaRepository.findExamenesRaw(cursadaExamenId, examenInscripto, notaCondicion);
+        List<Object[]> rows = notaRepository.findExamenesRaw(cursadaExamenId, examenInscripto, notaCondicion.name());
 
         List<NotaExamenDTO> lista = new ArrayList<>();
 

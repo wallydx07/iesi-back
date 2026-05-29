@@ -396,7 +396,7 @@ ORDER BY p.personaApellido, p.personaNombre
     List<Object[]> findExamenesRaw(
             @Param("cursadaExamenId") Long cursadaExamenId,
             @Param("examenInscripto") boolean examenInscripto,
-            @Param("notaCondicion") EstadoCondicion notaCondicion
+            @Param("notaCondicion") String notaCondicion
     );
     long countByCursadaId(Integer cursada_id);
 
