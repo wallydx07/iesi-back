@@ -82,11 +82,9 @@ public class PagoController {
     public ResponseEntity<?> validarPagosPorTramite(
             @PathVariable Integer tramiteId
     ) {
-
         pagoService.actualizarEstadoValidacionPorTramite(
                 tramiteId
         );
-
         return ResponseEntity.ok(
                 "Pagos validados correctamente"
         );
