@@ -70,4 +70,6 @@ public interface CertificadoService {
     PDDocument generarReporteAcademicoPDF(String legajoId);
 
     PDDocument generarReciboPago(Integer pagoId);
+
+    PDDocument generarRendicionTurno(LocalDate fecha);
 }

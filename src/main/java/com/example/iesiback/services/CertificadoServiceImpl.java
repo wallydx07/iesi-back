@@ -8,9 +8,11 @@ import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.repositories.HtmlService;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
+import com.example.iesiback.utils.PdfFonts;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.lowagie.text.pdf.BaseFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.apache.pdfbox.io.IOUtils;
@@ -56,7 +58,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
-import static com.example.iesiback.enums.EstadoPago.*;
+import static com.example.iesiback.services.LegajoServiceImpl.log;
 
 @Service
 public class CertificadoServiceImpl implements CertificadoService {
@@ -7822,424 +7824,685 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
     }
 
 
-
-
-    @Override
-    public PDDocument generaTroquelNotaIngresante(Integer atencionId) {
-        Tramite atencion = this.tramiteService.findById(atencionId)
-                .orElseThrow(() ->
-                        new RuntimeException("No se encontró la atención con id: " + atencionId)
-                );
-        double nuevoProm = 0;
-        int contProm = 0;
-        PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
-        PDDocument Documento = new PDDocument();
-        try {
-            int n = -10;//distancia entre lineas
-            int letra = 11;//Tamaño de letras
-            PDType1Font normal = PDType1Font.HELVETICA;
-            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
-            //Creando documento nuevo
-            PDPage Pagina = new PDPage(PDRectangle.A4);
-            Documento.addPage(Pagina);
-            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
-            if (iesc1I == null) {
-                System.out.println("readFilesInBytes: File " + "file" + " does not exist");
-            }
-            byte[] ba = IOUtils.toByteArray(iesc1I);
-            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");
-            PDPageContentStream contenido = new PDPageContentStream(Documento, Pagina);
-            int fontSize = 8; // Tamaño de la fuente
-            contenido.setFont(normal, fontSize);
-            float pageHeight = PDRectangle.A4.getHeight();
-            float pageWidth = PDRectangle.A4.getWidth();
-            String[] lines = {
-                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
-                    "“CAMPINTA GUAZU GLORIA PEREZ”",
-                    "Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15",
-                    "Bahia Blanca Nº 235 Bº Kennedy – Tel.N°(0388)-3428370)",
-                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina",
-                    "________________________________________________________________________________________________________________________"
-            };
-            n = -10;
-            contenido.beginText();
-            float iStart = 820;
-            contenido.newLineAtOffset(0, iStart);
-            for (String line : lines) {
-                float textWidth = normal.getStringWidth(line) / 1000 * fontSize;
-                float xStart = (pageWidth - textWidth) / 2;
-                contenido.newLineAtOffset(xStart, 0);
-                contenido.showText(line);
-                contenido.newLineAtOffset(-xStart, n);
-            }
-            contenido.endText();
+//
+//
+//    @Override
+//    public PDDocument generaTroquelNotaIngresante(Integer atencionId) {
+//        Tramite atencion = this.tramiteService.findById(atencionId)
+//                .orElseThrow(() ->
+//                        new RuntimeException("No se encontró la atención con id: " + atencionId)
+//                );
+//        double nuevoProm = 0;
+//        int contProm = 0;
+//        PDImageXObject Iesc1, Iesc2, casilla0, casilla1;
+//        PDDocument Documento = new PDDocument();
+//        try {
+//            int n = -10;//distancia entre lineas
+//            int letra = 11;//Tamaño de letras
+//            PDType1Font normal = PDType1Font.HELVETICA;
+//            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+//            //Creando documento nuevo
+//            PDPage Pagina = new PDPage(PDRectangle.A4);
+//            Documento.addPage(Pagina);
+//            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+//            if (iesc1I == null) {
+//                System.out.println("readFilesInBytes: File " + "file" + " does not exist");
+//            }
+//            byte[] ba = IOUtils.toByteArray(iesc1I);
+//            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");
+//            PDPageContentStream contenido = new PDPageContentStream(Documento, Pagina);
+//            int fontSize = 8; // Tamaño de la fuente
+//            contenido.setFont(normal, fontSize);
+//            float pageHeight = PDRectangle.A4.getHeight();
+//            float pageWidth = PDRectangle.A4.getWidth();
+//            String[] lines = {
+//                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
+//                    "“CAMPINTA GUAZU GLORIA PEREZ”",
+//                    "Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15",
+//                    "Bahia Blanca Nº 235 Bº Kennedy – Tel.N°(0388)-3428370)",
+//                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina",
+//                    "________________________________________________________________________________________________________________________"
+//            };
+//            n = -10;
+//            contenido.beginText();
+//            float iStart = 820;
+//            contenido.newLineAtOffset(0, iStart);
+//            for (String line : lines) {
+//                float textWidth = normal.getStringWidth(line) / 1000 * fontSize;
+//                float xStart = (pageWidth - textWidth) / 2;
+//                contenido.newLineAtOffset(xStart, 0);
+//                contenido.showText(line);
+//                contenido.newLineAtOffset(-xStart, n);
+//            }
+//            contenido.endText();
+////            contenido.close();
+//            String aporteSumas = "";
+//            //imagen del encavezado izquierda
+//            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+//            PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
+//            PDesc1.drawImage(Iesc1, 30, 770, 65, 60);//Draw an image at the x,y coordinates, with the given size.
+//            PDesc1.close();
+//            //===================================================================
+////Justificar texto
+//            int margin = 30;
+//            float longitud = 500;//longitud permitida para justificar
+//            PDPageContentStream cuadro = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+//            PDRectangle mediabox = Pagina.getMediaBox();
+//            float width = mediabox.getWidth() - 4 * margin;
+//            float X = mediabox.getLowerLeftX() + margin;
+//            float Y = mediabox.getUpperRightY() - margin;
+//            List<String> lineas = new ArrayList<String>();
+//
+//            // starting y position is whole page height subtracted by top and bottom margin
+//            float yStartNewPage = Pagina.getMediaBox().getHeight() - (2 * margin);
+//            // we want table across whole page width (subtracted by left and right margin ofcourse)
+//            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+//            boolean drawContent = true;
+//            float yStart =Pagina.getMediaBox().getHeight()-90;
+//            float bottomMargin = 70;
+//            float auxmargin = 30;
+//            ////================================
+//            int tan = 10;
+//
+//            contenido.beginText();
+//            contenido.newLineAtOffset(margin, yStart);
+//            contenido.setFont(negrita, 15);
+//            contenido.showText(atencion.getTramiteTipo()+" N°: "+atencion.getNumeroTipo());
+//            contenido.endText();
 //            contenido.close();
-            String aporteSumas = "";
-            //imagen del encavezado izquierda
-            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
-            PDesc1.moveTo(200, 100); //image.drawImage(img, 55, 0);//Draw an image at the x,y coordinates, with the default size of the image.
-            PDesc1.drawImage(Iesc1, 30, 770, 65, 60);//Draw an image at the x,y coordinates, with the given size.
-            PDesc1.close();
-            //===================================================================
-//Justificar texto
-            int margin = 30;
-            float longitud = 500;//longitud permitida para justificar
-            PDPageContentStream cuadro = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
-            PDRectangle mediabox = Pagina.getMediaBox();
-            float width = mediabox.getWidth() - 4 * margin;
-            float X = mediabox.getLowerLeftX() + margin;
-            float Y = mediabox.getUpperRightY() - margin;
-            List<String> lineas = new ArrayList<String>();
-
-            // starting y position is whole page height subtracted by top and bottom margin
-            float yStartNewPage = Pagina.getMediaBox().getHeight() - (2 * margin);
-            // we want table across whole page width (subtracted by left and right margin ofcourse)
-            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
-            boolean drawContent = true;
-            float yStart =Pagina.getMediaBox().getHeight()-90;
-            float bottomMargin = 70;
-            float auxmargin = 30;
-            ////================================
-            int tan = 10;
-
-            contenido.beginText();
-            contenido.newLineAtOffset(margin, yStart);
-            contenido.setFont(negrita, 15);
-            contenido.showText(atencion.getTramiteTipo()+" N°: "+atencion.getNumeroTipo());
-            contenido.endText();
-            contenido.close();
-
-
-            yStart -=10;
-            Float H=0f;
-
-            BaseTable TablaF0 = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.setFont(PDType1Font.HELVETICA, 20);
-            cuadro.newLineAtOffset(0, 800);//X=40
-            Row<PDPage> l0 = TablaF0.createRow(10);
-
-            Cell<PDPage> cell0 = l0.createCell(15, "Tramite: "+atencion.getId());
-            cell0.setAlign(HorizontalAlignment.LEFT);
-            cell0.setValign(VerticalAlignment.MIDDLE);
-            cell0.setFontSize(tan);
-            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-
-            //cellL1.setBorderStyle(null);
-            cell0 = l0.createCell(30, "Cod Seguimiento: "+atencion.getCodigoSeguimiento());
-            cell0.setAlign(HorizontalAlignment.LEFT);
-            cell0.setValign(VerticalAlignment.MIDDLE);
-            cell0.setFontSize(tan);
-            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            cell0 = l0.createCell(30,  atencion.getTramiteFechaFormateada());
-            cell0.setAlign(HorizontalAlignment.LEFT);
-            cell0.setValign(VerticalAlignment.MIDDLE);
-            cell0.setFontSize(tan);
-            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            cell0 = l0.createCell(25, "Prioridad: "+atencion.getTramitePrioridad());
-            cell0.setAlign(HorizontalAlignment.LEFT);
-            cell0.setValign(VerticalAlignment.MIDDLE);
-            cell0.setFontSize(tan);
-            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            cuadro.endText();
-            TablaF0.draw();
-            H=H+TablaF0.getHeaderAndDataHeight();
-
-            BaseTable tablel1 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.setFont(PDType1Font.HELVETICA, 20);
-            cuadro.newLineAtOffset(0, 800);//X=40
-            Row<PDPage> l1 = tablel1.createRow(10);
-            Cell<PDPage> cellL1 = l1.createCell(50, "Remitente:" + atencion.getTramiteApellidoNombre());
-            cellL1.setAlign(HorizontalAlignment.LEFT);
-            cellL1.setValign(VerticalAlignment.MIDDLE);
-            cellL1.setFontSize(tan);
-            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-
-            //cellL1.setBorderStyle(null);
-            cellL1 = l1.createCell(20, "Celular: " + atencion.getTramiteCelular());
-            cellL1.setAlign(HorizontalAlignment.CENTER);
-            cellL1.setValign(VerticalAlignment.MIDDLE);
-            cellL1.setFontSize(tan);
-            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            cellL1 = l1.createCell(30, "Destino: " + atencion.getTramiteDestino());
-            cellL1.setAlign(HorizontalAlignment.LEFT);
-            cellL1.setValign(VerticalAlignment.MIDDLE);
-            cellL1.setFontSize(tan);
-            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cuadro.endText();
-            tablel1.draw();
-            H=H+tablel1.getHeaderAndDataHeight();
-
-            BaseTable tablel6 = new BaseTable(yStart -H , yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.newLineAtOffset(0, 800);//X=40
-
-            String asunto=atencion.getTramiteAsunto();
-
-            if(atencion.getTramiteAsunto().equals("Certificado Estudiante")) {
-                Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(atencion.getLegajoId());
-                    String carr = carrera.getCarreraNombre();
-                    String cohorte = carrera.getCarreraYear().toString();
-
-                    asunto = asunto+ "| Carrera: "+carrera.getCarreraNombre();
-                }
-
-
-
-
-
-            Row<PDPage> l6 = tablel6.createRow(20);
-            Cell<PDPage> cellL6 = l6.createCell(90, "Asunto: " + asunto);
-            cellL6.setAlign(HorizontalAlignment.LEFT);
-            cellL6.setValign(VerticalAlignment.MIDDLE);
-            cellL6.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL6.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL6.setFontSize(tan);
-            cellL6 = l6.createCell(
-                    10,
-                    "Folios: " + (atencion.getTramiteFolios() == null ? "" : atencion.getTramiteFolios())
-            );
-
-            cellL6.setAlign(HorizontalAlignment.LEFT);
-            cellL6.setValign(VerticalAlignment.MIDDLE);
-            cellL6.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL6.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL6.setFontSize(tan);
-            cuadro.endText();
-            tablel6.draw();
-            H=H+tablel6.getHeaderAndDataHeight();
-            Float altQr=H;
-
-            BaseTable tablel2 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.newLineAtOffset(0, 800);//X=40
-            Row<PDPage> l2 = tablel2.createRow(10);
-
-            String problema = atencion.getTramiteProblema();
-            if (problema != null) {
-                problema = problema.replaceAll("\\r?\\n", " ").trim();
-            }
-
-
-            if(atencion.getTramiteAsunto().equals("Certificado Estudiante")) {
-                List<CertificadoEstudiante> listaCer = atencion.getCertificados();
-                String tiposCertificados;
-                if (listaCer == null || listaCer.isEmpty()) {
-                    tiposCertificados = "Sin solicitados.";
-                } else {
-                    tiposCertificados = listaCer.stream()
-                            .map(CertificadoEstudiante::getTipo) // adaptalo si tiene otro nombre el método
-                            .distinct()
-            .collect(Collectors.joining(" | "));
-                    problema = tiposCertificados;
-                }
-            }
-
-            Cell<PDPage> cellL2 = l2.createCell(80, "Solicitud: " + problema);//100
-            cellL2.setAlign(HorizontalAlignment.LEFT);
-            cellL2.setValign(VerticalAlignment.MIDDLE);
-            cellL2.setFontSize(tan);
-            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            cellL2.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL2.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-
-            // cellL2.setBorderStyle(null);
 //
-//            cellL2 = l2.createCell(10, "DNI:"+"legajo.getLegajoFotocopiaDni()");
+//
+//            yStart -=10;
+//            Float H=0f;
+//
+//            BaseTable TablaF0 = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.setFont(PDType1Font.HELVETICA, 20);
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//            Row<PDPage> l0 = TablaF0.createRow(10);
+//
+//            Cell<PDPage> cell0 = l0.createCell(15, "Tramite: "+atencion.getId());
+//            cell0.setAlign(HorizontalAlignment.LEFT);
+//            cell0.setValign(VerticalAlignment.MIDDLE);
+//            cell0.setFontSize(tan);
+//            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//
+//            //cellL1.setBorderStyle(null);
+//            cell0 = l0.createCell(30, "Cod Seguimiento: "+atencion.getCodigoSeguimiento());
+//            cell0.setAlign(HorizontalAlignment.LEFT);
+//            cell0.setValign(VerticalAlignment.MIDDLE);
+//            cell0.setFontSize(tan);
+//            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            cell0 = l0.createCell(30,  atencion.getTramiteFechaFormateada());
+//            cell0.setAlign(HorizontalAlignment.LEFT);
+//            cell0.setValign(VerticalAlignment.MIDDLE);
+//            cell0.setFontSize(tan);
+//            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            cell0 = l0.createCell(25, "Prioridad: "+atencion.getTramitePrioridad());
+//            cell0.setAlign(HorizontalAlignment.LEFT);
+//            cell0.setValign(VerticalAlignment.MIDDLE);
+//            cell0.setFontSize(tan);
+//            cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            cuadro.endText();
+//            TablaF0.draw();
+//            H=H+TablaF0.getHeaderAndDataHeight();
+//
+//            BaseTable tablel1 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.setFont(PDType1Font.HELVETICA, 20);
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//            Row<PDPage> l1 = tablel1.createRow(10);
+//            Cell<PDPage> cellL1 = l1.createCell(50, "Remitente:" + atencion.getTramiteApellidoNombre());
+//            cellL1.setAlign(HorizontalAlignment.LEFT);
+//            cellL1.setValign(VerticalAlignment.MIDDLE);
+//            cellL1.setFontSize(tan);
+//            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//
+//            //cellL1.setBorderStyle(null);
+//            cellL1 = l1.createCell(20, "Celular: " + atencion.getTramiteCelular());
+//            cellL1.setAlign(HorizontalAlignment.CENTER);
+//            cellL1.setValign(VerticalAlignment.MIDDLE);
+//            cellL1.setFontSize(tan);
+//            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            cellL1 = l1.createCell(30, "Destino: " + atencion.getTramiteDestino());
+//            cellL1.setAlign(HorizontalAlignment.LEFT);
+//            cellL1.setValign(VerticalAlignment.MIDDLE);
+//            cellL1.setFontSize(tan);
+//            cellL1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL1.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cuadro.endText();
+//            tablel1.draw();
+//            H=H+tablel1.getHeaderAndDataHeight();
+//
+//            BaseTable tablel6 = new BaseTable(yStart -H , yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//
+//            String asunto=atencion.getTramiteAsunto();
+//
+//            if(atencion.getTramiteAsunto().equals("Certificado Estudiante")) {
+//                Carrera carrera = this.carreraService.obtenerCarreraPorLegajoId(atencion.getLegajoId());
+//                    String carr = carrera.getCarreraNombre();
+//                    String cohorte = carrera.getCarreraYear().toString();
+//
+//                    asunto = asunto+ "| Carrera: "+carrera.getCarreraNombre();
+//                }
+//
+//
+//
+//
+//
+//            Row<PDPage> l6 = tablel6.createRow(20);
+//            Cell<PDPage> cellL6 = l6.createCell(90, "Asunto: " + asunto);
+//            cellL6.setAlign(HorizontalAlignment.LEFT);
+//            cellL6.setValign(VerticalAlignment.MIDDLE);
+//            cellL6.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL6.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL6.setFontSize(tan);
+//            cellL6 = l6.createCell(
+//                    10,
+//                    "Folios: " + (atencion.getTramiteFolios() == null ? "" : atencion.getTramiteFolios())
+//            );
+//
+//            cellL6.setAlign(HorizontalAlignment.LEFT);
+//            cellL6.setValign(VerticalAlignment.MIDDLE);
+//            cellL6.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL6.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL6.setFontSize(tan);
+//            cuadro.endText();
+//            tablel6.draw();
+//            H=H+tablel6.getHeaderAndDataHeight();
+//            Float altQr=H;
+//
+//            BaseTable tablel2 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//            Row<PDPage> l2 = tablel2.createRow(10);
+//
+//            String problema = atencion.getTramiteProblema();
+//            if (problema != null) {
+//                problema = problema.replaceAll("\\r?\\n", " ").trim();
+//            }
+//
+//
+//            if(atencion.getTramiteAsunto().equals("Certificado Estudiante")) {
+//                List<CertificadoEstudiante> listaCer = atencion.getCertificados();
+//                String tiposCertificados;
+//                if (listaCer == null || listaCer.isEmpty()) {
+//                    tiposCertificados = "Sin solicitados.";
+//                } else {
+//                    tiposCertificados = listaCer.stream()
+//                            .map(CertificadoEstudiante::getTipo) // adaptalo si tiene otro nombre el método
+//                            .distinct()
+//            .collect(Collectors.joining(" | "));
+//                    problema = tiposCertificados;
+//                }
+//            }
+//
+//            Cell<PDPage> cellL2 = l2.createCell(80, "Solicitud: " + problema);//100
 //            cellL2.setAlign(HorizontalAlignment.LEFT);
 //            cellL2.setValign(VerticalAlignment.MIDDLE);
 //            cellL2.setFontSize(tan);
 //            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
 //            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            //  cellL2.setBorderStyle(null);
 //
-//            cellL2 = l2.createCell(10, "Nac:"+"legajo.getLegajoCertificadoNacimiento()");
-//            cellL2.setAlign(HorizontalAlignment.LEFT);
-//            cellL2.setValign(VerticalAlignment.MIDDLE);
-//            cellL2.setFontSize(tan);
-//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            //  cellL2.setBorderStyle(null);
+//            cellL2.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL2.setBottomBorderStyle(new LineStyle(Color.WHITE, 0f));
 //
-//            cellL2 = l2.createCell(25, "Tit:"+"legajo.getLegajoFotocopiaTitulo()");
-//            cellL2.setAlign(HorizontalAlignment.LEFT);
-//            cellL2.setValign(VerticalAlignment.MIDDLE);
-//            cellL2.setFontSize(tan);
-//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            //  cellL2.setBorderStyle(null);
+//            cuadro.endText();
+//            tablel2.draw();
+//            H=H+tablel2.getHeaderAndDataHeight();
+//            BaseTable tablel3 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//            Row<PDPage> l3 = tablel3.createRow(10);
+//            Cell<PDPage> cellL3 = l3.createCell(50, "Recepcionado por: "+atencion.getTramiteUsuario());//70
+//            cellL3.setAlign(HorizontalAlignment.LEFT);
+//            cellL3.setValign(VerticalAlignment.MIDDLE);
+//            cellL3.setFontSize(tan);
+//            cellL3.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL3.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            // cellL3.setBorderStyle(null);
+//            cellL3 = l3.createCell(35, "Enviar a: ");
+//            cellL3.setAlign(HorizontalAlignment.LEFT);
+//            cellL3.setValign(VerticalAlignment.MIDDLE);
+//            cellL3.setFontSize(tan);
+//            cellL3.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL3.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            //cellL3.setBorderStyle(null);
+//            cuadro.endText();
+//            tablel3.draw();
+//            H=H+tablel3.getHeaderAndDataHeight();
 //
-//            cellL2 = l2.createCell(10, "Sal:"+"legajo.getLegajoCarnetSanitario()");
-//            cellL2.setAlign(HorizontalAlignment.LEFT);
-//            cellL2.setValign(VerticalAlignment.MIDDLE);
-//            cellL2.setFontSize(tan);
-//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            //  cellL2.setBorderStyle(null);
+//            BaseTable tablel4 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//            Row<PDPage> l4 = tablel4.createRow(20);
+//            Cell<PDPage> cellL4 = l4.createCell(85, "Observaciones"+atencion.getTramiteObservaciones());//100
+//            cellL4.setAlign(HorizontalAlignment.LEFT);
+//            cellL4.setValign(VerticalAlignment.MIDDLE);
+//            cellL4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL4.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL4.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL4.setFontSize(tan);
+//            cuadro.endText();
+//            tablel4.draw();
+//            H=H+tablel4.getHeaderAndDataHeight();
 //
-//            cellL2 = l2.createCell(15, "Fotos:"+"legajo.getLegajoFoto()");
-//            cellL2.setAlign(HorizontalAlignment.LEFT);
-//            cellL2.setValign(VerticalAlignment.MIDDLE);
-//            cellL2.setFontSize(tan);
-//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            //  cellL2.setBorderStyle(null);
+//            BaseTable tablel5 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+//            cuadro.beginText();
+//            cuadro.newLineAtOffset(0, 800);//X=40
+//            Row<PDPage> l5 = tablel5.createRow(30);
+//            Cell<PDPage> cellL5 = l5.createCell(40, "Firma Retira tramite: ");//100
+//            cellL5.setAlign(HorizontalAlignment.LEFT);
+//            cellL5.setValign(VerticalAlignment.TOP);
+//            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setFontSize(7);
 //
-//            cellL2 = l2.createCell(20, "Inscripcion:"+aporteSumas);
-//            cellL2.setAlign(HorizontalAlignment.LEFT);
-//            cellL2.setValign(VerticalAlignment.MIDDLE);
-//            cellL2.setFontSize(tan);
-//            cellL2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            cellL2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-//            //  cellL2.setBorderStyle(null);
-
-
-            cuadro.endText();
-            tablel2.draw();
-            H=H+tablel2.getHeaderAndDataHeight();
-            BaseTable tablel3 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.newLineAtOffset(0, 800);//X=40
-            Row<PDPage> l3 = tablel3.createRow(10);
-            Cell<PDPage> cellL3 = l3.createCell(50, "Recepcionado por: "+atencion.getTramiteUsuario());//70
-            cellL3.setAlign(HorizontalAlignment.LEFT);
-            cellL3.setValign(VerticalAlignment.MIDDLE);
-            cellL3.setFontSize(tan);
-            cellL3.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL3.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            // cellL3.setBorderStyle(null);
-            cellL3 = l3.createCell(35, "Enviar a: ");
-            cellL3.setAlign(HorizontalAlignment.LEFT);
-            cellL3.setValign(VerticalAlignment.MIDDLE);
-            cellL3.setFontSize(tan);
-            cellL3.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL3.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            //cellL3.setBorderStyle(null);
-            cuadro.endText();
-            tablel3.draw();
-            H=H+tablel3.getHeaderAndDataHeight();
-
-            BaseTable tablel4 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.newLineAtOffset(0, 800);//X=40
-            Row<PDPage> l4 = tablel4.createRow(20);
-            Cell<PDPage> cellL4 = l4.createCell(85, "Observaciones"+atencion.getTramiteObservaciones());//100
-            cellL4.setAlign(HorizontalAlignment.LEFT);
-            cellL4.setValign(VerticalAlignment.MIDDLE);
-            cellL4.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL4.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL4.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL4.setFontSize(tan);
-            cuadro.endText();
-            tablel4.draw();
-            H=H+tablel4.getHeaderAndDataHeight();
-
-            BaseTable tablel5 = new BaseTable(yStart - H, yStartNewPage, bottomMargin, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
-            cuadro.beginText();
-            cuadro.newLineAtOffset(0, 800);//X=40
-            Row<PDPage> l5 = tablel5.createRow(30);
-            Cell<PDPage> cellL5 = l5.createCell(40, "Firma Retira tramite: ");//100
-            cellL5.setAlign(HorizontalAlignment.LEFT);
-            cellL5.setValign(VerticalAlignment.TOP);
-            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setFontSize(7);
-
-            cellL5 = l5.createCell(30, "Aclaracion: ");
-            cellL5.setAlign(HorizontalAlignment.LEFT);
-            cellL5.setValign(VerticalAlignment.TOP);
-            cellL5.setFontSize(7);
-            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-
-
-            cellL5 = l5.createCell(15, "Fecha: ");
-            cellL5.setAlign(HorizontalAlignment.LEFT);
-            cellL5.setValign(VerticalAlignment.TOP);
-            cellL5.setFontSize(7);
-            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-
-            cellL5 = l5.createCell(15, "El trámite podrá ser seguido escaneando el código QR.");
-            cellL5.setAlign(HorizontalAlignment.CENTER);
-            cellL5.setValign(VerticalAlignment.BOTTOM);
-            cellL5.setFontSize(5);
-            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cuadro.endText();
-            tablel5.draw();
-            H=H+tablel5.getHeaderAndDataHeight();
-            cuadro.close();
+//            cellL5 = l5.createCell(30, "Aclaracion: ");
+//            cellL5.setAlign(HorizontalAlignment.LEFT);
+//            cellL5.setValign(VerticalAlignment.TOP);
+//            cellL5.setFontSize(7);
+//            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
 //
-//            BufferedImage qrImage = generarQRImagen("http://localhost:4200/seguimientoTramite/"+atencion.getCodigoSeguimiento());
-//            PDImageXObject pdImage = LosslessFactory.createFromImage(Documento, qrImage);
+//
+//
+//            cellL5 = l5.createCell(15, "Fecha: ");
+//            cellL5.setAlign(HorizontalAlignment.LEFT);
+//            cellL5.setValign(VerticalAlignment.TOP);
+//            cellL5.setFontSize(7);
+//            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//
+//            cellL5 = l5.createCell(15, "El trámite podrá ser seguido escaneando el código QR.");
+//            cellL5.setAlign(HorizontalAlignment.CENTER);
+//            cellL5.setValign(VerticalAlignment.BOTTOM);
+//            cellL5.setFontSize(5);
+//            cellL5.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cellL5.setTopBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            cuadro.endText();
+//            tablel5.draw();
+//            H=H+tablel5.getHeaderAndDataHeight();
+//            cuadro.close();
+//            cuadro.close();
+//            BufferedImage qrImage = generarQRImagen(
+//                    "https://gestionacademica.iesijujuy.edu.ar/seguimientoTramite/" +
+//                            atencion.getCodigoSeguimiento()
+//            );
+//            PDImageXObject pdImage =
+//                    LosslessFactory.createFromImage(Documento, qrImage);
+//
 //            PDPageContentStream contentStream =
-//                    new PDPageContentStream(Documento, Pagina);
-//            contentStream.drawImage(pdImage, 50, 500, 150, 150);
+//                    new PDPageContentStream(
+//                            Documento,
+//                            Pagina,
+//                            PDPageContentStream.AppendMode.APPEND,
+//                            true,
+//                            true
+//                    );
+//
+//            contentStream.drawImage(pdImage, 495, 670-altQr, 65, 65);
 //            contentStream.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//        return Documento;
+//    }
 
+private String limpiarPdf(String texto) {
+    if (texto == null) {
+        return "";
+    }
 
-            cuadro.close(); // 👈 PRIMERO cerrar el stream anterior
+    return texto
+            .replace("\r\n", " ")
+            .replace("\n", " ")
+            .replace("\r", " ")
+            .replace("\t", " ")
+            .replaceAll("\\p{Cntrl}", " ")
+            .replaceAll("\\s+", " ")
+            .trim();
+}
+@Override
+public PDDocument generaTroquelNotaIngresante(Integer atencionId) {
 
-            BufferedImage qrImage = generarQRImagen(
-                    "https://gestionacademica.iesijujuy.edu.ar/seguimientoTramite/" +
-                            atencion.getCodigoSeguimiento()
-            );
+    Tramite t = tramiteService.findById(atencionId)
+            .orElseThrow(() -> new RuntimeException(
+                    "No se encontró la atención con id: " + atencionId));
 
-            PDImageXObject pdImage =
-                    LosslessFactory.createFromImage(Documento, qrImage);
+    PDDocument doc = new PDDocument();
 
-            PDPageContentStream contentStream =
-                    new PDPageContentStream(
-                            Documento,
-                            Pagina,
-                            PDPageContentStream.AppendMode.APPEND,
-                            true,
-                            true
-                    );
+    try {
+        PDPage pagina = new PDPage(PDRectangle.A4);
+        doc.addPage(pagina);
 
-            contentStream.drawImage(pdImage, 495, 670-altQr, 65, 65);
-            contentStream.close();
+        PDType0Font normal = PdfFonts.normal(doc);
+        PDType0Font negrita = PdfFonts.bold(doc);
+        PDType0Font symbols = PdfFonts.bold(doc);
+        byte[] logoBytes = IOUtils.toByteArray(
+                getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png"));
+        PDImageXObject logo = PDImageXObject.createFromByteArray(doc, logoBytes, "logo.png");
 
+        float pageW  = PDRectangle.A4.getWidth();   // 595
+        float pageH  = PDRectangle.A4.getHeight();  // 842
 
+        // ── Layout: la página se divide en dos bandas ─────────────────────────
+        //   banda superior  = troquel institucional  (y: 421..842)
+        //   banda inferior  = comprobante alumno     (y:   0..421)
+        //   separador ✂ en y = 421
+        float mitad = pageH / 2f;  // 421
 
+        int   margen     = 30;
+        float tablaW     = pageW - 2f * margen;
+        int   fs         = 9;   // font size general
+        int   fsEnc      = 7;   // font size encabezado
+        LineStyle sinBorde = new LineStyle(Color.WHITE, 0f);
+        LineStyle bordeGris = new LineStyle(Color.LIGHT_GRAY, 0.5f);
 
-            //Documento.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        // ── Helpers de celda (lambdas locales) ────────────────────────────────
+        // Usamos un array[1] para poder mutar desde la lambda
+        // (Java no permite capturar variables no-efectivamente-finales)
+
+        // =====================================================================
+        //  SECCIÓN 1 — TROQUEL INSTITUCIONAL  (tercio superior: y entre 421-842)
+        // =====================================================================
+
+        float yT = pageH - margen;  // cursor Y para el troquel, empieza en 812
+
+        // — Encabezado textual centrado —
+        try (PDPageContentStream cs = new PDPageContentStream(doc, pagina)) {
+            String[] encLines = {
+                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
+                    "\u201cCAMPINTA GUAZU GLORIA PEREZ\u201d",
+                    "Incorporado a la Ense\u00f1anza Oficial - Resol. N\u00ba 2936-E-15",
+                    "Bahia Blanca N\u00ba 235 B\u00ba Kennedy - Tel.(0388)-3428370 - (C.P.4600) SAN SALVADOR DE JUJUY"
+            };
+            cs.setFont(normal, fsEnc);
+            cs.beginText();
+            cs.newLineAtOffset(0, yT);
+            for (String line : encLines) {
+                float tw   = normal.getStringWidth(line) / 1000f * fsEnc;
+                float xPos = (pageW - tw) / 2f;
+                cs.newLineAtOffset(xPos, 0);
+                cs.showText(line);
+                cs.newLineAtOffset(-xPos, -9);
+            }
+            cs.endText();
         }
-        return Documento;
+
+        // — Logo —
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true)) {
+            cs.drawImage(logo, margen, pageH - margen - 50, 50, 45);
+        }
+
+        // — Línea separadora bajo encabezado —
+        yT = pageH - margen - 55;
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true)) {
+            cs.setStrokingColor(Color.LIGHT_GRAY);
+            cs.setLineWidth(0.5f);
+            cs.moveTo(margen, yT);
+            cs.lineTo(pageW - margen, yT);
+            cs.stroke();
+        }
+
+        yT -= 5;
+
+        // — Título del trámite —
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true)) {
+            cs.setFont(negrita, 13);
+            cs.beginText();
+            cs.newLineAtOffset(margen, yT);
+            cs.showText(t.getTramiteTipo() + "  N\u00ba " + t.getNumeroTipo());
+            cs.endText();
+        }
+        yT -= 4;
+
+        // — Fila 1: id | seguimiento | fecha | prioridad —
+        float yStartNewPage = pageH - 2f * margen;
+        float bottomMargin  = mitad + 5f;  // no baja más allá de la mitad
+
+        BaseTable fila1 = new BaseTable(yT, yStartNewPage, bottomMargin,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> r1 = fila1.createRow(11);
+        celda(r1, 15, "Trámite: "    + t.getId(),                   fs, sinBorde);
+        celda(r1, 35, "Seguimiento: "+ t.getCodigoSeguimiento(),    fs, sinBorde);
+        celda(r1, 30, t.getTramiteFechaFormateada(),                 fs, sinBorde);
+        celda(r1, 20, "Prioridad: "  + t.getTramitePrioridad(),     fs, sinBorde);
+        fila1.draw();
+        yT -= fila1.getHeaderAndDataHeight();
+
+        // — Fila 2: remitente | celular | destino —
+        BaseTable fila2 = new BaseTable(yT, yStartNewPage, bottomMargin,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> r2 = fila2.createRow(11);
+        celda(r2, 50, "Remitente: " + t.getTramiteApellidoNombre(), fs, sinBorde);
+        celda(r2, 20, "Cel: "       + t.getTramiteCelular(),        fs, sinBorde);
+        celda(r2, 30, "Destino: "   + t.getTramiteDestino(),        fs, sinBorde);
+        fila2.draw();
+        yT -= fila2.getHeaderAndDataHeight();
+
+        // — Fila 3: asunto | folios —
+        String asunto = t.getTramiteAsunto();
+        if ("Certificado Estudiante".equals(asunto)) {
+            Carrera carrera = carreraService.obtenerCarreraPorLegajoId(t.getLegajoId());
+            asunto += " | " + carrera.getCarreraNombre() + " (" + carrera.getCarreraYear() + ")";
+        }
+
+        BaseTable fila3 = new BaseTable(yT, yStartNewPage, bottomMargin,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> r3 = fila3.createRow(11);
+        celda(r3, 85, "Asunto: " + asunto,                                          fs, sinBorde);
+        celda(r3, 15, "Folios: " + (t.getTramiteFolios() == null ? "-" : t.getTramiteFolios()), fs, sinBorde);
+        fila3.draw();
+        yT -= fila3.getHeaderAndDataHeight();
+
+        // — Fila 4: solicitud —
+        String solicitud = t.getTramiteProblema();
+        if ("Certificado Estudiante".equals(t.getTramiteAsunto())) {
+            List<CertificadoEstudiante> certs = t.getCertificados();
+            solicitud = (certs == null || certs.isEmpty())
+                    ? "Sin certificados solicitados."
+                    : certs.stream().map(CertificadoEstudiante::getTipo)
+                    .distinct().collect(Collectors.joining(" | "));
+        } else if (solicitud != null) {
+            solicitud = solicitud.replaceAll("\\r?\\n", " ").trim();
+        }
+
+        BaseTable fila4 = new BaseTable(yT, yStartNewPage, bottomMargin,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> r4 = fila4.createRow(11);
+        celda(r4, 100, "Solicitud: " + solicitud, fs, sinBorde);
+        fila4.draw();
+        yT -= fila4.getHeaderAndDataHeight();
+
+        // — Fila 5: recepcionado | observaciones —
+        BaseTable fila5 = new BaseTable(yT, yStartNewPage, bottomMargin,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> r5 = fila5.createRow(11);
+        celda(r5, 50, "Recepcionado por: " + t.getTramiteUsuario(),      fs, sinBorde);
+        celda(r5, 50, "Obs: " + nvl(t.getTramiteObservaciones(), "-"),   fs, sinBorde);
+        fila5.draw();
+        yT -= fila5.getHeaderAndDataHeight();
+
+        // — Fila 6: firma / aclaración / fecha / leyenda QR —
+        BaseTable fila6 = new BaseTable(yT, yStartNewPage, bottomMargin,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> r6 = fila6.createRow(28);
+        celda(r6, 38, "Firma retira trámite: ",     7, sinBorde);
+        celda(r6, 28, "Aclaración: ",               7, sinBorde);
+        celda(r6, 16, "Fecha: ",                    7, sinBorde);
+        celda(r6, 18, "Escanear QR para seguimiento", 6, sinBorde);
+        fila6.draw();
+        yT -= fila6.getHeaderAndDataHeight();
+
+        // — QR del troquel institucional —
+        BufferedImage qrImg = generarQRImagen(
+                "https://gestionacademica.iesijujuy.edu.ar/seguimientoTramite/"
+                        + t.getCodigoSeguimiento());
+        PDImageXObject pdQr = LosslessFactory.createFromImage(doc, qrImg);
+
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true, true)) {
+            cs.drawImage(pdQr, pageW - margen - 70, yT + 10, 70, 70);
+        }
+
+        // =====================================================================
+        //  SEPARADOR  ✂ - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // =====================================================================
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true)) {
+
+            // línea punteada
+            cs.setStrokingColor(Color.GRAY);
+            cs.setLineWidth(0.6f);
+            cs.setLineDashPattern(new float[]{4, 4}, 0);
+            cs.moveTo(margen, mitad);
+            cs.lineTo(pageW - margen, mitad);
+            cs.stroke();
+
+            // texto ✂
+            cs.setNonStrokingColor(Color.GRAY);
+            cs.setFont(symbols, 7);
+            cs.beginText();
+            cs.newLineAtOffset(margen, mitad + 2);
+            cs.showText("- - - - - - - - - - - COMPROBANTE PARA EL ALUMNO  - - - - - - - - - - - - - - - - - - -");
+            cs.endText();
+        }
+
+        // =====================================================================
+        //  SECCIÓN 2 — COMPROBANTE ALUMNO  (mitad inferior: y entre 0..421)
+        // =====================================================================
+
+        float yA = mitad - 12;   // cursor Y para el comprobante
+
+        // — Mini encabezado —
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true)) {
+            cs.drawImage(logo, margen, yA - 28, 30, 28);
+            cs.setFont(negrita, 8);
+            cs.beginText();
+            cs.newLineAtOffset(margen + 35, yA - 6);
+            cs.showText("IESI \u201cCampinta Guaz\u00fa Gloria P\u00e9rez\u201d  \u2014  Comprobante de Recepci\u00f3n de Tr\u00e1mite");
+            cs.endText();
+        }
+        yA -= 35;
+
+        float bottomMarginAlumno = 10f;
+
+        // — Número de trámite destacado + datos clave en una sola fila —
+        BaseTable ca1 = new BaseTable(yA, yA + 60, bottomMarginAlumno,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> ra1 = ca1.createRow(13);
+
+        // celda izquierda con borde visible para destacar el número
+        Cell<PDPage> nroCell = ra1.createCell(30,
+                t.getTramiteTipo() + " N° " + t.getNumeroTipo());
+        nroCell.setFont(negrita);
+        nroCell.setFontSize(10);
+        nroCell.setAlign(HorizontalAlignment.CENTER);
+        nroCell.setValign(VerticalAlignment.MIDDLE);
+        nroCell.setFillColor(new Color(230, 230, 230));
+        nroCell.setLeftBorderStyle(bordeGris);
+        nroCell.setRightBorderStyle(bordeGris);
+        nroCell.setTopBorderStyle(bordeGris);
+        nroCell.setBottomBorderStyle(bordeGris);
+
+        celda(ra1, 40, "Sr/a: " + t.getTramiteApellidoNombre(), fs, sinBorde);
+        celda(ra1, 30, t.getTramiteFechaFormateada(),            fs, sinBorde);
+        ca1.draw();
+        yA -= ca1.getHeaderAndDataHeight();
+
+        // — Asunto —
+        BaseTable ca2 = new BaseTable(yA, yA + 40, bottomMarginAlumno,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> ra2 = ca2.createRow(11);
+        celda(ra2, 100, "Asunto: " + asunto, fs, sinBorde);
+        ca2.draw();
+        yA -= ca2.getHeaderAndDataHeight();
+
+        // — Firma recepción —
+        BaseTable ca3 = new BaseTable(yA, yA + 35, bottomMarginAlumno,
+                tablaW, margen, doc, pagina, true, true);
+        Row<PDPage> ra3 = ca3.createRow(22);
+        celda(ra3, 55, "Firma y sello recepción: ", 7, sinBorde);
+        celda(ra3, 20, "Fecha: ",                   7, sinBorde);
+        celda(ra3, 25, "Seguí tu trámite en: gestionacademica.iesijujuy.edu.ar", 6, sinBorde);
+        ca3.draw();
+        yA -= ca3.getHeaderAndDataHeight();
+
+        // — QR comprobante alumno (más pequeño) —
+        try (PDPageContentStream cs = new PDPageContentStream(
+                doc, pagina, PDPageContentStream.AppendMode.APPEND, true, true)) {
+            cs.drawImage(pdQr, pageW - margen - 50, yA + 5, 50, 50);
+        }
+
+    } catch (Exception e) {
+        log.error("Error generando troquel atencionId={}", atencionId, e);
+        try { doc.close(); } catch (IOException ignored) {}
+        return null;
+    }
+
+    return doc;
+}
+
+    private void celda(Row<PDPage> fila, float pct, String texto, int fs, LineStyle borde) {
+
+        if (texto == null) {
+            texto = "";
+        }
+
+        texto = texto
+                .replace("\r\n", " ")
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replace("\t", " ")
+                .replaceAll("\\p{Cntrl}", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        Cell<PDPage> c = fila.createCell(pct, texto);
+        c.setAlign(HorizontalAlignment.LEFT);
+        c.setValign(VerticalAlignment.MIDDLE);
+        c.setFontSize(fs);
+
+        c.setLeftBorderStyle(borde);
+        c.setRightBorderStyle(borde);
+        c.setTopBorderStyle(borde);
+        c.setBottomBorderStyle(borde);
+    }
+    // ── Helper: null-safe string ──────────────────────────────────────────────────
+    private String nvl(String valor, String defecto) {
+        return valor == null || valor.isBlank() ? defecto : valor;
     }
 
 
@@ -9956,6 +10219,374 @@ public PDDocument generarReciboPago(Integer pagoId) {
             default        -> new Color(80, 80, 80);
         };
     }
+
+
+@Override
+public PDDocument generarRendicionTurno(LocalDate fecha) {
+        PDDocument documento = new PDDocument();
+        User user = userService.getAuthenticatedUser().get();
+
+        try {
+            ResumenRecaudacionDTO resumen =
+                    pagoService.ResumenRecaudacionDTO(fecha)
+                            .orElse(null);
+
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            documento.addPage(pagina);
+
+            PDType1Font normal  = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+            PDType1Font italica = PDType1Font.HELVETICA_OBLIQUE;
+
+            float pageW  = pagina.getMediaBox().getWidth();   // 595
+            float pageH  = pagina.getMediaBox().getHeight();  // 842
+            float margin = 35f;
+
+            // ── ENCABEZADO INSTITUCIONAL (texto directo) ──────────────────────────
+            try (PDPageContentStream cs = new PDPageContentStream(
+                    documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
+
+                // Línea azul superior
+                cs.setStrokingColor(new Color(0, 51, 102));
+                cs.setLineWidth(3f);
+                cs.moveTo(margin, pageH - 5);
+                cs.lineTo(pageW - margin, pageH - 5);
+                cs.stroke();
+
+                // Nombre institución
+                cs.beginText();
+                cs.setNonStrokingColor(new Color(0, 51, 102));
+                cs.setFont(negrita, 9f);
+                cs.newLineAtOffset(margin, pageH - 22);
+                cs.showText("INSTITUTO DE EDUCACI\u00D3N SUPERIOR INTERCULTURAL");
+                cs.endText();
+
+                cs.beginText();
+                cs.setNonStrokingColor(new Color(0, 51, 102));
+                cs.setFont(negrita, 8.5f);
+                cs.newLineAtOffset(margin, pageH - 32);
+                cs.showText("\u201CCAMPINTA GUAZ\u00DA GLORIA P\u00C9REZ\u201D");
+                cs.endText();
+
+                cs.beginText();
+                cs.setNonStrokingColor(new Color(80, 80, 80));
+                cs.setFont(normal, 7.5f);
+                cs.newLineAtOffset(margin, pageH - 42);
+                cs.showText("Incorporado a la Ense\u00F1anza Oficial \u2013 Resol. N\u00BA 2936-E-15");
+                cs.endText();
+
+                cs.beginText();
+                cs.setFont(normal, 7.5f);
+                cs.newLineAtOffset(margin, pageH - 51);
+                cs.showText("Bah\u00EDa Blanca N\u00BA 235, B\u00BA Kennedy \u2013 Tel. (0388) 3428370 \u2013 (C.P. 4600) San Salvador de Jujuy \u2013 Rep\u00FAblica Argentina");
+                cs.endText();
+
+                // Línea separadora
+                cs.setStrokingColor(new Color(180, 180, 180));
+                cs.setLineWidth(0.5f);
+                cs.moveTo(margin, pageH - 58);
+                cs.lineTo(pageW - margin, pageH - 58);
+                cs.stroke();
+
+                // Título centrado
+                String titulo = "PLANILLA DE RENDICI\u00D3N DE TURNO";
+                float tituloW = negrita.getStringWidth(titulo) / 1000 * 11f;
+                cs.beginText();
+                cs.setNonStrokingColor(new Color(20, 20, 20));
+                cs.setFont(negrita, 11f);
+                cs.newLineAtOffset((pageW - tituloW) / 2f, pageH - 76);
+                cs.showText(titulo);
+                cs.endText();
+
+                // Línea bajo título
+                cs.setStrokingColor(new Color(0, 51, 102));
+                cs.setLineWidth(1.2f);
+                cs.moveTo(margin, pageH - 82);
+                cs.lineTo(pageW - margin, pageH - 82);
+                cs.stroke();
+            }
+
+            // ── TABLA PRINCIPAL ───────────────────────────────────────────────────
+            float tableWidth   = pageW - 2 * margin;
+            float yStart       = pageH - 86f;
+            float yStartNew    = pageH - margin;
+            float bottomMargin = 80f; // espacio para firmas al pie
+
+            BaseTable tabla = new BaseTable(
+                    yStart, yStartNew, bottomMargin,
+                    tableWidth, margin, documento, pagina, true, true);
+
+            DateTimeFormatter fmtFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String fechaStr = fecha != null ? fmtFecha.format(fecha) : "\u2014";
+
+            // ── DATOS DEL TURNO ───────────────────────────────────────────────────
+
+            Row<PDPage> filaDatos = tabla.createRow(13);
+            Cell<PDPage> cOp = filaDatos.createCell(50,
+                    "Operador/a responsable: " + nvl(user.getUserApellido()+", "+user.getUserNombre()));
+            cOp.setFont(normal); cOp.setFontSize(9); sinBordes(cOp);
+
+            Cell<PDPage> cFecha = filaDatos.createCell(50, "Fecha: " + fechaStr);
+            cFecha.setFont(normal); cFecha.setFontSize(9);
+            cFecha.setAlign(HorizontalAlignment.RIGHT); sinBordes(cFecha);
+
+// ── RESUMEN GLOBAL ────────────────────────────────────────────────────────
+
+            Row<PDPage> filaResTitle = tabla.createRow(12);
+            Cell<PDPage> cRt = filaResTitle.createCell(100, "RESUMEN DEL TURNO");
+            cRt.setFont(negrita); cRt.setFontSize(8);
+            cRt.setFillColor(new Color(230, 235, 242));
+            cRt.setAlign(HorizontalAlignment.CENTER);
+
+// Fila de labels
+            Row<PDPage> filaResLabels = tabla.createRow(11);
+            String[] resLabels = {"Total operaciones", "Validados", "Pendientes", "Total recaudado"};
+            for (String lbl : resLabels) {
+                Cell<PDPage> c = filaResLabels.createCell(25f, lbl);
+                c.setFont(normal); c.setFontSize(7);
+                c.setAlign(HorizontalAlignment.CENTER);
+                c.setFillColor(new Color(244, 246, 250));
+            }
+
+// Fila de valores
+            Row<PDPage> filaResValores = tabla.createRow(13);
+            String[] resValores = {
+                    nvlInt(resumen.getTotalOperaciones()),
+                    nvlInt(resumen.getTotalValidados()),
+                    nvlInt(resumen.getTotalPendientes()),
+                    fmt(resumen.getTotalRecaudado())
+            };
+            for (int i = 0; i < resValores.length; i++) {
+                Cell<PDPage> c = filaResValores.createCell(25f, resValores[i]);
+                c.setFont(negrita); c.setFontSize(10);
+                c.setAlign(HorizontalAlignment.CENTER);
+                if (i == 3) c.setFillColor(new Color(240, 243, 248));
+            }
+            // ── RESUMEN POR CONCEPTO ──────────────────────────────────────────────
+
+            if (resumen.getPorConcepto() != null && !resumen.getPorConcepto().isEmpty()) {
+
+                Row<PDPage> filaConTitle = tabla.createRow(12);
+                Cell<PDPage> cCt = filaConTitle.createCell(100, "RECAUDACIÓN POR CONCEPTO");
+                cCt.setFont(negrita); cCt.setFontSize(8);
+                cCt.setFillColor(new Color(230, 235, 242));
+                cCt.setAlign(HorizontalAlignment.CENTER);
+
+                // Header
+                Row<PDPage> filaConH = tabla.createRow(11);
+                Cell<PDPage> chN = filaConH.createCell(75, "Concepto");
+                chN.setFont(negrita); chN.setFontSize(8);
+                chN.setFillColor(new Color(244, 246, 250));
+
+                Cell<PDPage> chT = filaConH.createCell(25, "Total");
+                chT.setFont(negrita); chT.setFontSize(8);
+                chT.setFillColor(new Color(244, 246, 250));
+                chT.setAlign(HorizontalAlignment.RIGHT);
+
+                boolean par = false;
+                for (ConceptoDTO c : resumen.getPorConcepto()) {
+                    Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
+                    par = !par;
+
+                    Row<PDPage> filaC = tabla.createRow(11);
+                    Cell<PDPage> cN = filaC.createCell(75, nvl(c.getNombre()));
+                    cN.setFont(normal); cN.setFontSize(8); cN.setFillColor(bg);
+
+                    Cell<PDPage> cT = filaC.createCell(25, fmt(c.getTotal()));
+                    cT.setFont(normal); cT.setFontSize(8);
+                    cT.setAlign(HorizontalAlignment.RIGHT); cT.setFillColor(bg);
+                }
+            }
+
+            // ── DETALLE DE RECIBOS ────────────────────────────────────────────────
+
+            if (resumen.getRecibos() != null && !resumen.getRecibos().isEmpty()) {
+
+                // Espacio
+                Row<PDPage> filaEsp = tabla.createRow(5);
+                filaEsp.createCell(100, "").setFillColor(Color.WHITE);
+
+                Row<PDPage> filaRecTitle = tabla.createRow(12);
+                Cell<PDPage> cRecT = filaRecTitle.createCell(100, "DETALLE DE RECIBOS");
+                cRecT.setFont(negrita); cRecT.setFontSize(8);
+                cRecT.setFillColor(new Color(230, 235, 242));
+                cRecT.setAlign(HorizontalAlignment.CENTER);
+
+                // Header columnas
+                Row<PDPage> filaH = tabla.createRow(11);
+                String[] headers = {"N° Recibo", "Alumno/a", "DNI", "Concepto", "Método", "Importe", "Estado"};
+                float[]  anchos  = {10f, 22f, 10f, 22f, 11f, 13f, 12f};
+
+                for (int i = 0; i < headers.length; i++) {
+                    Cell<PDPage> ch = filaH.createCell(anchos[i], headers[i]);
+                    ch.setFont(negrita); ch.setFontSize(7);
+                    ch.setFillColor(new Color(244, 246, 250));
+                    if (i >= 4) ch.setAlign(HorizontalAlignment.RIGHT);
+                }
+
+                boolean par = false;
+                for (ReciboDTO r : resumen.getRecibos()) {
+                    Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
+                    par = !par;
+
+                    String alumno = nvl(r.getAlumnoApellido()) + ", " + nvl(r.getAlumnoNombre());
+                    String estado = r.getEstado() != null ? r.getEstado().name() : "\u2014";
+
+                    Row<PDPage> filaR = tabla.createRow(10);
+
+                    Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteNroRecibo()));
+                    c1.setFont(normal); c1.setFontSize(7); c1.setFillColor(bg);
+
+                    Cell<PDPage> c2 = filaR.createCell(22f, alumno);
+                    c2.setFont(normal); c2.setFontSize(7); c2.setFillColor(bg);
+
+                    Cell<PDPage> c3 = filaR.createCell(10f, nvl(r.getAlumnoDni()));
+                    c3.setFont(normal); c3.setFontSize(7); c3.setFillColor(bg);
+
+                    Cell<PDPage> c4 = filaR.createCell(22f, nvl(r.getConcepto()));
+                    c4.setFont(normal); c4.setFontSize(7); c4.setFillColor(bg);
+
+                    Cell<PDPage> c5 = filaR.createCell(11f, nvl(r.getMetodo()));
+                    c5.setFont(normal); c5.setFontSize(7);
+                    c5.setAlign(HorizontalAlignment.RIGHT); c5.setFillColor(bg);
+
+                    Cell<PDPage> c6 = filaR.createCell(13f, fmt(r.getAporteMonto()));
+                    c6.setFont(normal); c6.setFontSize(7);
+                    c6.setAlign(HorizontalAlignment.RIGHT); c6.setFillColor(bg);
+
+                    Cell<PDPage> c7 = filaR.createCell(12f, estado);
+                    c7.setFont(normal); c7.setFontSize(7);
+                    c7.setAlign(HorizontalAlignment.RIGHT); c7.setFillColor(bg);
+                }
+
+                // Subtotal al pie de la lista
+                Row<PDPage> filaSubT = tabla.createRow(12);
+                Cell<PDPage> cStLbl = filaSubT.createCell(87f, "TOTAL RENDIDO");
+                cStLbl.setFont(negrita); cStLbl.setFontSize(8);
+                cStLbl.setFillColor(new Color(240, 243, 248));
+                cStLbl.setAlign(HorizontalAlignment.RIGHT);
+
+                Cell<PDPage> cStVal = filaSubT.createCell(13f,
+                        fmt(resumen.getTotalRecaudado()));
+                cStVal.setFont(negrita); cStVal.setFontSize(8);
+                cStVal.setFillColor(new Color(240, 243, 248));
+                cStVal.setAlign(HorizontalAlignment.RIGHT);
+            }
+
+            // ── OBSERVACIONES ─────────────────────────────────────────────────────
+
+            Row<PDPage> filaObsT = tabla.createRow(12);
+            Cell<PDPage> cObsT = filaObsT.createCell(100, "OBSERVACIONES");
+            cObsT.setFont(negrita); cObsT.setFontSize(8);
+            cObsT.setFillColor(new Color(230, 235, 242));
+
+            Row<PDPage> filaObs = tabla.createRow(30);
+            Cell<PDPage> cObs = filaObs.createCell(100, "");
+            cObs.setFont(normal); cObs.setFontSize(8);
+
+            tabla.draw();
+
+            // ── BLOQUE DE FIRMAS (al pie, texto directo) ──────────────────────────
+            try (PDPageContentStream cs = new PDPageContentStream(
+                    documento, pagina, PDPageContentStream.AppendMode.APPEND, false)) {
+
+                float firmaY   = 68f;
+                float col1X    = margin;
+                float col2X    = pageW / 2f + 10f;
+                float lineaLen = (pageW / 2f) - margin - 20f;
+
+                // Líneas de firma
+                cs.setStrokingColor(new Color(60, 60, 60));
+                cs.setLineWidth(0.7f);
+
+                cs.moveTo(col1X, firmaY);
+                cs.lineTo(col1X + lineaLen, firmaY);
+                cs.stroke();
+
+                cs.moveTo(col2X, firmaY);
+                cs.lineTo(col2X + lineaLen, firmaY);
+                cs.stroke();
+
+                // Etiquetas firma
+                cs.beginText();
+                cs.setNonStrokingColor(new Color(60, 60, 60));
+                cs.setFont(normal, 7.5f);
+                cs.newLineAtOffset(col1X, firmaY - 11);
+                cs.showText("Firma y aclaraci\u00F3n del operador/a");
+                cs.endText();
+
+                cs.beginText();
+                cs.setFont(normal, 7.5f);
+                cs.newLineAtOffset(col2X, firmaY - 11);
+                cs.showText("Firma y aclaraci\u00F3n del supervisor/a");
+                cs.endText();
+
+                // Nombres bajo las líneas
+                cs.beginText();
+                cs.setFont(italica, 7.5f);
+                cs.newLineAtOffset(col1X, firmaY - 21);
+                cs.showText("Personal");
+                cs.endText();
+
+                cs.beginText();
+                cs.setFont(italica, 7.5f);
+                cs.newLineAtOffset(col2X, firmaY - 21);
+                cs.showText("Supervisor");
+                cs.endText();
+
+                // Aclaración DNI
+                cs.beginText();
+                cs.setFont(normal, 7f);
+                cs.setNonStrokingColor(new Color(130, 130, 130));
+                cs.newLineAtOffset(col1X, firmaY - 31);
+                cs.showText("Aclaraci\u00F3n / D.N.I.:");
+                cs.endText();
+
+                cs.beginText();
+                cs.setFont(normal, 7f);
+                cs.newLineAtOffset(col2X, firmaY - 31);
+                cs.showText("Aclaraci\u00F3n / D.N.I.:");
+                cs.endText();
+
+                // Línea inferior azul
+                cs.setStrokingColor(new Color(0, 51, 102));
+                cs.setLineWidth(3f);
+                cs.moveTo(margin, 10);
+                cs.lineTo(pageW - margin, 10);
+                cs.stroke();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return documento;
+    }
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+
+//    private void sinBordes(Cell<PDPage> c) {
+//        LineStyle inv = new LineStyle(Color.WHITE, 0f);
+//        c.setLeftBorderStyle(inv);
+//        c.setRightBorderStyle(inv);
+//        c.setTopBorderStyle(inv);
+//        c.setBottomBorderStyle(inv);
+//    }
+
+    private String fmt(BigDecimal v) {
+        if (v == null) return "$ 0,00";
+        return "$ " + String.format("%,.2f", v);
+    }
+
+    private String nvl(String s) {
+        return s != null ? s : "\u2014";
+    }
+
+    private String nvlInt(Integer i) {
+        return i != null ? String.valueOf(i) : "0";
+    }
+
 
 
 }

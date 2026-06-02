@@ -1,7 +1,9 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.User;
+import com.example.iesiback.repositories.PagoRepository;
 import com.example.iesiback.repositories.TramiteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,9 +19,11 @@ public class TramiteServiceImpl implements TramiteService {
 
     private final TramiteRepository repository;
     private final UserService userService;
-    public TramiteServiceImpl(TramiteRepository repository, UserService userService) {
+    private final PagoService pagoService;
+    public TramiteServiceImpl(TramiteRepository repository, UserService userService, PagoService pagoService) {
         this.repository = repository;
         this.userService = userService;
+        this.pagoService = pagoService;
     }
 
     public String obtenerUser() {
@@ -46,24 +50,38 @@ public class TramiteServiceImpl implements TramiteService {
 
     @Override
     public Tramite save(Tramite atencion) {
-        // Asigna el usuario logueado automáticamente
+         // Asigna el usuario logueado automáticamente
         atencion.setTramiteUsuario(obtenerUser());
-
         // Genera el código de seguimiento
         atencion.setCodigoSeguimiento(generarCodigoSeguimiento());
-
         // Obtiene la secuencia según el tipo de atención
         String secuencia = getSecuenciaPorTipo(atencion.getTramiteTipo());
         Long numero = obtenerSiguienteNumero(secuencia);
         atencion.setNumeroTipo(numero);
-
         // 🔎 Control para evitar error de referencia transitoria en Legajo
         if (atencion.getLegajoId() != null && atencion.getLegajoId() == null) {
             System.out.println("Legajo sin ID detectado, se establece en null para evitar error de Hibernate");
             atencion.setLegajoId(null);
         }
 
-        return repository.save(atencion);
+
+
+        Tramite devolver=repository.save(atencion);
+
+
+        System.out.println("__________________________________________________");
+        System.out.println("Pagos recibidos");
+        for (Pago pago : atencion.getPagos()) {
+            pago.setTramite(devolver);
+            pagoService.guardar(pago);
+            System.out.println("tramite if : " + pago.getTramite().getId());
+            System.out.println("ID: " + pago.getId());
+            System.out.println("Monto: " + pago.getMontoTotal());
+            System.out.println("Estado: " + pago.getEstado());
+            System.out.println("Referencia: " + pago.getExternalReference());
+            System.out.println("--------------------------------");
+        }
+        return devolver;
     }
 
 
@@ -125,6 +143,8 @@ public class TramiteServiceImpl implements TramiteService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private PagoRepository pagoRepository;
 
     @Override
     public String getSecuenciaPorTipo(String tipo) {

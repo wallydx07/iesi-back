@@ -4,7 +4,9 @@ import com.example.iesiback.entities.CursadaExamen;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.services.*;
+import com.example.iesiback.utils.PdfFonts;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -27,8 +29,6 @@ public class CertificadoController {
     private final MateriaService materiaService;
     private final CarreraService carreraService;
     private final CursadaExamenService cursadaExamenService;
-
-
 
     public CertificadoController(CertificadoService certificadoService, MateriaService materiaService,
                                  CarreraService carreraService,
@@ -782,6 +782,29 @@ public class CertificadoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    @GetMapping("/generarRendicionTurno")
+    public ResponseEntity<ByteArrayResource> generarRendicionTurno(
+            @RequestParam LocalDate fecha
+    ) {
+        try {
+            PDDocument document = certificadoService.generarRendicionTurno(fecha);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generarRendicionTurno.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 
 

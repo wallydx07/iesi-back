@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class PagoServiceImpl implements PagoService {
 
     private final MercadoPagoService mercadoPagoService;
-    private final TramiteService tramiteService;
     private final UserService userService;
     private final PersonaService personaService;
     private final PagoDetalleService pagoDetalleService;
@@ -42,13 +41,11 @@ public class PagoServiceImpl implements PagoService {
 
     public PagoServiceImpl(
             MercadoPagoService mercadoPagoService,
-            TramiteService tramiteService,
             UserService userService,
             PersonaService personaService,
             PagoDetalleService pagoDetalleService
     ) {
         this.mercadoPagoService = mercadoPagoService;
-        this.tramiteService = tramiteService;
         this.userService = userService;
         this.personaService = personaService;
         this.pagoDetalleService = pagoDetalleService;

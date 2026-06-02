@@ -120,7 +120,9 @@ public class Tramite {
     private List<Pago> pagos;
 
 
-
+//    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference
+//    private List<Pago> pagos;
 
     @JsonIgnore
     public String getTramiteFechaFormateada() {

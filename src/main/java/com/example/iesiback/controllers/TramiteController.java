@@ -66,7 +66,6 @@ public class TramiteController {
             existing.setTramiteCanal(atencion.getTramiteCanal());
             existing.setTramiteAsunto(atencion.getTramiteAsunto());
             existing.setTramiteSubTipo(atencion.getTramiteSubTipo());
-
             return ResponseEntity.ok(service.update(existing));
         }).orElse(ResponseEntity.notFound().build());
     }
