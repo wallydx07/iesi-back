@@ -44,21 +44,12 @@ public class AsistenciaPersonalController {
     public ResponseEntity<AsistenciaPersonal> crear(@RequestBody AsistenciaPersonal asistencia) {
         return ResponseEntity.ok(service.guardar(asistencia));
     }
-//
-//    @PutMapping("/{id}")
-//    public ResponseEntity<AsistenciaPersonal> actualizar(@PathVariable Integer id, @RequestBody AsistenciaPersonal asistencia) {
-//        return service.buscarPorId(id).map(existing -> {
-//            asistencia.setId(id); // aseguramos que sea actualización
-//            return ResponseEntity.ok(service.guardar(asistencia));
-//        }).orElse(ResponseEntity.notFound().build());
-//    }
-//
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
-
 
     @PostMapping("/desde-dispositivo")
     public ResponseEntity<?> recibirDesdeDispositivo(@RequestBody RegistroAsistenciaDTO dto) {
