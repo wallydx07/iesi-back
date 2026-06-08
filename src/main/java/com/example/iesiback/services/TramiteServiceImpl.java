@@ -63,23 +63,25 @@ public class TramiteServiceImpl implements TramiteService {
             System.out.println("Legajo sin ID detectado, se establece en null para evitar error de Hibernate");
             atencion.setLegajoId(null);
         }
-
-
-
         Tramite devolver=repository.save(atencion);
-
-
         System.out.println("__________________________________________________");
         System.out.println("Pagos recibidos");
-        for (Pago pago : atencion.getPagos()) {
-            pago.setTramite(devolver);
-            pagoService.guardar(pago);
-            System.out.println("tramite if : " + pago.getTramite().getId());
-            System.out.println("ID: " + pago.getId());
-            System.out.println("Monto: " + pago.getMontoTotal());
-            System.out.println("Estado: " + pago.getEstado());
-            System.out.println("Referencia: " + pago.getExternalReference());
-            System.out.println("--------------------------------");
+        if (atencion.getPagos() != null) {
+
+            for (Pago pago : atencion.getPagos()) {
+                pago.setTramite(devolver);
+                pagoService.guardar(pago);
+
+                System.out.println("tramite if : " + pago.getTramite().getId());
+                System.out.println("ID: " + pago.getId());
+                System.out.println("Monto: " + pago.getMontoTotal());
+                System.out.println("Estado: " + pago.getEstado());
+                System.out.println("Referencia: " + pago.getExternalReference());
+                System.out.println("--------------------------------");
+            }
+
+        } else {
+            System.out.println("No se recibieron pagos");
         }
         return devolver;
     }

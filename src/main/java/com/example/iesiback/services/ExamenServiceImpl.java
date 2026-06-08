@@ -73,84 +73,185 @@ public class ExamenServiceImpl implements ExamenService {
         return examenRepository.findByPermiso_PermisoLegajoIdAndCursadaExamen_Turno_TurnoId(permisoLegajoId, turnoId);
     }
 
+
+
     @Transactional
     public List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno) {
+
+        System.out.println("=== INICIO completarCursadas ===");
+        System.out.println("legajoId = " + legajoId);
+        System.out.println("turno = " + turno);
+
         List<Cursada> cursadas = cursadaService.getCursadasNoAprobadas(legajoId);
+
+        System.out.println("Cantidad de cursadas encontradas: " + cursadas.size());
+
         List<InscripcionExamenDTO> inscripciones = new ArrayList<>();
+
         cursadas.forEach(cursada -> {
-            InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
-            inscripcion.setCursadaId(cursada.getId());
-            inscripcion.setMateriaCarreraId(cursada.getMateriaCarrera().getId());
-            inscripcion.setMateriaOrden(cursada.getMateriaCarrera().getMateria().getMateriaOrden());
-            inscripcion.setCurso(cursada.getMateriaCarrera().getMateria().getMateriaNivel());
-            inscripcion.setMateriaId(cursada.getMateriaCarrera().getMateria().getMateriaId());
-            inscripcion.setMateriaNombre(cursada.getMateriaCarrera().getMateria().getMateriaNombre());
-            List<Nota> notas = new ArrayList<>(cursada.getNotas());
-            // ── REEMPLAZÁS ESTE BLOQUE ──────────────────────────────────────
-            List<Map<String, Object>> notasMapeadas = notas.stream()
-                    .map(n -> Map.<String, Object>of(
-                            "cursadaId", cursada.getId(),
-                            "materiaNombre", cursada.getMateriaCarrera().getMateria().getMateriaNombre(),
-                            "notaCondicion", n.getNotaCondicion(),
-                            "notaEstado", n.getNotaEstado(),
-                            "notaFecha", n.getNotaFechaNota() != null ? n.getNotaFechaNota().toString() : "",
-                            "notaCalificacionNumero", n.getNotaCalificacionNotaNumero() != null ? n.getNotaCalificacionNotaNumero() : 0.0
-                    ))
-                    .toList();
 
+            try {
 
-            NotaServiceImpl.ResultadoRegularidad resultado = notaService.evaluarRegularidad(notas);
-            inscripcion.setCondicion(resultado.condicion());
-            inscripcion.setJustificacion(resultado.justificacion());
-            // ────────────────────────────────────────────────────────────────
+                System.out.println("-----------------------------------");
+                System.out.println("Procesando cursada ID: " + cursada.getId());
 
-            Boolean sancion = notaService.evaluarSancion(cursada.getId(), Integer.valueOf(turno));
-            inscripcion.setSancion(sancion);
-            Boolean estado = examenRepository.getEstadoExamen(turno, cursada.getMateriaId(), legajoId);
+                InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
 
-            boolean inscripto = estado != null && estado;
-            inscripcion.setInscripto(inscripto);
+                System.out.println("Seteando datos básicos");
 
-            String fecha = "-";
-            String hora = "-";
+                inscripcion.setCursadaId(cursada.getId());
+                inscripcion.setMateriaCarreraId(cursada.getMateriaCarrera().getId());
+                inscripcion.setMateriaOrden(
+                        cursada.getMateriaCarrera().getMateria().getMateriaOrden()
+                );
+                inscripcion.setCurso(
+                        cursada.getMateriaCarrera().getMateria().getMateriaNivel()
+                );
+                inscripcion.setMateriaId(
+                        cursada.getMateriaCarrera().getMateria().getMateriaId()
+                );
+                inscripcion.setMateriaNombre(
+                        cursada.getMateriaCarrera().getMateria().getMateriaNombre()
+                );
 
-            Optional<CursadaExamen> cursadaExamen =
-                    cursadaExamenRepository.findByMateriaIdAndTurno_TurnoId(
-                            cursada.getMateriaId(), turno
+                System.out.println("Obteniendo notas");
+
+                List<Nota> notas = new ArrayList<>(cursada.getNotas());
+
+                System.out.println("Cantidad de notas: " + notas.size());
+
+                System.out.println("Evaluando regularidad");
+
+                NotaServiceImpl.ResultadoRegularidad resultado =
+                        notaService.evaluarRegularidad(notas);
+
+                System.out.println("Condición calculada: "
+                        + resultado.condicion());
+
+                inscripcion.setCondicion(resultado.condicion());
+                inscripcion.setJustificacion(resultado.justificacion());
+
+                System.out.println("Evaluando sanción");
+
+                Boolean sancion =
+                        notaService.evaluarSancion(
+                                cursada.getId(),
+                                Integer.valueOf(turno)
+                        );
+
+                System.out.println("Sanción: " + sancion);
+
+                inscripcion.setSancion(sancion);
+
+                System.out.println("Antes de getEstadoExamen");
+
+                Boolean estado =
+                        examenRepository.getEstadoExamen(
+                                turno,
+                                cursada.getMateriaId(),
+                                legajoId
+                        );
+
+                System.out.println("Estado obtenido: " + estado);
+
+                boolean inscripto = estado != null && estado;
+
+                System.out.println("isInscripto = " + inscripto);
+
+                inscripcion.setInscripto(inscripto);
+
+                if (inscripto) {
+                    Nota nota = notaService.findExamenPorCursadaYTurnoId(
+                            cursada.getId(),
+                            Integer.valueOf(turno)
                     );
 
-            Optional<ExamenHorario> optional =
-                    examenHorarioService.findByMateriaIdAndTurnoId(
-                            cursada.getMateriaId(), turno
-                    );
+                    if (nota != null && nota.getNotaCondicion() != null) {
 
-            if (cursadaExamen.isPresent()) {
-                CursadaExamen ce = cursadaExamen.get();
-                fecha = ce.getFecha() != null ? ce.getFecha().toString() : "-";
-                hora = ce.getHora() != null ? ce.getHora() : "-";
-            } else if (optional.isPresent()) {
-                ExamenHorario eh = optional.get();
-                fecha = eh.getFecha() != null ? eh.getFecha().toString() : "-";
-                hora = eh.getHora() != null ? eh.getHora().toString() : "-";
+                        String condicion = nota.getNotaCondicion().name();
+
+                        if ("EXAMEN_REGULAR".equals(condicion)) {
+                            condicion = "Regular";
+                        } else if ("EXAMEN_LIBRE".equals(condicion)) {
+                            condicion = "Libre";
+                        }
+
+                        inscripcion.setCondicion(condicion);
+                    }
+                }
+
+                String fecha = "-";
+                String hora = "-";
+
+                System.out.println("Buscando fecha y horario");
+
+                Optional<CursadaExamen> cursadaExamen =
+                        cursadaExamenRepository
+                                .findByMateriaIdAndTurno_TurnoId(
+                                        cursada.getMateriaId(),
+                                        turno
+                                );
+
+                Optional<ExamenHorario> optional =
+                        examenHorarioService
+                                .findByMateriaIdAndTurnoId(
+                                        cursada.getMateriaId(),
+                                        turno
+                                );
+
+                if (cursadaExamen.isPresent()) {
+
+                    System.out.println("Horario obtenido desde CursadaExamen");
+
+                    CursadaExamen ce = cursadaExamen.get();
+
+                    fecha = ce.getFecha() != null
+                            ? ce.getFecha().toString()
+                            : "-";
+
+                    hora = ce.getHora() != null
+                            ? ce.getHora()
+                            : "-";
+
+                } else if (optional.isPresent()) {
+
+                    System.out.println("Horario obtenido desde ExamenHorario");
+
+                    ExamenHorario eh = optional.get();
+
+                    fecha = eh.getFecha() != null
+                            ? eh.getFecha().toString()
+                            : "-";
+
+                    hora = eh.getHora() != null
+                            ? eh.getHora().toString()
+                            : "-";
+                }
+
+                inscripcion.setHora(hora);
+                inscripcion.setFecha(fecha);
+
+                inscripciones.add(inscripcion);
+
+                System.out.println("Cursada agregada correctamente");
+
+            } catch (Exception e) {
+
+                System.out.println("ERROR procesando cursada "
+                        + cursada.getId());
+
+                e.printStackTrace();
+
+                throw e;
             }
-            inscripcion.setHora(hora);
-            inscripcion.setFecha(fecha);
-
-//            inscripcion.setCorrelativas(
-//                    cursadaService.obtenerCorrelativasPendientesMateriaId(
-//                    cursada.getLegajo().getLegajoId(),
-//                    cursada.getMateriaCarrera().getMateria()
-//            ));
-
-            inscripciones.add(inscripcion);
         });
+
+        System.out.println("=== FIN completarCursadas ===");
+        System.out.println("Total inscripciones: "
+                + inscripciones.size());
 
         return inscripciones;
     }
-
-
-
-
 
 
 //    @Override

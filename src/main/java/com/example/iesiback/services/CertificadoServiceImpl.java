@@ -3326,7 +3326,6 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
         return Documento;
     }
 
-
     @Override
     public PDDocument generaAsistenciaParcial(String legajoId, String autoridades, String curso, String fechaSeleccionada,
                                               String accion, String entrada, String salida, String materia) {
@@ -3577,7 +3576,6 @@ public PDDocument generaFinalizacionEstudios(String legajoId, String alumnoDNI, 
         }
         return Documento;
     }
-
 
     private PDDocument generaAsistenciaExamen(String legajoId, String alumnoDNI, String autoridades, String curso, Date fechaSeleccionada,
                                               String accion, String entrada, String salida, String materia, String calificacion, String fecha) {
@@ -7702,15 +7700,10 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
         PDImageXObject Iesc1, Iesc2;
         PDDocument Documento = new PDDocument();
         try {
-//            Optional<Legajo> legajo= legajoService.findById(libreta);
-//            Alumno alumno = legajo.get().getLegajoAlumnoDni();
-
             Legajo legajo = legajoService.findById(libreta)
                     .orElseThrow(() -> new RuntimeException("No se encontró el legajo con ID: " + libreta));
-
             Persona persona = legajo.getLegajoPersonaDni();
             Turno turnoT=turnoService.obtenerTurnoPorId(turno);
-
             String carrera = permisoService.obtenerCarreraPorLibreta(libreta);
             Optional<Permiso> permiso = permisoService.findPermisoByLegajoAndTurnoOrdered(libreta, turno);
             int dni = permisoService.obtenerDniPorLibreta(libreta);
@@ -7719,7 +7712,6 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
             List<InscripcionExamenDTO> inscripcionesActivas = examenService.completarCursadas(libreta, turno);
             PDType1Font normal = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
-
             PDRectangle a4 = PDRectangle.A4;
             PDRectangle a4Landscape = new PDRectangle(a4.getHeight(), a4.getWidth());
             PDPage Pagina = new PDPage(a4Landscape);
@@ -7732,7 +7724,6 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
             }
             byte[] be = IOUtils.toByteArray(iesc2I);
             Iesc2 = PDImageXObject.createFromByteArray(Documento, be, "static/imagenes/esc2.png");
-
             //===================================Texto del encabezado==============================================//
             int inicio=421;//desde le borde o desde el centro como esta hoja es horizontal
             encabezado.beginText();
@@ -7748,7 +7739,6 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
             encabezado.newLineAtOffset(-40, n);
             encabezado.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. de Jujuy – República Argentina");
             encabezado.newLineAtOffset(-40, -3);
-
             encabezado.showText("_____________________________________________________________________________________");
             encabezado.endText();
             encabezado.close();
@@ -7839,24 +7829,20 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
 
 
             for (int row1 = 0; row1 < inscripcionesActivas.size(); row1++) {
-                //Boolean isInscripto = (Boolean) inscripcionesActivas.getValueAt(row1, 5);
                 Boolean isInscripto = (Boolean) inscripcionesActivas.get(row1).getInscripto();
                 if (isInscripto != null && isInscripto) {
                     indice++;
                     String materia = (String) inscripcionesActivas.get(row1).getMateriaNombre();
                     String condicion = (String) inscripcionesActivas.get(row1).getCondicion();
-
+                    System.out.println("Examen"+materia);
+                    System.out.println("Examen Condicion"+condicion);
                     if (!condicion.equals("Regular")) {
                         condicion = "Libre";
                     }
                     Row<PDPage> row = table.createRow(20);
-
-// Celda 1: Número de orden, alineado al centro
                     Cell<PDPage> cellNumero = row.createCell(5, String.valueOf(indice));
                     cellNumero.setAlign(HorizontalAlignment.CENTER);
                     cellNumero.setValign(VerticalAlignment.MIDDLE);
-
-// Celda 2: Condición (sin alineación especial, si querés podés centrarla también)
                     Cell<PDPage> cellCondicion = row.createCell(7, condicion);
                     cellCondicion.setAlign(HorizontalAlignment.LEFT); // O podés poner CENTER si lo querés centrado
                     cellCondicion.setValign(VerticalAlignment.MIDDLE);
