@@ -5,6 +5,7 @@ import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.enums.EstadoPago;
+import com.example.iesiback.enums.PrioridadTramite;
 import com.example.iesiback.repositories.HtmlService;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
 import com.example.iesiback.utils.PdfFonts;
@@ -7228,111 +7229,6 @@ private String limpiarPdf(String texto) {
         }
     }
 
-    @Override
-    public PDDocument generaTroquelPase(Integer paseId) {
-        System.out.println("Inicio generaTroquelPase, paseId=" + paseId);
-        Pases pase = this.paseService.findById(Long.valueOf(paseId));
-        if (pase == null) {
-            System.out.println("Pase no encontrado, retornando null");
-            return null;
-        }
-
-        PDDocument documento = new PDDocument();
-        System.out.println("Documento PDF creado");
-
-        try {
-            PDPage pagina = new PDPage(PDRectangle.A4);
-            documento.addPage(pagina);
-            System.out.println("Página añadida");
-
-            PDType1Font normal = PDType1Font.HELVETICA;
-            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
-
-            float margin = 30;
-            float yStart = pagina.getMediaBox().getHeight() - 10;
-            float bottomMargin = 70;
-            float tableWidth = pagina.getMediaBox().getWidth() - 2 * margin;
-            float yStartNewPage = pagina.getMediaBox().getHeight() - margin;
-
-            System.out.println("Creando tabla BaseTable...");
-            BaseTable tabla = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, documento, pagina, true, true);
-            int fontSize = 10;
-
-            // Trámite ID
-            Row<PDPage> filaTramite = tabla.createRow(15);
-            Cell<PDPage> c1 = filaTramite.createCell(70, "Trámite N°: " + (pase.getTramite() != null ? pase.getTramite().getId() : ""));
-            c1.setFontSize(fontSize);
-            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            String fechaCreacion = pase.getCreatedAt() != null ? pase.getCreatedAt().format(formatter) : "";
-            c1 = filaTramite.createCell(30, "Fecha: " + fechaCreacion);
-            c1.setFontSize(fontSize);
-            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            System.out.println("Fila trámite creada");
-
-            // De Usuario
-            Row<PDPage> filaDe = tabla.createRow(15);
-            String deUsuario = "Sin asignar";
-            String deArea = "Sin área";
-            if (pase.getDeUsuario() != null) {
-                deUsuario = (pase.getDeUsuario().getPersonalNombre() != null ? pase.getDeUsuario().getPersonalNombre() : "")
-                        + " " + (pase.getDeUsuario().getPersonalApellido() != null ? pase.getDeUsuario().getPersonalApellido() : "");
-                if (pase.getDeUsuario().getDestino() != null && pase.getDeUsuario().getDestino().getNombre() != null) {
-                    deArea = pase.getDeUsuario().getDestino().getNombre();
-                }
-            }
-            System.out.println("De Usuario: " + deUsuario + ", Area: " + deArea);
-
-            Cell<PDPage> c2 = filaDe.createCell(50, "De Usuario: " + deUsuario);
-            c2.setFontSize(fontSize);
-            c2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
-            c2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-
-            c2 = filaDe.createCell(50, " Area: " + deArea);
-            c2.setFontSize(fontSize);
-
-            // Para Usuario
-            Row<PDPage> filaParaUsuario = tabla.createRow(15);
-            String paraUsuario = "Sin asignar";
-            String paraArea = "Sin área";
-            if (pase.getParaUsuario() != null) {
-                paraUsuario = (pase.getParaUsuario().getPersonalNombre() != null ? pase.getParaUsuario().getPersonalNombre() : "")
-                        + " " + (pase.getParaUsuario().getPersonalApellido() != null ? pase.getParaUsuario().getPersonalApellido() : "");
-                if (pase.getParaUsuario().getDestino() != null && pase.getParaUsuario().getDestino().getNombre() != null) {
-                    paraArea = pase.getParaUsuario().getDestino().getNombre();
-                }
-            }
-            System.out.println("Para Usuario: " + paraUsuario + ", Area: " + paraArea);
-
-            Cell<PDPage> c4 = filaParaUsuario.createCell(50, "Para Usuario: " + paraUsuario);
-            c4.setFontSize(fontSize);
-
-            c4 = filaParaUsuario.createCell(50, " Area: " + paraArea);
-            c4.setFontSize(fontSize);
-
-            // Observaciones
-            Row<PDPage> filaObs = tabla.createRow(15);
-            Cell<PDPage> c7 = filaObs.createCell(100, "Observaciones: " + (pase.getObservaciones() != null ? pase.getObservaciones() : ""));
-            c7.setFontSize(fontSize);
-
-            System.out.println("Dibujando tabla...");
-            tabla.draw();
-            System.out.println("Tabla dibujada correctamente");
-
-        } catch (Exception e) {
-            System.out.println("ERROR en generaTroquelPase:");
-            e.printStackTrace();
-            return null;
-        }
-
-        System.out.println("PDF generado correctamente, retornando documento");
-        return documento;
-    }
-
-
 @Override
 public PDDocument crearPDFPorUsuario(String dni, LocalDate fechaInicio, LocalDate fechaFin) {
         PDDocument Documento = new PDDocument();
@@ -9251,6 +9147,384 @@ public PDDocument generarRendicionTurno(LocalDate fecha) {
     private String nvlInt(Integer i) {
         return i != null ? String.valueOf(i) : "0";
     }
+
+//=======================================================================0
+
+//    @Override
+//    public PDDocument generaTroquelPase(Integer paseId) {
+//        System.out.println("Inicio generaTroquelPase, paseId=" + paseId);
+//        Pases pase = this.paseService.findById(Long.valueOf(paseId));
+//        if (pase == null) {
+//            System.out.println("Pase no encontrado, retornando null");
+//            return null;
+//        }
+//
+//        PDDocument documento = new PDDocument();
+//        System.out.println("Documento PDF creado");
+//
+//        try {
+//            PDPage pagina = new PDPage(PDRectangle.A4);
+//            documento.addPage(pagina);
+//            System.out.println("Página añadida");
+//
+//            PDType1Font normal = PDType1Font.HELVETICA;
+//            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+//
+//            float margin = 30;
+//            float yStart = pagina.getMediaBox().getHeight() - 10;
+//            float bottomMargin = 70;
+//            float tableWidth = pagina.getMediaBox().getWidth() - 2 * margin;
+//            float yStartNewPage = pagina.getMediaBox().getHeight() - margin;
+//
+//            System.out.println("Creando tabla BaseTable...");
+//            BaseTable tabla = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, documento, pagina, true, true);
+//            int fontSize = 10;
+//
+//            // Trámite ID
+//            Row<PDPage> filaTramite = tabla.createRow(15);
+//            Cell<PDPage> c1 = filaTramite.createCell(70, "Trámite N°: " + (pase.getTramite() != null ? pase.getTramite().getId() : ""));
+//            c1.setFontSize(fontSize);
+//            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+//            String fechaCreacion = pase.getCreatedAt() != null ? pase.getCreatedAt().format(formatter) : "";
+//            c1 = filaTramite.createCell(30, "Fecha: " + fechaCreacion);
+//            c1.setFontSize(fontSize);
+//            c1.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            c1.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            System.out.println("Fila trámite creada");
+//
+//            // De Usuario
+//            Row<PDPage> filaDe = tabla.createRow(15);
+//            String deUsuario = "Sin asignar";
+//            String deArea = "Sin área";
+//            if (pase.getDeUsuario() != null) {
+//                deUsuario = (pase.getDeUsuario().getPersonalNombre() != null ? pase.getDeUsuario().getPersonalNombre() : "")
+//                        + " " + (pase.getDeUsuario().getPersonalApellido() != null ? pase.getDeUsuario().getPersonalApellido() : "");
+//                if (pase.getDeUsuario().getDestino() != null && pase.getDeUsuario().getDestino().getNombre() != null) {
+//                    deArea = pase.getDeUsuario().getDestino().getNombre();
+//                }
+//            }
+//            System.out.println("De Usuario: " + deUsuario + ", Area: " + deArea);
+//
+//            Cell<PDPage> c2 = filaDe.createCell(50, "De Usuario: " + deUsuario);
+//            c2.setFontSize(fontSize);
+//            c2.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
+//            c2.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+//
+//            c2 = filaDe.createCell(50, " Area: " + deArea);
+//            c2.setFontSize(fontSize);
+//
+//            // Para Usuario
+//            Row<PDPage> filaParaUsuario = tabla.createRow(15);
+//            String paraUsuario = "Sin asignar";
+//            String paraArea = "Sin área";
+//            if (pase.getParaUsuario() != null) {
+//                paraUsuario = (pase.getParaUsuario().getPersonalNombre() != null ? pase.getParaUsuario().getPersonalNombre() : "")
+//                        + " " + (pase.getParaUsuario().getPersonalApellido() != null ? pase.getParaUsuario().getPersonalApellido() : "");
+//                if (pase.getParaUsuario().getDestino() != null && pase.getParaUsuario().getDestino().getNombre() != null) {
+//                    paraArea = pase.getParaUsuario().getDestino().getNombre();
+//                }
+//            }
+//            System.out.println("Para Usuario: " + paraUsuario + ", Area: " + paraArea);
+//
+//            Cell<PDPage> c4 = filaParaUsuario.createCell(50, "Para Usuario: " + paraUsuario);
+//            c4.setFontSize(fontSize);
+//
+//            c4 = filaParaUsuario.createCell(50, " Area: " + paraArea);
+//            c4.setFontSize(fontSize);
+//
+//            // Observaciones
+//            Row<PDPage> filaObs = tabla.createRow(15);
+//            Cell<PDPage> c7 = filaObs.createCell(100, "Observaciones: " + (pase.getObservaciones() != null ? pase.getObservaciones() : ""));
+//            c7.setFontSize(fontSize);
+//
+//            System.out.println("Dibujando tabla...");
+//            tabla.draw();
+//            System.out.println("Tabla dibujada correctamente");
+//
+//        } catch (Exception e) {
+//            System.out.println("ERROR en generaTroquelPase:");
+//            e.printStackTrace();
+//            return null;
+//        }
+//
+//        System.out.println("PDF generado correctamente, retornando documento");
+//        return documento;
+//    }
+
+    @Override
+    public PDDocument generaTroquelPase(Integer paseId) {
+        System.out.println("Inicio generaTroquelPase, paseId=" + paseId);
+        Pases pase = this.paseService.findById(Long.valueOf(paseId));
+        if (pase == null) {
+            System.out.println("Pase no encontrado, retornando null");
+            return null;
+        }
+
+        PDDocument documento = new PDDocument();
+
+        try {
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            documento.addPage(pagina);
+
+            float pageWidth  = pagina.getMediaBox().getWidth();   // 595
+            float pageHeight = pagina.getMediaBox().getHeight();  // 842
+
+            // Cada troquel ocupa un tercio de la hoja (con márgenes entre ellos)
+            float margen       = 20f;
+            float altoCuadro   = ( margen*6);  // ~254 pts cada uno
+            float anchoCuadro  = pageWidth - (margen * 2);
+
+            PDType1Font fontNormal  = PDType1Font.HELVETICA;
+            PDType1Font fontNegrita = PDType1Font.HELVETICA_BOLD;
+
+            // Extraer datos comunes del pase
+// ✅ correcto
+            String tramiteId = pase.getTramite() != null
+                    ? String.valueOf(pase.getTramite().getId()) : "—";
+            String asunto      = pase.getTramite() != null && pase.getTramite().getTramiteAsunto() != null
+                    ? pase.getTramite().getTramiteAsunto() : "Sin asunto";
+            String fojas       = pase.getTramite() != null && pase.getTramite().getTramiteFolios()!= null
+                    ? String.valueOf(pase.getTramite().getTramiteFolios()) : "—";
+                String tipoPase    = "Rutina";
+
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String fechaCreacion  = pase.getCreatedAt() != null ? pase.getCreatedAt().format(fmt) : "—";
+
+            // --- De Usuario ---
+            String deNombre = "Sin asignar";
+            String deArea   = "Sin área";
+            if (pase.getDeUsuario() != null) {
+                deNombre = trim(pase.getDeUsuario().getPersonalNombre())
+                        + " " + trim(pase.getDeUsuario().getPersonalApellido());
+                if (pase.getDeUsuario().getDestino() != null)
+                    deArea = trim(pase.getDeUsuario().getDestino().getNombre());
+            }
+
+            // --- Para Usuario ---
+            String paraNombre = "Sin asignar";
+            String paraArea   = "Sin área";
+            if (pase.getParaUsuario() != null) {
+                paraNombre = trim(pase.getParaUsuario().getPersonalNombre())
+                        + " " + trim(pase.getParaUsuario().getPersonalApellido());
+                if (pase.getParaUsuario().getDestino() != null)
+                    paraArea = trim(pase.getParaUsuario().getDestino().getNombre());
+            }
+
+            String observaciones = pase.getObservaciones() != null ? pase.getObservaciones() : "—";
+
+            PrioridadTramite prioridad = pase.getPrioridad() != null && pase.getPrioridad()!= null
+                    ? pase.getPrioridad()
+                    : PrioridadTramite.MEDIA;
+
+            try (PDPageContentStream cs = new PDPageContentStream(documento, pagina,
+                    PDPageContentStream.AppendMode.APPEND, true, true)) {
+
+                float yBase = pageHeight - margen;  // 822 → esquina superior del cuadro
+                    // yBase es la coordenada Y de la esquina superior del cuadro
+
+                    dibujarTroquelPase(cs, fontNormal, fontNegrita,
+                            margen, yBase, anchoCuadro, altoCuadro,
+                            tramiteId, asunto, fojas, tipoPase, fechaCreacion,
+                            deNombre, deArea, paraNombre, paraArea, observaciones, prioridad);
+                    // Línea punteada separadora (excepto después del último)
+            }
+
+            System.out.println("PDF generado correctamente");
+
+        } catch (Exception e) {
+            System.out.println("ERROR en generaTroquelPase:");
+            e.printStackTrace();
+            return null;
+        }
+
+        return documento;
+    }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+    private String trim(String s) {
+        return s != null ? s.trim() : "";
+    }
+
+
+    private void dibujarTroquelPase(
+            PDPageContentStream cs,
+            PDType1Font fontNormal, PDType1Font fontNegrita,
+            float x, float yTop, float ancho, float alto,
+            String tramiteId, String asunto, String fojas, String tipoPase,
+            String fecha,
+            String deNombre, String deArea,
+            String paraNombre, String paraArea,
+            String observaciones,
+            PrioridadTramite prioridad) throws IOException {   // <-- nuevo param
+
+        float yBottom = yTop - alto;
+        float innerX  = x + 6f;
+        float fs      = 8f;
+        float fsBig   = 9f;
+        float lineH   = 13f;
+
+        // ── Color según prioridad ─────────────────────────────────────────────
+        Color colorPrioridad = colorDePrioridad(prioridad);
+        String labelPrioridadTexto = "[ " + prioridad.name() + " ]";
+
+        // ── Borde del cuadro (color según prioridad) ──────────────────────────
+        cs.setStrokingColor(colorPrioridad);
+        cs.setLineWidth(2f);   // un poco más grueso para que resalte
+        cs.addRect(x, yBottom, ancho, alto);
+        cs.stroke();
+
+        // ── Franja de encabezado (azul institucional, siempre) ────────────────
+        float headerH = 18f;
+        cs.setNonStrokingColor(new Color(30, 80, 160));
+        cs.addRect(x, yTop - headerH, ancho, headerH);
+        cs.fill();
+
+        // Texto principal del encabezado
+        cs.setNonStrokingColor(Color.WHITE);
+        escribirTexto(cs, fontNegrita, fsBig, innerX, yTop - headerH + 5f,
+                "COMPROBANTE DE PASE — Expediente N°: " + tramiteId);
+
+        // ── Badge de prioridad (fondo colorido, pegado al borde derecho del header)
+        float badgeFs   = 7.5f;
+        float badgeW    = fontNegrita.getStringWidth(labelPrioridadTexto) / 1000f * badgeFs + 10f;
+        float badgeX    = x + ancho - badgeW - 2f;
+        float badgeYBot = yTop - headerH + 1f;
+        float badgeH    = headerH - 2f;
+
+        cs.setNonStrokingColor(colorPrioridad);
+        cs.addRect(badgeX, badgeYBot, badgeW, badgeH);
+        cs.fill();
+
+        // Texto del badge en negro o blanco según luminosidad
+        cs.setNonStrokingColor(textoSobreColor(prioridad));
+        escribirTexto(cs, fontNegrita, badgeFs,
+                badgeX + 5f, badgeYBot + 4f, labelPrioridadTexto);
+
+        // ── Cuerpo ────────────────────────────────────────────────────────────
+        cs.setNonStrokingColor(Color.BLACK);
+        float yLine = yTop - headerH - lineH;
+
+        // Asunto + Fojas
+        escribirEtiquetaValor(cs, fontNegrita, fontNormal, fs, innerX, yLine,
+                "Asunto: ", asunto, ancho * 0.65f);
+        escribirEtiquetaValor(cs, fontNegrita, fontNormal, fs, x + ancho * 0.67f, yLine,
+                "Fojas: ", fojas, ancho * 0.3f);
+        yLine -= lineH;
+
+        // Fecha
+        escribirEtiquetaValor(cs, fontNegrita, fontNormal, fs, innerX, yLine,
+                "Fecha: ", fecha, ancho);
+        yLine -= lineH;
+
+        // Línea divisoria
+        cs.setStrokingColor(new Color(180, 180, 180));
+        cs.setLineWidth(0.4f);
+        cs.moveTo(x + 4, yLine + 4);
+        cs.lineTo(x + ancho - 4, yLine + 4);
+        cs.stroke();
+        yLine -= 4f;
+
+        // De / Para
+        escribirEtiquetaValor(cs, fontNegrita, fontNormal, fs, innerX, yLine,
+                "Remite: ", deNombre + "  |  " + deArea, ancho);
+        yLine -= lineH;
+
+        escribirEtiquetaValor(cs, fontNegrita, fontNormal, fs, innerX, yLine,
+                "Destinatario: ", paraNombre + "  |  " + paraArea, ancho);
+        yLine -= lineH;
+
+        // Observaciones
+        String obs = observaciones.length() > 90
+                ? observaciones.substring(0, 87) + "..." : observaciones;
+        escribirEtiquetaValor(cs, fontNegrita, fontNormal, fs, innerX, yLine,
+                "Obs.: ", obs, ancho);
+        yLine -= (lineH + 4f);
+
+        // ── Bloque de firma ───────────────────────────────────────────────────
+        cs.setStrokingColor(new Color(30, 80, 160));
+        cs.setLineWidth(0.5f);
+
+        float firmaAncho = ancho * 0.42f;
+        float firmaX     = x + (ancho - firmaAncho) / 2f;
+        float firmaY     = yBottom + 22f;
+
+        cs.moveTo(firmaX, firmaY);
+        cs.lineTo(firmaX + firmaAncho, firmaY);
+        cs.stroke();
+
+        cs.setNonStrokingColor(Color.BLACK);
+        String firmaLabel = "Firma y aclaración — Recibido";
+        float firmaLabelW = fontNormal.getStringWidth(firmaLabel) / 1000f * (fs - 1f);
+        escribirTexto(cs, fontNormal, fs - 1f,
+                firmaX + (firmaAncho - firmaLabelW) / 2f,
+                firmaY - 9f, firmaLabel);
+    }
+
+    // Escribe "Etiqueta" en negrita + valor en normal en la misma línea
+    private void escribirEtiquetaValor(PDPageContentStream cs,
+                                       PDType1Font fontBold, PDType1Font fontNormal,
+                                       float fs, float x, float y,
+                                       String etiqueta, String valor, float maxAncho) throws IOException {
+
+        cs.beginText();
+        cs.setFont(fontBold, fs);
+        cs.newLineAtOffset(x, y);
+        cs.showText(etiqueta);
+        cs.setFont(fontNormal, fs);
+        // truncar valor si supera el ancho disponible
+        float etiqW    = fontBold.getStringWidth(etiqueta) / 1000f * fs;
+        float maxValW  = maxAncho - etiqW - 6f;
+        String valTrunc = truncarTexto(valor, fontNormal, fs, maxValW);
+        cs.showText(valTrunc);
+        cs.endText();
+    }
+
+    private void escribirTexto(PDPageContentStream cs, PDType1Font font,
+                               float fs, float x, float y, String texto) throws IOException {
+        cs.beginText();
+        cs.setFont(font, fs);
+        cs.newLineAtOffset(x, y);
+        cs.showText(texto != null ? texto : "");
+        cs.endText();
+    }
+
+    private String truncarTexto(String texto, PDType1Font font, float fs, float maxW)
+            throws IOException {
+        if (texto == null) return "";
+        float w = font.getStringWidth(texto) / 1000f * fs;
+        if (w <= maxW) return texto;
+        while (texto.length() > 0) {
+            texto = texto.substring(0, texto.length() - 1);
+            w = font.getStringWidth(texto + "...") / 1000f * fs;
+            if (w <= maxW) return texto + "...";
+        }
+        return "";
+    }
+
+    // ── Helpers de prioridad ──────────────────────────────────────────────────────
+
+    private Color colorDePrioridad(PrioridadTramite prioridad) {
+        return switch (prioridad) {
+            case CRITICA -> new Color(192, 0,   0);    // rojo oscuro
+            case ALTA    -> new Color(220, 100, 0);    // naranja
+            case MEDIA   -> new Color(30,  80,  160);  // azul institucional (igual que header)
+            case BAJA    -> new Color(80,  140, 70);   // verde apagado
+        };
+    }
+
+    /** Blanco para fondos oscuros, negro para fondos claros */
+    private Color textoSobreColor(PrioridadTramite prioridad) {
+        return switch (prioridad) {
+            case BAJA  -> Color.BLACK;
+            default    -> Color.WHITE;
+        };
+    }
+
 
 }
 

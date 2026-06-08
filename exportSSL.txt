@@ -6,11 +6,12 @@ openssl pkcs12 -export \
   -password pass:mudinamico
 
 
-
-
   openssl pkcs12 -export \
     -in /etc/letsencrypt/live/revision.iesijujuy.edu.ar/fullchain.pem \
     -inkey /etc/letsencrypt/live/revision.iesijujuy.edu.ar/privkey.pem \
     -out /etc/letsencrypt/live/revision.iesijujuy.edu.ar/keystore.p12 \
     -name revision \
     -password pass:mudinamico
+
+
+    ssh root@147.93.35.109

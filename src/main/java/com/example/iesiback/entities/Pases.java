@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.enums.PrioridadTramite;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -39,11 +40,28 @@ public class Pases {
     @Column(name = "para_texto", columnDefinition = "text")
     private String paraTexto;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "prioridad",
+            nullable = false,
+            columnDefinition = "varchar(20) default 'MEDIA'"
+    )
+    private PrioridadTramite prioridad = PrioridadTramite.MEDIA;
+
     private LocalDateTime fecha = LocalDateTime.now();
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(columnDefinition = "text")
     private String observaciones;
+
+    public PrioridadTramite getPrioridad() {
+        return prioridad;
+    }
+
+    public void setPrioridad(PrioridadTramite prioridad) {
+        this.prioridad = prioridad;
+    }
 
     public Long getId() {
         return id;
