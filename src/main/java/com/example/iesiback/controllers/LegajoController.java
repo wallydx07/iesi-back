@@ -69,6 +69,7 @@ public class LegajoController {
         updateLegajo.setLegajoFoto(legajo.getLegajoFoto());
         updateLegajo.setNotasCorregidas(legajo.isNotasCorregidas());
         updateLegajo.setLegajoComision(legajo.getLegajoComision());
+        updateLegajo.setLegajoPlanillaProntuarial(legajo.getLegajoPlanillaProntuarial());
         Legajo saved = legajoService.updateLegajo(updateLegajo);
         logger.info("Legajo actualizado correctamente: {}", saved);
         logger.info("========== FIN UPDATE LEGAJO ==========");
