@@ -164,7 +164,7 @@ public class TramiteServiceImpl implements TramiteService {
             case "Consultas/Reclamos":
                 return "seq_consulta_reclamo";
             case "Actividades":
-                return "seq_actividades";
+                return "seq_actividad";
             default:
                 throw new IllegalArgumentException("Tipo de trámite no reconocido: " + tipo);
         }
