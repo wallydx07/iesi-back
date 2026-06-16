@@ -661,4 +661,21 @@ CAST(n.notaCalificacionNotaNumero AS string),
 
     Optional<Nota> findByCursadaIdAndNotaCondicion(Integer cursadaId, String notaCondicion);
 
+    @Query("SELECT n FROM Nota n WHERE n.cursada.materiaCarrera.id = :materiaCarreraId AND n.notaCondicion = :estado")
+    List<Nota> findByCursadaMateriaCarreraIdAndEstado(
+            @Param("materiaCarreraId") Integer materiaCarreraId,
+            @Param("estado") EstadoCondicion estado
+    );
+
+
+
+    @Query("""
+    SELECT n FROM Nota n
+    JOIN Examen e ON e.nota.notaId = n.notaId
+    WHERE e.cursadaExamen.id = :cursadaExamenId
+""")
+    List<Nota> findByCursadaExamenId(
+            @Param("cursadaExamenId") Integer cursadaExamenId
+    );
+
 }
