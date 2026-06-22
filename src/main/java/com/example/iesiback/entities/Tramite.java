@@ -23,11 +23,9 @@ public class Tramite {
     @Column(name = "tramite_id", nullable = false)
     private Integer id;
 
-
     @ColumnDefault("Pendiente")
     @Column(name = "tramite_estado")
     private String tramiteEstado;
-
 
     @Column(name = "tramite_dni")
     private Long tramiteDni;
@@ -46,15 +44,12 @@ public class Tramite {
     @Column(name = "tramite_tipo", length = Integer.MAX_VALUE)
     private String tramiteTipo;
 
-
-
     @Column(name = "tramite_problema", length = Integer.MAX_VALUE)
     private String tramiteProblema;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "tramite_fecha")
     private LocalDateTime tramiteFecha;
-
 
     @Column(name = "tramite_respuesta", length = Integer.MAX_VALUE)
     private String tramiteRespuesta;
@@ -119,7 +114,6 @@ public class Tramite {
     @OneToMany(mappedBy = "tramite")
     private List<Pago> pagos;
 
-
 //    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
 //    @JsonManagedReference
 //    private List<Pago> pagos;
@@ -131,6 +125,14 @@ public class Tramite {
         return "Fecha: " + tramiteFecha.format(f) +
                 "   Hora: " + tramiteFecha.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
 
+    }
+
+    public List<Pago> getPagos() {
+        return pagos;
+    }
+
+    public void setPagos(List<Pago> pagos) {
+        this.pagos = pagos;
     }
 
     public Integer getId() {

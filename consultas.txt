@@ -331,3 +331,24 @@ WHERE fecha >= '2026-04-20'
 
 
 
+
+-- 1. Agregar columna nueva sin tocar la vieja todavía
+ALTER TABLE asistencia_alumno
+ADD COLUMN estado_nuevo VARCHAR(20);
+
+-- 2. Mapear los valores booleanos existentes
+UPDATE asistencia_alumno
+SET estado_nuevo = CASE
+    WHEN estado = true  THEN 'PRESENTE'
+    WHEN estado = false THEN 'AUSENTE'
+    ELSE 'AUSENTE'  -- nulls o casos raros
+END;
+
+-- 3. Eliminar la columna vieja
+ALTER TABLE asistencia_alumno
+DROP COLUMN estado;
+
+-- 4. Renombrar la nueva
+ALTER TABLE asistencia_alumno
+RENAME COLUMN estado_nuevo TO estado;
+

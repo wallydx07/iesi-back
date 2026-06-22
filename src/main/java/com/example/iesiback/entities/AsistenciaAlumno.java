@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.enums.EstadoAsistencia;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -28,5 +29,9 @@ public class AsistenciaAlumno {
 
     @Column(name = "estado")
     private Boolean estado;
+
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "estado", length = 20)
+//    private EstadoAsistencia estado;
 
 }
