@@ -9,6 +9,7 @@ import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.PagoDetalle;
 import com.example.iesiback.entities.Tramite;
+import com.example.iesiback.exception.BusinessException;
 import com.example.iesiback.services.PagoDetalleService;
 import com.example.iesiback.services.PagoService;
 import com.example.iesiback.services.TramiteService;
@@ -36,7 +37,8 @@ public class PagoController {
     public PagoController(
             PagoService pagoService,
             TramiteService tramiteService,
-            PagoDetalleService pagoDetalleService, UserService userService
+            PagoDetalleService pagoDetalleService,
+            UserService userService
     ) {
         this.pagoService = pagoService;
         this.tramiteService = tramiteService;
@@ -45,33 +47,61 @@ public class PagoController {
     }
 
     // =====================================================
+    // INICIAR PAGO (guarda Pago PENDIENTE + crea preferencia MP)
+    // ÚNICO punto de entrada para arrancar un pago desde el front
+    // =====================================================
+
+    @PostMapping("/iniciar")
+    public ResponseEntity<?> iniciarPago(@RequestBody IniciarPagoRequest request) {
+
+        Tramite tramite = tramiteService.findById(request.tramiteId())
+                .orElseThrow(() -> new BusinessException("Trámite no encontrado: " + request.tramiteId()));
+
+        Pago pago = new Pago();
+        pago.setTramite(tramite);
+        pago.setMontoTotal(request.monto());
+        pago.setTipoPago(request.concepto());
+        pago.setEstado(EstadoPago.PENDIENTE);
+        pago.setResponsable(tramite.getTramiteUsuario());
+
+        Pago pagoGuardado = pagoService.guardar(pago);
+
+        ProductoDTO producto = new ProductoDTO();
+        producto.setNombre(request.concepto());
+        producto.setDescripcion("Trámite N° " + request.tramiteId());
+        producto.setPrecio(request.monto());
+
+        try {
+            Map<String, String> datos = pagoService.crearPreferencia(producto, pagoGuardado.getId());
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al iniciar el pago: " + e.getMessage());
+        }
+    }
+
+    public record IniciarPagoRequest(Integer tramiteId, String concepto, java.math.BigDecimal monto) {}
+
+    // =====================================================
     // RESUMEN OPERADORES
     // =====================================================
 
     @GetMapping("/ResumenOperadorDTO/{fecha}")
-    public ResponseEntity<List<ResumenOperadorDTO>> getResumen(
-            @PathVariable LocalDate fecha
-    ) {
-        User user= userService.getAuthenticatedUser().get();
-        return ResponseEntity.ok(
-                pagoService.obtenerResumenPorOperador(fecha,user)
-        );
+    public ResponseEntity<List<ResumenOperadorDTO>> getResumen(@PathVariable LocalDate fecha) {
+        User user = userService.getAuthenticatedUser()
+                .orElseThrow(() -> new BusinessException("Usuario no autenticado"));
+        return ResponseEntity.ok(pagoService.obtenerResumenPorOperador(fecha, user));
     }
 
     // =====================================================
-    //______________VALIDAR PAGO INDIVIDUAL________________
+    // VALIDAR PAGO INDIVIDUAL
     // =====================================================
 
     @PatchMapping("/{id}/validar")
-    public ResponseEntity<?> validarPago(
-            @PathVariable Long id
-    ) {
-
-        pagoService.actualizarEstadoValidacion(id);
-
-        return ResponseEntity.ok(
-                "Pago validado correctamente"
-        );
+    public ResponseEntity<?> validarPago(@PathVariable Integer id) {
+        pagoService.actualizarEstadoValidacion(id.longValue());
+        return ResponseEntity.ok("Pago validado correctamente");
     }
 
     // =====================================================
@@ -79,15 +109,9 @@ public class PagoController {
     // =====================================================
 
     @PatchMapping("/tramite/{tramiteId}/validar")
-    public ResponseEntity<?> validarPagosPorTramite(
-            @PathVariable Integer tramiteId
-    ) {
-        pagoService.actualizarEstadoValidacionPorTramite(
-                tramiteId
-        );
-        return ResponseEntity.ok(
-                "Pagos validados correctamente"
-        );
+    public ResponseEntity<?> validarPagosPorTramite(@PathVariable Integer tramiteId) {
+        pagoService.actualizarEstadoValidacionPorTramite(tramiteId);
+        return ResponseEntity.ok("Pagos validados correctamente");
     }
 
     // =====================================================
@@ -95,76 +119,99 @@ public class PagoController {
     // =====================================================
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<?> cambiarEstado(
-            @PathVariable Long id,
-            @RequestParam EstadoPago estado
-    ) {
-
-        pagoService.cambiarEstadoPago(
-                id.intValue(),
-                estado
-        );
-
-        return ResponseEntity.ok(
-                "Estado actualizado"
-        );
+    public ResponseEntity<?> cambiarEstado(@PathVariable Integer id, @RequestParam EstadoPago estado) {
+        pagoService.cambiarEstadoPago(id, estado);
+        return ResponseEntity.ok("Estado actualizado");
     }
 
     // =====================================================
-    // CREAR PREFERENCIA MP
+    // BUSCAR POR ID
     // =====================================================
 
-    @PostMapping("/crear-preferencia")
-    public ResponseEntity<?> crearPreferencia(
-            @RequestBody ProductoDTO producto
-    ) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Pago> buscarPorId(@PathVariable Integer id) {
+        return pagoService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-        try {
+    // =====================================================
+    // BUSCAR POR ATENCIÓN
+    // =====================================================
 
-            Map<String, String> datos =
-                    pagoService.crearPreferencia(producto);
+    @GetMapping("/atencion/{id}")
+    public ResponseEntity<List<Pago>> buscarPorAtencionId(@PathVariable Integer id) {
+        return ResponseEntity.ok(pagoService.findByAtencionId(id));
+    }
 
-            return ResponseEntity.ok(datos);
+    // =====================================================
+    // LISTAR TODOS
+    // =====================================================
 
-        } catch (Exception e) {
+    @GetMapping
+    public ResponseEntity<List<Pago>> listarTodos() {
+        return ResponseEntity.ok(pagoService.listarTodos());
+    }
 
-            e.printStackTrace();
+    // =====================================================
+    // ELIMINAR
+    // =====================================================
 
-            return ResponseEntity.status(
-                            HttpStatus.INTERNAL_SERVER_ERROR
-                    )
-                    .body("Error: " + e.getMessage());
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        if (pagoService.buscarPorId(id).isPresent()) {
+            pagoService.eliminar(id);
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.notFound().build();
     }
 
     // =====================================================
-    // GUARDAR PAGO ASOCIADO A TRÁMITE
+    // WEBHOOK MERCADO PAGO
     // =====================================================
 
-    @PostMapping("/atencion/{atencionId}")
-    public ResponseEntity<Pago> guardarPagoAT(
-            @RequestBody Pago pago,
-            @PathVariable Integer atencionId
-    ) {
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> recibirNotificacion(@RequestBody Map<String, Object> payload) {
+        try {
+            String type = (String) payload.get("type");
+            if ("payment".equals(type)) {
+                pagoService.procesarWebhook(payload);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error procesando webhook MP: " + e.getMessage());
+        }
+        return ResponseEntity.ok().build();
+    }
 
-        Tramite atencion =
-                tramiteService.findById(atencionId).get();
+    // =====================================================
+    // RESUMEN RECAUDACIÓN
+    // =====================================================
 
-        pago.setTramite(atencion);
-
-        pago.setResponsable(
-                atencion.getTramiteUsuario()
+    @GetMapping("/ResumenRecaudacionDTO/{fechaPago}")
+    public ResponseEntity<ResumenRecaudacionDTO> resumenRecaudacionDTO(@PathVariable LocalDate fechaPago) {
+        return ResponseEntity.ok(
+                pagoService.ResumenRecaudacionDTO(fechaPago).orElseGet(ResumenRecaudacionDTO::new)
         );
-
-        Pago pagoGuardado =
-                pagoService.guardar(pago);
-
-        return ResponseEntity.ok(pagoGuardado);
     }
 
     // =====================================================
-    // GUARDAR PAGO
+    // GUARDAR CON DETALLES
     // =====================================================
+
+    @PostMapping("/con-detalles")
+    public ResponseEntity<Pago> guardarConDetalles(@RequestBody PagoRequestDTO request) {
+        Pago guardado = pagoDetalleService.guardarPagoConDetalles(request.getPago(), request.getDetalles());
+        return ResponseEntity.ok(guardado);
+    }
+
+    // =====================================================
+    // OBTENER DETALLES
+    // =====================================================
+
+    @GetMapping("/{id}/detalles")
+    public ResponseEntity<List<PagoDetalle>> obtenerDetalles(@PathVariable Integer id) {
+        return ResponseEntity.ok(pagoDetalleService.obtenerPorPago(id));
+    }
 
     @PostMapping
     public ResponseEntity<Pago> guardar(
@@ -175,178 +222,5 @@ public class PagoController {
                 pagoService.guardar(pago);
 
         return ResponseEntity.ok(pagoGuardado);
-    }
-
-    // =====================================================
-    // BUSCAR POR ID
-    // =====================================================
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Pago> buscarPorId(
-            @PathVariable Integer id
-    ) {
-
-        Optional<Pago> pagoOpt =
-                pagoService.buscarPorId(id);
-
-        return pagoOpt.map(ResponseEntity::ok)
-                .orElseGet(() ->
-                        ResponseEntity.notFound().build()
-                );
-    }
-
-    // =====================================================
-    // BUSCAR POR ATENCIÓN
-    // =====================================================
-
-    @GetMapping("/atencion/{id}")
-    public ResponseEntity<List<Pago>> buscarPorAtencionId(
-            @PathVariable Integer id
-    ) {
-
-        List<Pago> pagos =
-                pagoService.findByAtencionId(id);
-
-        return ResponseEntity.ok(pagos);
-    }
-
-    // =====================================================
-    // LISTAR TODOS
-    // =====================================================
-
-    @GetMapping
-    public ResponseEntity<List<Pago>> listarTodos() {
-
-        List<Pago> pagos =
-                pagoService.listarTodos();
-
-        return ResponseEntity.ok(pagos);
-    }
-
-    // =====================================================
-    // ELIMINAR
-    // =====================================================
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable Integer id
-    ) {
-
-        Optional<Pago> pagoOpt =
-                pagoService.buscarPorId(id);
-
-        if (pagoOpt.isPresent()) {
-
-            pagoService.eliminar(id);
-
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.notFound().build();
-    }
-
-    // =====================================================
-    // WEBHOOK MERCADO PAGO
-    // =====================================================
-
-    @PostMapping("/webhook")
-    public ResponseEntity<?> recibirNotificacion(
-            @RequestBody Map<String, Object> payload
-    ) {
-        try {
-            pagoService.procesarWebhook(payload);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(
-                            HttpStatus.INTERNAL_SERVER_ERROR                    )
-                    .body("Error al procesar webhook");
-        }
-    }
-    // =====================================================
-    // CREAR PAGO INICIAL
-    // =====================================================
-    @PostMapping("/inicial")
-    public ResponseEntity<Pago> crearPagoInicial(
-            @RequestBody Pago pago
-    ) {
-
-        if (
-                pago.getTramite() == null
-                        || pago.getTramite().getId() == null
-        ) {
-
-            return ResponseEntity.badRequest().build();
-        }
-
-        pago.setEstado(EstadoPago.PENDIENTE);
-
-        pago.setCreadoEn(Instant.now());
-
-        Pago guardado =
-                pagoService.guardar(pago);
-
-        return ResponseEntity.ok(guardado);
-    }
-
-    // =====================================================
-    // RESUMEN RECAUDACIÓN
-    // =====================================================
-
-    @GetMapping("/ResumenRecaudacionDTO/{fechaPago}")
-    public ResponseEntity<ResumenRecaudacionDTO>
-    ResumenRecaudacionDTO(
-            @PathVariable LocalDate fechaPago
-    ) {
-
-        Optional<ResumenRecaudacionDTO> pagoOpt =
-                pagoService.ResumenRecaudacionDTO(
-                        fechaPago
-                );
-
-        return ResponseEntity.ok(
-                pagoOpt.orElseGet(
-                        ResumenRecaudacionDTO::new
-                )
-        );
-    }
-
-    // =====================================================
-    // GUARDAR CON DETALLES
-    // =====================================================
-
-    @PostMapping("/con-detalles")
-    public ResponseEntity<Pago> guardarConDetalles(
-            @RequestBody PagoRequestDTO request
-    ) {
-
-        Pago pago = request.getPago();
-
-        List<PagoDetalle> detalles =
-                request.getDetalles();
-
-        Pago guardado =
-                pagoDetalleService
-                        .guardarPagoConDetalles(
-                                pago,
-                                detalles
-                        );
-
-        return ResponseEntity.ok(guardado);
-    }
-
-    // =====================================================
-    // OBTENER DETALLES
-    // =====================================================
-
-    @GetMapping("/{id}/detalles")
-    public ResponseEntity<List<PagoDetalle>>
-    obtenerDetalles(
-            @PathVariable Integer id
-    ) {
-
-        return ResponseEntity.ok(
-                pagoDetalleService.obtenerPorPago(id)
-        );
     }
 }

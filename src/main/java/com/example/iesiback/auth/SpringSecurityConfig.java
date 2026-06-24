@@ -68,6 +68,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/pagos/iniciar").permitAll()
 
                         // 🔥 Necesario para SockJS
                         .requestMatchers("/ws/**").permitAll()

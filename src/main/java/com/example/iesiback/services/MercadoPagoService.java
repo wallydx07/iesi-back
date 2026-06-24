@@ -11,12 +11,15 @@ public class MercadoPagoService {
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
-
     private static final String PAYMENT_URL = "https://api.mercadopago.com/v1/payments/";
 
-    public PaymentDTO consultarPagoPorId(Long paymentId) {
-        RestTemplate restTemplate = new RestTemplate(); // 👈 agregalo acá si no querés inyectarlo
+    private final RestTemplate restTemplate;
 
+    public MercadoPagoService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    public PaymentDTO consultarPagoPorId(Long paymentId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -29,9 +32,6 @@ public class MercadoPagoService {
                 entity,
                 PaymentDTO.class
         );
-
         return response.getBody();
     }
-
 }
-

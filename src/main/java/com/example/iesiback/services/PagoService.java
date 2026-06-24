@@ -24,7 +24,7 @@ public interface PagoService {
 
     List<Pago> findByAtencionId(Integer id);
 
-    Map<String, String> crearPreferencia(ProductoDTO producto);
+    Map<String, String> crearPreferencia(ProductoDTO producto,Integer pagoId);
 
     void procesarWebhook(Map<String, Object> payload) throws Exception;
 
