@@ -67,7 +67,27 @@ public class CursadaExamenServiceImpl implements CursadaExamenService {
         List<Object[]> resultados = cursadaExamenRepository.findByTurno(turnoId);
         List<ExamenCursadaDTO> lista = new ArrayList<>();
 
+
+
+
+
         for (Object[] obj : resultados) {
+
+            System.out.println("========================================");
+            for (int i = 0; i < obj.length; i++) {
+                System.out.println(
+                        "obj[" + i + "] = [" + obj[i] + "]" +
+                                " tipo=" + (obj[i] == null ? "null" : obj[i].getClass().getName())
+                );
+            }
+            System.out.println("========================================");
+
+
+
+
+
+
+
 
             PersonaDTO titular = null;
             if (obj[6] != null) {
