@@ -20,11 +20,11 @@ public class PagoPresencialService {
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
-    @Value("${mercadopago.point.terminal-id}")
-    private String terminalId;
-
     @Value("${mercadopago.qr.external-pos-id}")
     private String externalPosId;
+
+    @Value("${mercadopago.point.terminal-id}")
+    private String terminalId;
 
     private final RestClient restClient;
 
@@ -35,7 +35,13 @@ public class PagoPresencialService {
                 "total_amount", totalAmount.toPlainString(),
                 "transactions", Map.of(
                         "payments", List.of(Map.of("amount", totalAmount.toPlainString()))
-                )
+                ),
+                "items", List.of(Map.of(
+                        "title", description,
+                        "unit_price", totalAmount.toPlainString(),
+                        "quantity", 1,
+                        "unit_measure", "unit"
+                ))
         ));
 
         switch (tipo) {
