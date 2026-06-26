@@ -34,6 +34,9 @@ public class PagoServiceImpl implements PagoService {
     private final PersonaService personaService;
     private final PagoDetalleService pagoDetalleService;
 
+    private final PagoPresencialService pagoPresencialService;
+
+
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
@@ -44,12 +47,13 @@ public class PagoServiceImpl implements PagoService {
             MercadoPagoService mercadoPagoService,
             UserService userService,
             PersonaService personaService,
-            PagoDetalleService pagoDetalleService
+            PagoDetalleService pagoDetalleService, PagoPresencialService pagoPresencialService
     ) {
         this.mercadoPagoService = mercadoPagoService;
         this.userService = userService;
         this.personaService = personaService;
         this.pagoDetalleService = pagoDetalleService;
+        this.pagoPresencialService = pagoPresencialService;
     }
 
     @Override
@@ -90,6 +94,11 @@ public class PagoServiceImpl implements PagoService {
     @Override
     public List<Pago> findByAtencionId(Integer id) {
         return pagoRepository.findAllByTramiteId(id);
+    }
+
+    @Override
+    public Optional<Pago> findByOrderId(String id) {
+        return pagoRepository.findByOrderId(id);
     }
 
     @Override
@@ -148,7 +157,6 @@ public class PagoServiceImpl implements PagoService {
         }
     }
 
-
     @Override
     public void procesarWebhook(Map<String, Object> payload) throws Exception {
 
@@ -189,6 +197,60 @@ public class PagoServiceImpl implements PagoService {
 
         ObjectMapper mapper = new ObjectMapper();
         pago.setRawResponse(mapper.convertValue(payment, Map.class));
+
+        pagoRepository.save(pago);
+    }
+
+    @Override
+    public void procesarWebhookPresencial(Map<String, Object> payload) throws Exception {
+
+        String action = (String) payload.get("action");
+        if (!"order.processed".equals(action) && !"order.refunded".equals(action)) {
+            return;
+        }
+
+        Map<String, Object> data = (Map<String, Object>) payload.get("data");
+        String orderId = (String) data.get("id");
+
+        Map<String, Object> order = pagoPresencialService.consultarOrder(orderId);
+
+        String externalRef = (String) order.get("external_reference");
+        String status = (String) order.get("status");
+        String statusDetail = (String) order.get("status_detail");
+
+        Pago pago = null;
+        if (externalRef != null) {
+            pago = pagoRepository.findById(Integer.valueOf(externalRef)).orElse(null);
+        }
+        if (pago == null) {
+            pago = pagoRepository.findByOrderId(orderId).orElse(null);
+        }
+
+        if (pago == null) {
+            System.err.println("⚠️ Webhook presencial recibido sin Pago asociado. orderId=" + orderId
+                    + " externalRef=" + externalRef);
+            return;
+        }
+
+        Map<String, Object> transactions = (Map<String, Object>) order.get("transactions");
+        List<Map<String, Object>> payments = (List<Map<String, Object>>) transactions.get("payments");
+        Map<String, Object> firstPayment = (payments != null && !payments.isEmpty()) ? payments.get(0) : null;
+
+        pago.setOrderId(orderId);
+        pago.setExternalReference(externalRef);
+        pago.setEstado(mapearEstadoMercadoPago(status));
+        pago.setStatusDetail(statusDetail);
+        pago.setMontoTotal(order.get("total_amount") != null
+                ? new BigDecimal(order.get("total_amount").toString())
+                : null);
+        pago.setMoneda((String) order.get("currency"));
+
+        if (firstPayment != null) {
+            pago.setMpPaymentIdStr((String) firstPayment.get("id")); // ver nota abajo
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        pago.setRawResponse(mapper.convertValue(order, Map.class));
 
         pagoRepository.save(pago);
     }
@@ -345,8 +407,6 @@ public class PagoServiceImpl implements PagoService {
     }
 
 
-
-
     @Override
     public List<ResumenOperadorDTO> obtenerResumenPorOperador(
             LocalDate fechaPago,User user
@@ -462,7 +522,6 @@ public class PagoServiceImpl implements PagoService {
     }
 
 
-
     @Override
     public void actualizarEstadoValidacion(Long id) {
 
@@ -532,7 +591,6 @@ public class PagoServiceImpl implements PagoService {
 
         pagoRepository.saveAll(pagos);
     }
-
 
     @Override
     @Transactional // Súper importante para asegurar la consistencia en operaciones de escritura

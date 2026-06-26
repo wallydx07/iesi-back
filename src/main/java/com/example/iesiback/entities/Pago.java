@@ -95,4 +95,13 @@ public class Pago {
     public void prePersist() {
         this.creadoEn = Instant.now();
     }
+
+    @Size(max = 50)
+    @Column(name = "order_id", length = 50)
+    private String orderId;
+
+    @Size(max = 50)
+    @Column(name = "mp_payment_id_str", length = 50)
+    private String mpPaymentIdStr;
+    //CREATE INDEX idx_pago_order_id ON pago (order_id);
 }

@@ -44,7 +44,7 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
 
     List<Pago> findByFechaPago(Instant fechaPago);
 
-
+    Optional<Pago> findByOrderId(String orderId);
 
 
     List<Pago> findByFechaPagoBetween(Instant inicio, Instant fin);

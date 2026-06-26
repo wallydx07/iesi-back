@@ -24,9 +24,13 @@ public interface PagoService {
 
     List<Pago> findByAtencionId(Integer id);
 
-    Map<String, String> crearPreferencia(ProductoDTO producto,Integer pagoId);
+    Optional<Pago> findByOrderId(String id);
+
+    Map<String, String> crearPreferencia(ProductoDTO producto, Integer pagoId);
 
     void procesarWebhook(Map<String, Object> payload) throws Exception;
+
+    void procesarWebhookPresencial(Map<String, Object> payload) throws Exception;
 
     Optional<ResumenRecaudacionDTO> ResumenRecaudacionDTO(
             LocalDate fechaPago
