@@ -33,6 +33,8 @@ public class PagoServiceImpl implements PagoService {
     private final UserService userService;
     private final PersonaService personaService;
     private final PagoDetalleService pagoDetalleService;
+    private final ObjectMapper objectMapper; // Spring te inyecta el autoconfigurado
+
 
     private final PagoPresencialService pagoPresencialService;
 
@@ -53,12 +55,13 @@ public class PagoServiceImpl implements PagoService {
             MercadoPagoService mercadoPagoService,
             UserService userService,
             PersonaService personaService,
-            PagoDetalleService pagoDetalleService, PagoPresencialService pagoPresencialService
+            PagoDetalleService pagoDetalleService, ObjectMapper objectMapper, PagoPresencialService pagoPresencialService
     ) {
         this.mercadoPagoService = mercadoPagoService;
         this.userService = userService;
         this.personaService = personaService;
         this.pagoDetalleService = pagoDetalleService;
+        this.objectMapper = objectMapper;
         this.pagoPresencialService = pagoPresencialService;
     }
 
@@ -142,7 +145,7 @@ public class PagoServiceImpl implements PagoService {
                     PreferenceRequest.builder()
                             .items(List.of(itemRequest))
                             .backUrls(backUrls)
-//                            .autoReturn("approved")
+                            .autoReturn("approved")
                             .externalReference(pagoId.toString())            // 👈 clave: id de TU tabla
                             .notificationUrl(backUrl + "/api/pagos/webhook")
                             .build();
@@ -204,9 +207,17 @@ public class PagoServiceImpl implements PagoService {
         pago.setMontoTotal(payment.getTransaction_amount());
         pago.setMoneda(payment.getCurrency_id());
         pago.setFechaPago(payment.getDate_approved());
+        pago.setRawResponse(objectMapper.convertValue(payment, Map.class));
 
-        ObjectMapper mapper = new ObjectMapper();
-        pago.setRawResponse(mapper.convertValue(payment, Map.class));
+        if (payment.getPayer() != null) {
+            PaymentDTO.Payer payer = payment.getPayer();
+
+            String nombreCompleto = ((payer.getFirst_name() != null ? payer.getFirst_name() : "") + " "
+                    + (payer.getLast_name() != null ? payer.getLast_name() : "")).trim();
+
+            pago.setNombrePagador(nombreCompleto.isEmpty() ? null : nombreCompleto);
+            pago.setDniPagador(payer.getIdentification() != null ? payer.getIdentification().getNumber() : null);
+        }
 
         pagoRepository.save(pago);
     }

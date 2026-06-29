@@ -45,7 +45,7 @@ public class PersonalHorario {
     private Integer year;
 
     @Column(name = "activo")
-    private Boolean activo;
+    private Boolean activo = true;
 
     public String getDia() {
         return dia;

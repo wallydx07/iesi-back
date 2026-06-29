@@ -14,6 +14,8 @@ import com.example.iesiback.services.PagoDetalleService;
 import com.example.iesiback.services.PagoService;
 import com.example.iesiback.services.TramiteService;
 import com.example.iesiback.services.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +35,7 @@ public class PagoController {
     private final TramiteService tramiteService;
     private final PagoDetalleService pagoDetalleService;
     private final UserService userService;
-
+    private static final Logger logger = LoggerFactory.getLogger(PagoService.class);
     public PagoController(
             PagoService pagoService,
             TramiteService tramiteService,
@@ -53,26 +55,24 @@ public class PagoController {
 
     @PostMapping("/iniciar")
     public ResponseEntity<?> iniciarPago(@RequestBody IniciarPagoRequest request) {
-
         Tramite tramite = tramiteService.findById(request.tramiteId())
                 .orElseThrow(() -> new BusinessException("Trámite no encontrado: " + request.tramiteId()));
-
         Pago pago = new Pago();
         pago.setTramite(tramite);
         pago.setMontoTotal(request.monto());
         pago.setTipoPago(request.concepto());
         pago.setEstado(EstadoPago.PENDIENTE);
         pago.setResponsable(tramite.getTramiteUsuario());
-
         Pago pagoGuardado = pagoService.guardar(pago);
-
         ProductoDTO producto = new ProductoDTO();
         producto.setNombre(request.concepto());
         producto.setDescripcion("Trámite N° " + request.tramiteId());
         producto.setPrecio(request.monto());
-
         try {
             Map<String, String> datos = pagoService.crearPreferencia(producto, pagoGuardado.getId());
+            logger.info("Pago creado con éxito. ID: {}, Monto: {}, Alumno: {}",
+                    pago.getId(),
+                    pago.getMontoTotal());
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
             e.printStackTrace();
@@ -179,10 +179,10 @@ public class PagoController {
             }
         } catch (Exception e) {
             System.err.println("❌ Error procesando webhook MP: " + e.getMessage());
+            e.printStackTrace();
         }
         return ResponseEntity.ok().build();
     }
-
     // =====================================================
     // RESUMEN RECAUDACIÓN
     // =====================================================

@@ -104,4 +104,12 @@ public class Pago {
     @Column(name = "mp_payment_id_str", length = 50)
     private String mpPaymentIdStr;
     //CREATE INDEX idx_pago_order_id ON pago (order_id);
+
+    @Size(max = 20)
+    @Column(name = "dni_pagador", length = 20)
+    private String dniPagador;
+
+    @Size(max = 150)
+    @Column(name = "nombre_pagador", length = 150)
+    private String nombrePagador;
 }
