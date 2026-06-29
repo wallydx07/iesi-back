@@ -36,6 +36,12 @@ public class PagoServiceImpl implements PagoService {
 
     private final PagoPresencialService pagoPresencialService;
 
+    @Value("${app.front-url}")
+    private String frontUrl;
+
+    @Value("${app.back-url}")
+    private String backUrl;
+
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
@@ -122,19 +128,23 @@ public class PagoServiceImpl implements PagoService {
                             .unitPrice(producto.getPrecio())
                             .build();
 
+            String successUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&resultado=exito";
+            String pendingUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&resultado=pendiente";
+            String failureUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&resultado=error";
+
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("https://tudominio.com/pago/exito")
-                    .pending("https://tudominio.com/pago/pendiente")
-                    .failure("https://tudominio.com/pago/error")
+                    .success(successUrl)
+                    .pending(pendingUrl)
+                    .failure(failureUrl)
                     .build();
 
             PreferenceRequest preferenceRequest =
                     PreferenceRequest.builder()
                             .items(List.of(itemRequest))
                             .backUrls(backUrls)
-                            .autoReturn("approved")
+//                            .autoReturn("approved")
                             .externalReference(pagoId.toString())            // 👈 clave: id de TU tabla
-                            .notificationUrl("https://tudominio.com/api/pagos/webhook")
+                            .notificationUrl(backUrl + "/api/pagos/webhook")
                             .build();
 
             PreferenceClient client = new PreferenceClient();
@@ -262,13 +272,12 @@ public class PagoServiceImpl implements PagoService {
         }
 
         return switch (estadoMp.toLowerCase()) {
-
             case "approved" -> EstadoPago.APROBADO;
-
             case "rejected" -> EstadoPago.RECHAZADO;
-
             case "cancelled" -> EstadoPago.CANCELADO;
-
+            case "pending", "in_process" -> EstadoPago.PENDIENTE;
+            case "refunded" -> EstadoPago.REEMBOLSADO;
+            case "charged_back" -> EstadoPago.CONTRACARGO;
             default -> EstadoPago.PENDIENTE;
         };
     }

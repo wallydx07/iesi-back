@@ -8,49 +8,48 @@ public enum EstadoPago {
     PENDIENTE,
     APROBADO,
     RECHAZADO,
-    CANCELADO;
+    CANCELADO,
+    REEMBOLSADO,
+    CONTRACARGO;
 
     /**
-     * Valida si un pago puede cambiar desde el estado actual (this) hacia un nuevo estado.
+     * Valida si un pago puede cambiar desde el estado actual (this)
+     * hacia un nuevo estado.
      *
      * @param nuevoEstado El estado al que se intenta cambiar.
-     * @return true si la transición está permitida por las reglas de negocio, false en caso contrario.
+     * @return true si la transición está permitida, false en caso contrario.
      */
     public boolean puedeTransicionarA(EstadoPago nuevoEstado) {
-        // Regla básica: Permanecer en el mismo estado actual siempre es válido (no hay cambios)
+
+        // Permanecer en el mismo estado siempre es válido.
         if (this == nuevoEstado) return true;
 
         return switch (this) {
 
-            // ⏳ UN PAGO PENDIENTE:
-            // Es el estado inicial. Desde aquí se puede tomar cualquier acción:
-            // - APROBADO: Si el operador valida que el dinero ingresó correctamente.
-            // - RECHAZADO: Si hay un error en los datos o el comprobante adjunto.
-            // - CANCELADO: Si el usuario desiste de realizar el pago antes de ser evaluado.
+            // Estado inicial.
             case PENDIENTE ->
                     nuevoEstado == APROBADO ||
                             nuevoEstado == RECHAZADO ||
                             nuevoEstado == CANCELADO;
 
-            // 🟢 UN PAGO APROBADO:
-            // El dinero ya impactó en el sistema. Por seguridad y auditoría,
-            // NO puede volver a 'Pendiente' ni a 'Rechazado'.
-            // - Única salida: CANCELADO (En caso de que requiera una anulación total/devolución).
+            // Pago acreditado.
             case APROBADO ->
-                    nuevoEstado == CANCELADO;
+                    nuevoEstado == REEMBOLSADO ||
+                            nuevoEstado == CONTRACARGO ||
+                            nuevoEstado == CANCELADO;
 
-            // 🟡 UN PAGO RECHAZADO:
-            // El operador detectó un problema (ej. comprobante borroso).
-            // - Única salida: PENDIENTE. Se regresa a pendiente para que el usuario o el
-            //   sistema puedan corregir los datos del pago y permitir una nueva evaluación.
+            // Puede corregirse y volver a revisión.
             case RECHAZADO ->
                     nuevoEstado == PENDIENTE;
 
-            // ⚫ UN PAGO CANCELADO:
-            // Estado final absoluto (Anulado). Representa un punto sin retorno.
-            // No se permite reactivarlo, modificarlo ni auditarlo bajo ninguna circunstancia
-            // para evitar fraudes o inconsistencias de caja.
-            case CANCELADO ->
+            // Un pago reembolsado puede posteriormente recibir un contracargo
+            // únicamente si el negocio lo permite.
+            case REEMBOLSADO ->
+                    nuevoEstado == CONTRACARGO;
+
+            // Estados finales.
+            case CANCELADO,
+                 CONTRACARGO ->
                     false;
         };
     }

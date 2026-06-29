@@ -48,28 +48,30 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/documento/descargar").authenticated() // 👈 ESTA ES CLAVE
+                        .requestMatchers(HttpMethod.GET, "/api/documento/descargar").authenticated()
                         .requestMatchers("/api/users/request-password-reset", "/api/users/reset-password").permitAll()
                         .requestMatchers("/debug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/horarios/**").permitAll() // Horarios sin auth
                         .requestMatchers(HttpMethod.POST, "/api/asistencias/desde-dispositivo").permitAll() // Asistencia sin auth
-                        .requestMatchers(HttpMethod.GET,"/api/constancia-precios/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/alumnos/buscar/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/legajos/**").permitAll()   // <-- abrir legajos
-                        .requestMatchers(HttpMethod.GET, "/api/inscripcion/legajo/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/alumnos/legajo/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/carreras/anio-cursada").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tramite/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/certificados").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/constancias/batch").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/pagos/atencion/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/documento/upload").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/tramite/seguimiento/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/pagos/iniciar").permitAll()
-
+                        .requestMatchers(HttpMethod.GET,"/api/constancia-precios/**").permitAll()  //-----------
+                        .requestMatchers(HttpMethod.GET,"/api/alumnos/buscar/**").permitAll() //-----------
+                        .requestMatchers(HttpMethod.GET,"/api/legajos/**").permitAll()    //-----------
+                        .requestMatchers(HttpMethod.GET, "/api/inscripcion/legajo/**").permitAll() //-----------
+                        .requestMatchers(HttpMethod.GET, "/api/alumnos/legajo/**").permitAll() //-----------
+                        .requestMatchers(HttpMethod.GET, "/api/carreras/anio-cursada").permitAll() //-----------
+                        .requestMatchers(HttpMethod.POST, "/api/tramite/**").permitAll()  //-----------si va
+                        .requestMatchers(HttpMethod.POST,"/api/certificados").permitAll() //-----------
+                        .requestMatchers(HttpMethod.POST, "/api/constancias/batch").permitAll() //-----------
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/atencion/**").permitAll() //-----------
+                        .requestMatchers(HttpMethod.GET,"/api/tramite/seguimiento/**").permitAll() //-----------
+                        .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll() //-----------
+                        .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll() //-----------
+                        .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll() //-----------
+                        .requestMatchers(HttpMethod.POST,"/api/pagos/iniciar").permitAll() //-----------
+                        .requestMatchers(
+                                "/api/pagos/webhook",
+                                "/api/pagos/presencial/webhook"
+                        ).permitAll()
                         // 🔥 Necesario para SockJS
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/ws").permitAll()
