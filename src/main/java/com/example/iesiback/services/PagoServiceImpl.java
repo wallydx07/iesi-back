@@ -111,7 +111,7 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public Map<String, String> crearPreferencia(ProductoDTO producto, Integer pagoId) {
+    public Map<String, String> crearPreferencia(ProductoDTO producto, Integer pagoId, Integer tramiteId) {
 
         Pago pago = pagoRepository.findById(pagoId)
                 .orElseThrow(() -> new BusinessException("Pago no encontrado: " + pagoId));
@@ -131,10 +131,9 @@ public class PagoServiceImpl implements PagoService {
                             .unitPrice(producto.getPrecio())
                             .build();
 
-            String successUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&resultado=exito";
-            String pendingUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&resultado=pendiente";
-            String failureUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&resultado=error";
-
+            String successUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId + "&resultado=exito";
+            String pendingUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId + "&resultado=pendiente";
+            String failureUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId + "&resultado=error";
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                     .success(successUrl)
                     .pending(pendingUrl)

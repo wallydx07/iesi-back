@@ -352,3 +352,46 @@ DROP COLUMN estado;
 ALTER TABLE asistencia_alumno
 RENAME COLUMN estado_nuevo TO estado;
 
+
+SELECT c.* FROM public.cursada AS c
+inner join nota n on c.cursada_id =n.nota_cursada_id
+WHERE cursada_legajo_id = 'GYPDE97'
+
+DELETE FROM nota
+WHERE nota_id = 67341;
+
+DELETE FROM nota
+WHERE nota_id = 67341;
+
+DELETE FROM nota
+WHERE nota_id = 67341;
+
+DELETE FROM nota
+WHERE nota_id = 67341;
+
+DELETE FROM nota
+WHERE nota_id = 67334;
+
+-- 1. Borrar notas de las cursadas afectadas
+DELETE FROM nota
+WHERE nota_cursada_id IN (
+    SELECT cu.cursada_id
+    FROM cursada cu
+    JOIN legajo l
+        ON l.legajo_id = cu.cursada_legajo_id
+    JOIN materia_carrera mc
+        ON mc.id = cu.cursada_materia_carrera_id
+    WHERE UPPER(TRIM(l.legajo_comision)) <> UPPER(TRIM(mc.division))
+);
+
+-- 2. Borrar las cursadas afectadas
+DELETE FROM cursada
+WHERE cursada_id IN (
+    SELECT cu.cursada_id
+    FROM cursada cu
+    JOIN legajo l
+        ON l.legajo_id = cu.cursada_legajo_id
+    JOIN materia_carrera mc
+        ON mc.id = cu.cursada_materia_carrera_id
+    WHERE UPPER(TRIM(l.legajo_comision)) <> UPPER(TRIM(mc.division))
+);

@@ -60,6 +60,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/alumnos/legajo/**").permitAll() //-----------
                         .requestMatchers(HttpMethod.GET, "/api/carreras/anio-cursada").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST, "/api/tramite/**").permitAll()  //-----------si va
+                        .requestMatchers(HttpMethod.GET, "/api/tramite/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/certificados").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST, "/api/constancias/batch").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST, "/api/pagos/atencion/**").permitAll() //-----------
@@ -68,6 +69,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST,"/api/pagos/iniciar").permitAll() //-----------
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/*").permitAll()
                         .requestMatchers(
                                 "/api/pagos/webhook",
                                 "/api/pagos/presencial/webhook"

@@ -69,7 +69,7 @@ public class PagoController {
         producto.setDescripcion("Trámite N° " + request.tramiteId());
         producto.setPrecio(request.monto());
         try {
-            Map<String, String> datos = pagoService.crearPreferencia(producto, pagoGuardado.getId());
+            Map<String, String> datos = pagoService.crearPreferencia(producto, pagoGuardado.getId(),tramite.getId());
             logger.info("Pago creado con éxito. ID: {}, Monto: {}, Alumno: {}",
                     pago.getId(),
                     pago.getMontoTotal());
