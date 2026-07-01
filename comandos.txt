@@ -1,18 +1,18 @@
---------Compilar y Guardar el contenedor de Docker----------
---------------------------------------------------SpringBoot
+---------------Compilar y Guardar el contenedor de Docker---------------
+---------------------------------SpringBoot-----------------------------
 mvn clean package
 docker build -t iesi-back .
 docker save -o iesi-back.tar iesi-back:latest
 docker load -i iesi-back.tar
 
----------Compilar y Guardar el contenedor de Docker-------
-----------------------------Angular-----------------------
+---------------Compilar y Guardar el contenedor de Docker-------------
+----------------------------------Angular-----------------------------
 ng build --configuration=production
 docker build -t iesi-front .
 docker save -o iesi-front.tar iesi-front:latest
 docker load -i iesi-front.tar
 
-------------Reemplazar contenedores---------------------
+------------------------Reemplazar contenedores-----------------------
 # 1. Eliminar contenedores de docker-compose y órfanos
 docker-compose down --remove-orphans
 # 2. Eliminar cualquier contenedor detenido (no solo de docker-compose)
@@ -22,9 +22,9 @@ docker load -i iesi-back.tar
 docker load -i iesi-front.tar
 # 4. Levantar contenedores nuevos
 docker-compose up -d
---------------ver logs-------------------
+------------------------------ver logs----------------------------------
 docker logs -f app_backend_1
------------------------------------Otros
+---------------------------------Otros----------------------------------
 docker-compose down
 docker-compose up -d
 docker network create app-network
@@ -33,7 +33,7 @@ docker network inspect app-network
 sudo systemctl restart apache2
 git checkout master
 
-ssh root@147.93.35.109
+ssh root@147.93.35.1094
 
 ngrok config edit
 ngrok start --all

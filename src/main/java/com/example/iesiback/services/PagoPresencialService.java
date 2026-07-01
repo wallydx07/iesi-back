@@ -83,6 +83,7 @@ public class PagoPresencialService {
         return restClient.post()
                 .uri("https://api.mercadopago.com/v1/orders/" + orderId + "/cancel")
                 .header("Authorization", "Bearer " + accessToken)
+                .header("X-Idempotency-Key", UUID.randomUUID().toString())
                 .retrieve()
                 .body(Map.class);
     }

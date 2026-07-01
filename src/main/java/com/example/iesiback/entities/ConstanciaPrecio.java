@@ -31,14 +31,54 @@ public class ConstanciaPrecio {
     @Column(name = "precio", nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
+    @NotNull
+    @Column(name = "precio_mp", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioMp;
+
+//    ALTER TABLE constancia_precios
+//    ADD COLUMN precio_mp NUMERIC(10,2) DEFAULT 0 NOT NULL;
 
     @Column(name = "descuento")
     private Double descuento;
 
-
     @Column(name = "icono", length = 100)
     private String icono;
 
+    @Column(name = "tipo", length = 30)
+    private String tipo;
+
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public BigDecimal getPrecio() {
+        return precio;
+    }
+
+    public void setPrecio(BigDecimal precio) {
+        this.precio = precio;
+    }
+
+    public BigDecimal getPrecioMp() {
+        return precioMp;
+    }
+
+    public void setPrecioMp(BigDecimal precioMp) {
+        this.precioMp = precioMp;
+    }
 
     public Double getDescuento() {
         return descuento;
@@ -54,29 +94,5 @@ public class ConstanciaPrecio {
 
     public void setIcono(String icono) {
         this.icono = icono;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String tipoConstancia) {
-        this.nombre = tipoConstancia;
-    }
-
-    public BigDecimal getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(BigDecimal precio) {
-        this.precio = precio;
     }
 }
