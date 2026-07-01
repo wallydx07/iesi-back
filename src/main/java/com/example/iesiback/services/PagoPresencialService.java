@@ -28,7 +28,7 @@ public class PagoPresencialService {
 
     private final RestClient restClient;
 
-    @Value("${app.back-url}") // o como se llame la property que usás en PagoService
+    @Value("${app.back-url}")
     private String backUrl;
 
     public Map<String, Object> crearOrder(TipoCobro tipo, String externalReference, String description, BigDecimal totalAmount) {
@@ -36,7 +36,6 @@ public class PagoPresencialService {
                 "external_reference", externalReference,
                 "description", description,
                 "total_amount", totalAmount.toPlainString(),
-                "notification_url", backUrl + "/api/pagos/presencial/webhook",
                 "transactions", Map.of(
                         "payments", List.of(Map.of("amount", totalAmount.toPlainString()))
                 ),
