@@ -9030,6 +9030,89 @@ public PDDocument generarRendicionTurno(LocalDate fecha) {
                 cStVal.setAlign(HorizontalAlignment.RIGHT);
             }
 
+            // ── RENDICIÓN POR MÉTODO DE PAGO ─────────────────────────────────────
+
+            if (resumen.getRecibos() != null && !resumen.getRecibos().isEmpty()) {
+
+                // Agrupar montos por método
+                Map<String, BigDecimal> porMetodo = new LinkedHashMap<>();
+                for (ReciboDTO r : resumen.getRecibos()) {
+                    String metodo = r.getMetodo() != null ? r.getMetodo().trim().toUpperCase() : "SIN ESPECIFICAR";
+                    BigDecimal monto = r.getAporteMonto() != null ? r.getAporteMonto() : BigDecimal.ZERO;
+                    porMetodo.merge(metodo, monto, BigDecimal::add);
+                }
+
+                // Clasificar: efectivo se rinde en mano; el resto ya entró digital
+                BigDecimal totalEfectivo = BigDecimal.ZERO;
+                BigDecimal totalDigital  = BigDecimal.ZERO;
+                for (Map.Entry<String, BigDecimal> e : porMetodo.entrySet()) {
+                    if (e.getKey().contains("EFECTIVO")) {
+                        totalEfectivo = totalEfectivo.add(e.getValue());
+                    } else {
+                        totalDigital = totalDigital.add(e.getValue());
+                    }
+                }
+
+                // Espacio
+                Row<PDPage> filaEspM = tabla.createRow(5);
+                filaEspM.createCell(100, "").setFillColor(Color.WHITE);
+
+                Row<PDPage> filaMetTitle = tabla.createRow(12);
+                Cell<PDPage> cMt = filaMetTitle.createCell(100, "RENDICI\u00D3N POR M\u00C9TODO DE PAGO");
+                cMt.setFont(negrita); cMt.setFontSize(8);
+                cMt.setFillColor(new Color(230, 235, 242));
+                cMt.setAlign(HorizontalAlignment.CENTER);
+
+                // Header
+                Row<PDPage> filaMetH = tabla.createRow(11);
+                Cell<PDPage> mhN = filaMetH.createCell(75, "M\u00E9todo");
+                mhN.setFont(negrita); mhN.setFontSize(8);
+                mhN.setFillColor(new Color(244, 246, 250));
+
+                Cell<PDPage> mhT = filaMetH.createCell(25, "Total");
+                mhT.setFont(negrita); mhT.setFontSize(8);
+                mhT.setFillColor(new Color(244, 246, 250));
+                mhT.setAlign(HorizontalAlignment.RIGHT);
+
+                // Detalle por método
+                boolean parM = false;
+                for (Map.Entry<String, BigDecimal> e : porMetodo.entrySet()) {
+                    Color bg = parM ? new Color(249, 250, 252) : Color.WHITE;
+                    parM = !parM;
+
+                    Row<PDPage> filaM = tabla.createRow(11);
+                    Cell<PDPage> cN = filaM.createCell(75, e.getKey());
+                    cN.setFont(normal); cN.setFontSize(8); cN.setFillColor(bg);
+
+                    Cell<PDPage> cT = filaM.createCell(25, fmt(e.getValue()));
+                    cT.setFont(normal); cT.setFontSize(8);
+                    cT.setAlign(HorizontalAlignment.RIGHT); cT.setFillColor(bg);
+                }
+
+                // Fila destacada: efectivo a rendir en caja
+                Row<PDPage> filaEf = tabla.createRow(13);
+                Cell<PDPage> cEfLbl = filaEf.createCell(75, "TOTAL A RENDIR EN EFECTIVO (caja)");
+                cEfLbl.setFont(negrita); cEfLbl.setFontSize(9);
+                cEfLbl.setFillColor(new Color(255, 249, 230));
+
+                Cell<PDPage> cEfVal = filaEf.createCell(25, fmt(totalEfectivo));
+                cEfVal.setFont(negrita); cEfVal.setFontSize(9);
+                cEfVal.setFillColor(new Color(255, 249, 230));
+                cEfVal.setAlign(HorizontalAlignment.RIGHT);
+
+                // Fila informativa: cobrado por medios digitales
+                Row<PDPage> filaDig = tabla.createRow(12);
+                Cell<PDPage> cDigLbl = filaDig.createCell(75,
+                        "Cobrado por medios digitales (billetera virtual / transferencia \u2013 no se rinde en mano)");
+                cDigLbl.setFont(normal); cDigLbl.setFontSize(8);
+                cDigLbl.setFillColor(new Color(240, 247, 240));
+
+                Cell<PDPage> cDigVal = filaDig.createCell(25, fmt(totalDigital));
+                cDigVal.setFont(negrita); cDigVal.setFontSize(8);
+                cDigVal.setFillColor(new Color(240, 247, 240));
+                cDigVal.setAlign(HorizontalAlignment.RIGHT);
+            }
+
             // ── OBSERVACIONES ─────────────────────────────────────────────────────
 
             Row<PDPage> filaObsT = tabla.createRow(12);

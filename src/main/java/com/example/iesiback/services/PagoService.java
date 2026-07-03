@@ -37,8 +37,9 @@ public interface PagoService {
     );
 
     List<ResumenOperadorDTO> obtenerResumenPorOperador(
-            LocalDate fechaPago, User user
+  LocalDate desde, LocalDate hasta, User user
     );
+
 
     /**
      * ✅ Validar un pago individual
@@ -55,5 +56,9 @@ public interface PagoService {
     void cambiarEstadoPago(
             Integer pagoId,
             EstadoPago nuevoEstado
+    );
+
+    List<Pago> findByFechaPagoBetween(
+            Instant desde, Instant hasta
     );
 }

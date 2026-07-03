@@ -16,6 +16,7 @@ import com.example.iesiback.services.TramiteService;
 import com.example.iesiback.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -86,12 +87,25 @@ public class PagoController {
     // =====================================================
     // RESUMEN OPERADORES
     // =====================================================
+//
+//    @GetMapping("/ResumenOperadorDTO/{fecha}")
+//    public ResponseEntity<List<ResumenOperadorDTO>> getResumen(@PathVariable LocalDate fecha) {
+//        User user = userService.getAuthenticatedUser()
+//                .orElseThrow(() -> new BusinessException("Usuario no autenticado"));
+//        return ResponseEntity.ok(pagoService.obtenerResumenPorOperador(fecha, user));
+//    }
 
-    @GetMapping("/ResumenOperadorDTO/{fecha}")
-    public ResponseEntity<List<ResumenOperadorDTO>> getResumen(@PathVariable LocalDate fecha) {
+
+    @GetMapping("/resumen-operador")
+    public ResponseEntity<List<ResumenOperadorDTO>> getResumenOperador(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         User user = userService.getAuthenticatedUser()
                 .orElseThrow(() -> new BusinessException("Usuario no autenticado"));
-        return ResponseEntity.ok(pagoService.obtenerResumenPorOperador(fecha, user));
+        if (desde.isAfter(hasta)) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(pagoService.obtenerResumenPorOperador(desde, hasta,user));
     }
 
     // =====================================================

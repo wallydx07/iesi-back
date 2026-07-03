@@ -15,8 +15,8 @@ public class ConstanciaPrecioServiceImpl implements ConstanciaPrecioService {
     private ConstanciaPrecioRepository repository;
 
     @Override
-    public Optional<ConstanciaPrecio> findByTipoConstancia(String tipoConstancia) {
-        return repository.findByNombre(tipoConstancia);
+    public List<ConstanciaPrecio> findByTipoConstancia(String tipo) {
+        return repository.findByTipo(tipo);
     }
 
     @Override

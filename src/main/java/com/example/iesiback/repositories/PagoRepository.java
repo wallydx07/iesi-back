@@ -4,12 +4,15 @@ package com.example.iesiback.repositories;
 import com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
+import com.example.iesiback.enums.EstadoPago;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,9 +49,7 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
 
     Optional<Pago> findByOrderId(String orderId);
 
-
     List<Pago> findByFechaPagoBetween(Instant inicio, Instant fin);
 
-
-
+    List<Pago> findByFechaPagoBetweenAndResponsable(Instant inicio, Instant fin, String responsable);
 }

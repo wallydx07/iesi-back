@@ -27,11 +27,22 @@ public class ConstanciaPrecioController {
     }
 
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<ConstanciaPrecio> obtenerPorTipoConstancia(
-            @PathVariable String tipo
-    ) {
-        return service.findByTipoConstancia(tipo)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<ConstanciaPrecio>> obtenerPorTipoConstancia(
+            @PathVariable String tipo) {
+
+        System.out.println("🔍 [constancia-precios/tipo] tipo recibido = '" + tipo + "'"
+                + " | length=" + (tipo != null ? tipo.length() : "null"));
+
+        List<ConstanciaPrecio> servicios = service.findByTipoConstancia(tipo);
+
+        System.out.println("🔍 [constancia-precios/tipo] resultados = " + servicios.size());
+        servicios.forEach(s -> System.out.println("   → " + s.getId() + " | " + s.getNombre()));
+
+        if (servicios.isEmpty()) {
+            System.out.println("⚠️ [constancia-precios/tipo] lista vacía → devolviendo 404");
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(servicios);
     }
 }

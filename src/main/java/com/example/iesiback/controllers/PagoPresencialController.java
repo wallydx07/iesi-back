@@ -24,10 +24,22 @@ public class PagoPresencialController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> crear(@RequestBody CrearOrderRequest req) {
-        Map<String, Object> order = pagoPresencialService.crearOrder(
-                req.tipo(), req.externalReference(), req.description(), req.totalAmount()
-        );
-        return ResponseEntity.ok(order);
+        try {
+            Map<String, Object> order = pagoPresencialService.crearOrder(
+                    req.tipo(), req.externalReference(), req.description(), req.totalAmount()
+            );
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            System.err.println("❌ Error creando order presencial | tipo=" + req.tipo()
+                    + " extRef=" + req.externalReference()
+                    + " monto=" + req.totalAmount()
+                    + " | " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(502).body(Map.of(
+                    "error", "No se pudo crear la orden",
+                    "detalle", e.getMessage() != null ? e.getMessage() : "desconocido"
+            ));
+        }
     }
 
     @GetMapping("/{orderId}/estado")

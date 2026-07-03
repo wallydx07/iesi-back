@@ -85,6 +85,7 @@ public class PagoServiceImpl implements PagoService {
 
         return pagoRepository.save(pago);
     }
+
     @Override
     public Optional<Pago> buscarPorId(Integer id) {
         return pagoRepository.findById(id);
@@ -199,7 +200,7 @@ public class PagoServiceImpl implements PagoService {
         pago.setMpPaymentId(paymentId);
         pago.setPreferenceId(preferenceId);
         pago.setExternalReference(externalRef);
-        pago.setEstado(mapearEstadoMercadoPago(payment.getStatus()));
+        pago.setEstado(mapearEstadoMercadoPago(payment.getStatus(), payment.getStatus_detail()));
         pago.setStatusDetail(payment.getStatus_detail());
         pago.setMetodoPago(payment.getPayment_method_id());
         pago.setTipoPago(payment.getPayment_type_id());
@@ -225,13 +226,19 @@ public class PagoServiceImpl implements PagoService {
     public void procesarWebhookPresencial(Map<String, Object> payload) throws Exception {
 
         String action = (String) payload.get("action");
-        if (!"order.processed".equals(action) && !"order.refunded".equals(action)) {
+        // 👇 antes solo processed/refunded; ahora también expired y canceled,
+        // así el pago local se cancela aunque el operador cierre la pestaña
+        if (!"order.processed".equals(action)
+                && !"order.refunded".equals(action)
+                && !"order.expired".equals(action)
+                && !"order.canceled".equals(action)) {
             return;
         }
 
         Map<String, Object> data = (Map<String, Object>) payload.get("data");
         String orderId = (String) data.get("id");
 
+        // Consultamos la order fresca a MP (no confiamos en el payload del webhook)
         Map<String, Object> order = pagoPresencialService.consultarOrder(orderId);
 
         String externalRef = (String) order.get("external_reference");
@@ -240,25 +247,41 @@ public class PagoServiceImpl implements PagoService {
 
         Pago pago = null;
         if (externalRef != null) {
-            pago = pagoRepository.findById(Integer.valueOf(externalRef)).orElse(null);
+            try {
+                pago = pagoRepository.findById(Integer.valueOf(externalRef)).orElse(null);
+            } catch (NumberFormatException e) {
+                // external_reference no numérico → probamos por orderId
+            }
         }
         if (pago == null) {
             pago = pagoRepository.findByOrderId(orderId).orElse(null);
         }
-
         if (pago == null) {
-            System.err.println("⚠️ Webhook presencial recibido sin Pago asociado. orderId=" + orderId
+            System.err.println("⚠️ Webhook presencial sin Pago asociado. orderId=" + orderId
                     + " externalRef=" + externalRef);
             return;
         }
 
+        EstadoPago nuevoEstado = mapearEstadoMercadoPago(status, statusDetail); // 👈 el cambio clave
+
+        // 🛡️ Nunca degradar un APROBADO: un webhook viejo o duplicado no puede
+        // pisarlo con PENDIENTE/CANCELADO. Solo refund/contracargo lo cambian.
+        if (pago.getEstado() == EstadoPago.APROBADO
+                && nuevoEstado != EstadoPago.REEMBOLSADO
+                && nuevoEstado != EstadoPago.CONTRACARGO) {
+            return;
+        }
+
         Map<String, Object> transactions = (Map<String, Object>) order.get("transactions");
-        List<Map<String, Object>> payments = (List<Map<String, Object>>) transactions.get("payments");
-        Map<String, Object> firstPayment = (payments != null && !payments.isEmpty()) ? payments.get(0) : null;
+        List<Map<String, Object>> payments = transactions != null
+                ? (List<Map<String, Object>>) transactions.get("payments")
+                : null;
+        Map<String, Object> firstPayment =
+                (payments != null && !payments.isEmpty()) ? payments.get(0) : null;
 
         pago.setOrderId(orderId);
         pago.setExternalReference(externalRef);
-        pago.setEstado(mapearEstadoMercadoPago(status));
+        pago.setEstado(nuevoEstado);
         pago.setStatusDetail(statusDetail);
         pago.setMontoTotal(order.get("total_amount") != null
                 ? new BigDecimal(order.get("total_amount").toString())
@@ -266,7 +289,7 @@ public class PagoServiceImpl implements PagoService {
         pago.setMoneda((String) order.get("currency"));
 
         if (firstPayment != null) {
-            pago.setMpPaymentIdStr((String) firstPayment.get("id")); // ver nota abajo
+            pago.setMpPaymentIdStr((String) firstPayment.get("id"));
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -275,20 +298,34 @@ public class PagoServiceImpl implements PagoService {
         pagoRepository.save(pago);
     }
 
-    private EstadoPago mapearEstadoMercadoPago(String estadoMp) {
+    private EstadoPago mapearEstadoMercadoPago(String estadoMp, String statusDetail) {
 
         if (estadoMp == null) {
             return EstadoPago.PENDIENTE;
         }
 
         return switch (estadoMp.toLowerCase()) {
+            // Checkout Pro / Payments API
             case "approved" -> EstadoPago.APROBADO;
             case "rejected" -> EstadoPago.RECHAZADO;
-            case "cancelled" -> EstadoPago.CANCELADO;
-            case "pending", "in_process" -> EstadoPago.PENDIENTE;
+
+            // Orders API v2 (QR estático / Point)
+            case "processed" -> "accredited".equalsIgnoreCase(statusDetail)
+                    ? EstadoPago.APROBADO
+                    : EstadoPago.PENDIENTE;
+            case "expired" -> EstadoPago.CANCELADO;
+
+            // comunes a ambas APIs
+            case "cancelled", "canceled" -> EstadoPago.CANCELADO;   // 👈 MP usa las dos grafías
             case "refunded" -> EstadoPago.REEMBOLSADO;
             case "charged_back" -> EstadoPago.CONTRACARGO;
-            default -> EstadoPago.PENDIENTE;
+            case "pending", "in_process", "created",
+                 "action_required", "processing" -> EstadoPago.PENDIENTE;
+
+            default -> {
+                System.err.println("⚠️ Estado MP desconocido: " + estadoMp + " / " + statusDetail);
+                yield EstadoPago.PENDIENTE;
+            }
         };
     }
 
@@ -307,11 +344,24 @@ public class PagoServiceImpl implements PagoService {
                         .atStartOfDay(zona)
                         .toInstant();
 
-        List<Pago> pagos =
-                pagoRepository.findByFechaPagoBetween(
-                        inicio,
-                        fin
-                );
+
+//        List<Pago> pagos =
+//                pagoRepository.findByFechaPagoBetween(
+//                        inicio,
+//                        fin
+//                );
+
+
+        User user=this.userService.getAuthenticatedUser().get();
+
+        boolean esDirectivo = user.getRoles().stream()
+                .anyMatch(r -> r.getRoleNombre().equals("ROLE_DIRECTIVO"));
+
+        List<Pago> pagos = esDirectivo
+                ? pagoRepository.findByFechaPagoBetween(inicio, fin)
+                : pagoRepository.findByFechaPagoBetweenAndResponsable(inicio, fin, (user.getUsername()));
+
+
 
         if (pagos.isEmpty()) {
             return Optional.empty();
@@ -380,6 +430,12 @@ public class PagoServiceImpl implements PagoService {
                     p.getEstado()
             );
 
+
+
+            r.setMetodo(
+                    p.getMetodoPago()
+            );
+
             return r;
 
         }).toList();
@@ -425,16 +481,15 @@ public class PagoServiceImpl implements PagoService {
         return Optional.of(resumen);
     }
 
-
     @Override
     public List<ResumenOperadorDTO> obtenerResumenPorOperador(
-            LocalDate fechaPago,User user
+            LocalDate desde, LocalDate hasta, User user
     ) {
         ZoneId zona = ZoneId.of("America/Argentina/Buenos_Aires");
-        Instant inicio =fechaPago.atStartOfDay(zona).toInstant();
-        Instant fin =fechaPago.plusDays(1)
-                        .atStartOfDay(zona)
-                        .toInstant();
+        Instant inicio = desde.atStartOfDay(zona).toInstant();
+        Instant fin = hasta.plusDays(1)
+                .atStartOfDay(zona)
+                .toInstant();
         List<Pago> pagos =
                 pagoRepository.findByFechaPagoBetween(
                         inicio,
@@ -495,7 +550,7 @@ public class PagoServiceImpl implements PagoService {
                         dto.setAlumnoDni(
                                 personaDTO.getPersonaDni() != null
                                         ? personaDTO.getPersonaDni()
-                                          .toString()
+                                        .toString()
                                         : ""
                         );
                     }
@@ -539,6 +594,7 @@ public class PagoServiceImpl implements PagoService {
                 )
                 .toList();
     }
+
 
 
     @Override
@@ -639,4 +695,17 @@ public class PagoServiceImpl implements PagoService {
         pagoRepository.save(pago);
     }
 
+
+
+    @Override
+    public List<Pago> findByFechaPagoBetween(
+            Instant desde, Instant hasta
+    ) {
+        List<Pago> pagos = pagoRepository.findByFechaPagoBetween(
+                desde,
+                hasta
+        );
+
+        return pagos;
+    }
 }

@@ -13,4 +13,6 @@ public interface ConstanciaPrecioRepository extends JpaRepository<ConstanciaPrec
     Optional<ConstanciaPrecio> findByNombre(String tipoConstancia);
 
     List<ConstanciaPrecio> findByIdIn(List<Long> ids); // 🔥 clave
+
+    List<ConstanciaPrecio> findByTipo(String tipo);
 }

@@ -395,3 +395,8 @@ WHERE cursada_id IN (
         ON mc.id = cu.cursada_materia_carrera_id
     WHERE UPPER(TRIM(l.legajo_comision)) <> UPPER(TRIM(mc.division))
 );
+
+
+
+
+

@@ -67,19 +67,20 @@ public class TramiteServiceImpl implements TramiteService {
         System.out.println("__________________________________________________");
         System.out.println("Pagos recibidos");
         if (atencion.getPagos() != null) {
-
             for (Pago pago : atencion.getPagos()) {
-                pago.setTramite(devolver);
-                pagoService.guardar(pago);
 
-                System.out.println("tramite if : " + pago.getTramite().getId());
-                System.out.println("ID: " + pago.getId());
-                System.out.println("Monto: " + pago.getMontoTotal());
-                System.out.println("Estado: " + pago.getEstado());
-                System.out.println("Referencia: " + pago.getExternalReference());
-                System.out.println("--------------------------------");
+                Pago pagoExistente = pagoService.buscarPorId(pago.getId())
+                        .orElseThrow(() -> new RuntimeException("Pago no encontrado: " + pago.getId()));
+
+                pagoExistente.setTramite(devolver);
+
+                pagoService.guardar(pagoExistente);
+
+                System.out.println("tramite: " + pagoExistente.getTramite().getId());
+                System.out.println("ID: " + pagoExistente.getId());
+                System.out.println("Monto: " + pagoExistente.getMontoTotal());
+                System.out.println("Estado: " + pagoExistente.getEstado());
             }
-
         } else {
             System.out.println("No se recibieron pagos");
         }

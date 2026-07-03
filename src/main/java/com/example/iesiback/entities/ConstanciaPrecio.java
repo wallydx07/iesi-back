@@ -47,7 +47,6 @@ public class ConstanciaPrecio {
     @Column(name = "tipo", length = 30)
     private String tipo;
 
-
     public Integer getId() {
         return id;
     }
@@ -94,5 +93,13 @@ public class ConstanciaPrecio {
 
     public void setIcono(String icono) {
         this.icono = icono;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 }

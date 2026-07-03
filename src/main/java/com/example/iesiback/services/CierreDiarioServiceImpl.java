@@ -106,7 +106,7 @@ public class CierreDiarioServiceImpl implements CierreDiarioService {
                 .orElseThrow(() ->
                         new RuntimeException("Usuario no encontrado"));
         List<ResumenOperadorDTO> lista =
-                pagoService.obtenerResumenPorOperador(fecha, user);
+                pagoService.obtenerResumenPorOperador(fecha,fecha, user);
         for (ResumenOperadorDTO item : lista) {
             for (ReciboDTO recibo : item.getItems()) {
                 if (EstadoPago.PENDIENTE.equals(recibo.getEstado())) {
