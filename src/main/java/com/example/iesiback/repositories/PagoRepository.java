@@ -2,6 +2,7 @@ package com.example.iesiback.repositories;
 
 
 import com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO;
+import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.enums.EstadoPago;
@@ -52,4 +53,25 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     List<Pago> findByFechaPagoBetween(Instant inicio, Instant fin);
 
     List<Pago> findByFechaPagoBetweenAndResponsable(Instant inicio, Instant fin, String responsable);
+
+    @Query(value = "SELECT c.carrera_year FROM carrera c " +
+            "INNER JOIN inscripcion i ON c.carrera_id = i.carrera_id " +
+            "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +
+            "WHERE l.legajo_id = :libretaEstudiantil", nativeQuery = true)
+    Integer findCurso(@Param("libretaEstudiantil") String libretaEstudiantil);
+
+    @Query(value = "SELECT c.carrera_nombre FROM carrera c " +
+            "INNER JOIN inscripcion i ON c.carrera_id = i.carrera_id " +
+            "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +
+            "WHERE l.legajo_id = :libretaEstudiantil", nativeQuery = true)
+    String findCarrera(@Param("libretaEstudiantil") String libretaEstudiantil);
+
+
+    @Query("""
+    SELECT l
+    FROM Legajo l
+    WHERE l.legajoId = :libretaEstudiantil
+    """)
+    Legajo findLegajo(@Param("libretaEstudiantil") String libretaEstudiantil);
+
 }

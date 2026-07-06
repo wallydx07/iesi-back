@@ -372,7 +372,7 @@ WHERE nota_id = 67341;
 DELETE FROM nota
 WHERE nota_id = 67334;
 
--- 1. Borrar notas de las cursadas afectadas
+--------------------------------------------------------- 1. Borrar notas de las cursadas afectadas
 DELETE FROM nota
 WHERE nota_cursada_id IN (
     SELECT cu.cursada_id
@@ -384,7 +384,7 @@ WHERE nota_cursada_id IN (
     WHERE UPPER(TRIM(l.legajo_comision)) <> UPPER(TRIM(mc.division))
 );
 
--- 2. Borrar las cursadas afectadas
+--------------------------------------------------------- 2. Borrar las cursadas afectadas
 DELETE FROM cursada
 WHERE cursada_id IN (
     SELECT cu.cursada_id

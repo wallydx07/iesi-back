@@ -23,6 +23,8 @@ public class ReciboDTO {
     private String alumnoApellido;
     private String alumnoNombre;
     private String alumnoDni;
+    private String curso;
+    private String carrera;
 
     // Datos del Movimiento
     private String concepto;

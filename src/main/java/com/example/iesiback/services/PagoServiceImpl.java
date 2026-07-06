@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.dto.*;
+import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.User;
@@ -33,8 +34,8 @@ public class PagoServiceImpl implements PagoService {
     private final UserService userService;
     private final PersonaService personaService;
     private final PagoDetalleService pagoDetalleService;
-    private final ObjectMapper objectMapper; // Spring te inyecta el autoconfigurado
 
+    private final ObjectMapper objectMapper; // Spring te inyecta el autoconfigurado
 
     private final PagoPresencialService pagoPresencialService;
 
@@ -50,6 +51,7 @@ public class PagoServiceImpl implements PagoService {
 
     @Autowired
     private PagoRepository pagoRepository;
+
 
     public PagoServiceImpl(
             MercadoPagoService mercadoPagoService,
@@ -481,6 +483,9 @@ public class PagoServiceImpl implements PagoService {
         return Optional.of(resumen);
     }
 
+
+
+
     @Override
     public List<ResumenOperadorDTO> obtenerResumenPorOperador(
             LocalDate desde, LocalDate hasta, User user
@@ -499,6 +504,11 @@ public class PagoServiceImpl implements PagoService {
             return List.of();
         }
         List<ReciboDTO> recibos = pagos.stream().map(pago -> {
+
+
+
+
+
             ReciboDTO dto = new ReciboDTO();
             dto.setAporteId(Long.valueOf(pago.getId()));
             dto.setAporteMonto(
@@ -506,6 +516,7 @@ public class PagoServiceImpl implements PagoService {
                             ? pago.getMontoTotal()
                             : BigDecimal.ZERO
             );
+
             dto.setMetodo(pago.getMetodoPago());
             if (pago.getFechaPago() != null) {
                 dto.setAporteFecha(
@@ -520,6 +531,7 @@ public class PagoServiceImpl implements PagoService {
                                 .toString()
                 );
             }
+
             dto.setUsuario(
                     pago.getResponsable() != null
                             ? pago.getResponsable()
@@ -560,6 +572,30 @@ public class PagoServiceImpl implements PagoService {
                                     + e.getMessage()
                     );
                 }
+
+
+//================================================================================
+                //================================================================================
+                //================================================================================
+//                tramiteService
+
+
+                try {
+                    dto.setCurso(obtenerAnioCursada(pago.getTramite().getLegajoId()));
+                    dto.setCarrera(pagoRepository.findCarrera(pago.getTramite().getLegajoId()));
+
+                    System.out.println(dto.getCurso());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+
+                //================================================================================
+                //================================================================================
+                //================================================================================
+
+
+
             }
             if (pago.getTramite() != null) {
                 dto.setConcepto(
@@ -575,6 +611,8 @@ public class PagoServiceImpl implements PagoService {
                     )
             );
             return dto;
+
+
         }).toList();
         Map<String, List<ReciboDTO>> agrupado =
                 recibos.stream()
@@ -595,6 +633,35 @@ public class PagoServiceImpl implements PagoService {
                 .toList();
     }
 
+
+
+    public String obtenerAnioCursada(String libretaEstudiantil) throws Exception {
+        // Obtener el año actual
+        int anioActual = Calendar.getInstance().get(Calendar.YEAR);
+
+        // Obtener el año de inicio usando el repositorio
+        Integer anioInicio = pagoRepository.findCurso(libretaEstudiantil);
+        Legajo legajo=pagoRepository.findLegajo(libretaEstudiantil);
+
+        if (anioInicio == null) {
+            throw new Exception("No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
+        }
+
+        int diferencia = anioActual - anioInicio;
+
+        switch (diferencia) {
+            case 0:
+                return "1er año";
+            case 1:
+                return "2do año";
+            case 2:
+                return "3er año";
+            default:
+                return "Activo".equals(legajo.getLegajoEstado())
+                        ? "Recursante"
+                        : "Egresado/Pasivo";
+        }
+    }
 
 
     @Override
@@ -694,8 +761,6 @@ public class PagoServiceImpl implements PagoService {
 
         pagoRepository.save(pago);
     }
-
-
 
     @Override
     public List<Pago> findByFechaPagoBetween(

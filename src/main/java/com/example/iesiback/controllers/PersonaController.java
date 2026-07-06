@@ -28,12 +28,10 @@ public class PersonaController {
         this.personalService = personalService;
     }
 
-
     @GetMapping
     public List<Persona> obtenerAlumno() {
         return alumnoService.obtenerAlumnos();
     }
-
 
     @PostMapping
     public ResponseEntity<Persona> createAlumno(@RequestBody Persona persona) {
@@ -46,13 +44,10 @@ public class PersonaController {
         return alumnoService.buscarPorDniApellidoNombre(apellido);
     }
 
-
     @GetMapping("/buscarPersonal")
     public List<String> buscarPersonalPorDniApellidoNombre(@RequestParam String apellido) {
         return alumnoService.buscarPersonalPorDniApellidoNombre(apellido);
     }
-
-
 
     @GetMapping("/buscarPorApellidoYCarrera")
     public List<String> buscarPorApellidoYCarrera(
@@ -65,8 +60,6 @@ public class PersonaController {
     public List<Persona> buscarAlumnosDni(@RequestParam String dni) {
         return alumnoService.buscarPorDni(dni);
     }
-
-
 
     @PutMapping("/{id}")
     public ResponseEntity<Persona> actualizarAlumno(@PathVariable String id, @RequestBody Persona persona) {
@@ -138,7 +131,6 @@ public class PersonaController {
         }
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getAlumnoById(@PathVariable String id) {
         var alumnoOpt = alumnoService.findById(id);
@@ -156,13 +148,9 @@ public class PersonaController {
         }
     }
 
-
-
-
     @PutMapping("/cambio-dni")
-    public ResponseEntity<String> cambioDni(
-            @RequestParam Long dniActual,
-            @RequestParam Long dniNuevo) {
+    public ResponseEntity<String> cambioDni(@RequestParam Long dniActual,
+                                            @RequestParam Long dniNuevo) {
 
         alumnoService.cambiarDni(dniActual, dniNuevo);
         return ResponseEntity.ok("DNI actualizado correctamente");

@@ -44,12 +44,10 @@ public class CarreraController {
         return ResponseEntity.ok(nombres);
     }
 
-
     @GetMapping("/legajo/{legajoId}")
     public Carrera obtenerCarreraPorLegajo(@PathVariable String legajoId) {
         return carreraService.obtenerCarreraPorLegajoId(legajoId);
     }
-
 
     @GetMapping("/ordenadas/por-usuario/")
     public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario() {

@@ -126,7 +126,6 @@ public class CursadaController {
         cursadaService.deleteCursada(id);
     }
 
-
     @GetMapping("/findByCarreraId/{carreraId}")
     public List<Cursada> getAllCursadasBymateriaCarreraId(
             @PathVariable String carreraId) {

@@ -8473,6 +8473,7 @@ public PDDocument generaPermiso(String libreta, String turno, String usuarioNomb
 
 @Override
 public PDDocument generarReciboPago(Integer pagoId) {
+    Persona persona;
     Pago pago = pagoService.buscarPorId(pagoId)
             .orElseThrow(() -> new RuntimeException("Pago no encontrado: " + pagoId));
     PDDocument documento = new PDDocument();
@@ -8603,9 +8604,11 @@ public PDDocument generarReciboPago(Integer pagoId) {
         }
 
         if (pago.getResponsable() != null && !pago.getResponsable().isBlank()) {
+            persona = this.alumnoService.findAlumnoById(pago.getResponsable());
+
             Row<PDPage> filaResp = tabla.createRow(10);
             Cell<PDPage> cResp = filaResp.createCell(100,
-                    "Responsable: " + pago.getResponsable());
+                    "Cajero: " + persona.getPersonaApellido()+", "+persona.getPersonaNombre());
             cResp.setFont(normal);
             cResp.setFontSize(8);
             sinBordes(cResp);
@@ -8714,22 +8717,23 @@ public PDDocument generarReciboPago(Integer pagoId) {
 
         // ── ESTADO ────────────────────────────────────────────────────────────
 
-        Row<PDPage> filaEst = tabla.createRow(12);
-        String estadoTxt = pago.getEstado() != null ? pago.getEstado().name() : "\u2014";
-        String detTxt    = pago.getStatusDetail() != null
-                ? "  \u2013  " + pago.getStatusDetail() : "";
-        Cell<PDPage> cEst = filaEst.createCell(100, estadoTxt + detTxt);
-        cEst.setFont(negrita); cEst.setFontSize(8);
-        cEst.setTextColor(colorEstadoPago(pago.getEstado()));
-        cEst.setAlign(HorizontalAlignment.CENTER);
-        sinBordes(cEst);
+//        Row<PDPage> filaEst = tabla.createRow(12);
+//        String estadoTxt = pago.getEstado() != null ? pago.getEstado().name() : "\u2014";
+//        String detTxt    = pago.getStatusDetail() != null
+//                ? "  \u2013  " + pago.getStatusDetail() : "";
+//        Cell<PDPage> cEst = filaEst.createCell(100, estadoTxt + detTxt);
+//        cEst.setFont(negrita); cEst.setFontSize(8);
+//        cEst.setTextColor(colorEstadoPago(pago.getEstado()));
+//        cEst.setAlign(HorizontalAlignment.CENTER);
+//        sinBordes(cEst);
 
         // ── PIE ───────────────────────────────────────────────────────────────
-
         Row<PDPage> filaPie = tabla.createRow(11);
         Cell<PDPage> cPie = filaPie.createCell(100,
-                "El presente comprobante acredita el pago realizado ante esta instituci\u00F3n.");
-        cPie.setFont(italica); cPie.setFontSize(7);
+                "El presente comprobante acredita el pago realizado ante esta instituci\u00F3n."
+                        + "<br>No v\u00E1lido sin la firma del empleado y sello del instituto.");
+        cPie.setFont(italica);
+        cPie.setFontSize(7);
         cPie.setTextColor(new Color(130, 130, 130));
         cPie.setAlign(HorizontalAlignment.CENTER);
         sinBordes(cPie);

@@ -103,7 +103,6 @@ public class CarreraServiceImpl implements CarreraService {
         if (this.personalService.existsByDni(alumnoDni)) {
             return Collections.emptyList();
         }
-
         // ✅ Regla 2: si NO es personal
         List<Carrera> carreras = this.obtenerCarreras();
 
