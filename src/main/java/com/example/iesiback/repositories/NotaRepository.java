@@ -132,7 +132,7 @@ SELECT
     c.segundoParcial AS segundoParcial,
     c.recuperatorio2 AS recuperatorio2,
     c.trabajosPracticos AS trabajosPracticos,
-    c.asistencia AS asitencia,
+    c.asistencia AS asistencia,
     c.coloquio AS coloquio,
     c.trabajoInstitucional AS trabajoInstitucional
 FROM Nota n

@@ -42,7 +42,6 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             @Param("estado") String estado,
             @Param("busqueda") String busqueda);
 
-//modificar
 
     @Query("SELECT DISTINCT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
             "l.legajoId, " +
@@ -212,5 +211,9 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             @Param("comision") String comision
     );
 
-
+    @Query(value = "SELECT c.carrera_year FROM carrera c " +
+            "INNER JOIN inscripcion i ON c.carrera_id = i.carrera_id " +
+            "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +
+            "WHERE l.legajo_id = :libretaEstudiantil", nativeQuery = true)
+    Integer findCurso(@Param("libretaEstudiantil") String libretaEstudiantil);
 }

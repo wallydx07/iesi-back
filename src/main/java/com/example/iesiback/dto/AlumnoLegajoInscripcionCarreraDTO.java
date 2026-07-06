@@ -23,6 +23,8 @@ public class AlumnoLegajoInscripcionCarreraDTO {
     String domicilioAlumnoCelular;
     String legajoComision;
 
+    String curso;
+
     public AlumnoLegajoInscripcionCarreraDTO(
             String legajoId,
             Long alumnoDni,
@@ -206,5 +208,13 @@ public class AlumnoLegajoInscripcionCarreraDTO {
 
     public void setLegajoPlanillaProntuarial(String legajoPlanillaProntuarial) {
         this.legajoPlanillaProntuarial = legajoPlanillaProntuarial;
+    }
+
+    public String getCurso() {
+        return curso;
+    }
+
+    public void setCurso(String curso) {
+        this.curso = curso;
     }
 }

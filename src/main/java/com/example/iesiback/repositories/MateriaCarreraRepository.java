@@ -328,6 +328,15 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
 //    );
 
 
+    @Query("SELECT mc FROM MateriaCarrera mc " +
+            "JOIN mc.cursadas c " +
+            "WHERE c.legajo.legajoId = :legajoId " +
+            "AND YEAR(mc.fechaInicio) = :anioActual")
+    List<MateriaCarrera> findMateriasPorLegajoYAnio(
+            @Param("legajoId") String legajoId,
+            @Param("anioActual") int anioActual
+    );
+
 }
 
 

@@ -1,10 +1,13 @@
 package com.example.iesiback.services;
 
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO;
+import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.enums.EstadoCondicion;
@@ -28,17 +31,43 @@ public class AlumnoLegajoService {
 
 
     public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(String carreraId, String estado, String busqueda) {
-        return alumnoLegajoRepository.obtenerAlumnosLegajos(carreraId, estado, busqueda);
+
+        List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO=
+                alumnoLegajoRepository.obtenerAlumnosLegajos(carreraId, estado, busqueda);
+
+        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnoLegajoInscripcionCarreraDTO) {
+            alumno.setCurso(obtenerAnioCursada(alumno.getLegajoId()));
+        }
+
+
+        return alumnoLegajoInscripcionCarreraDTO;
     }
 
-////obtiene alumnos desde asistencia
-//    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(Long dato, String estado) {
-//        return alumnoLegajoRepository.obtenerAlumnosMateriaCursadaId(dato, estado);
-//    }
-//
+
+    public String obtenerAnioCursada(String libretaEstudiantil) {
+
+        int anioActual = LocalDate.now().getYear();
+        Integer anioInicio = alumnoLegajoRepository.findCurso(libretaEstudiantil);
+        if (anioInicio == null) {
+            throw new IllegalArgumentException(
+                    "No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
+        }
+
+        int diferencia = anioActual - anioInicio;
+        if (diferencia < 0) {
+            throw new IllegalStateException("El año de inicio es mayor al año actual.");
+        }
+        return switch (diferencia) {
+            case 0 -> "1er año";
+            case 1 -> "2do año";
+            case 2 -> "3er año";
+            default -> materiaCarreraService.cursoPorMateriasActual(libretaEstudiantil);
+        };
+    }
 
 
-public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(
+
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(
         Long materiaCarreraId, String estado) {
 
     MateriaCarrera materiaCarrera = materiaCarreraService.findById(materiaCarreraId)
@@ -56,17 +85,21 @@ public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosMateriaCursadaId(
             .collect(Collectors.toList());
 }
 
-//    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(String dato, String estado, String termino, String comision) {//incluyterecurssantes
-////        return alumnoLegajoRepository.obtenerAlumnosConCursadas(dato, estado, termino, comision);
-//        return alumnoLegajoRepository.obtenerAlumnosConOCinCursadas(dato, estado, termino, comision);
-//    }
 
     public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(
             String dato, String estado, String apellido, String comision) {
         String[] split = splitApellidoNombre(apellido);
         String apellidoFiltro = split[0];
         String nombreFiltro   = split[1];
-        return alumnoLegajoRepository.obtenerAlumnosConCursadasNombre(dato, estado, apellidoFiltro, nombreFiltro, comision);
+
+
+        List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO=
+                alumnoLegajoRepository.obtenerAlumnosConCursadasNombre(dato, estado, apellidoFiltro, nombreFiltro, comision);
+        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnoLegajoInscripcionCarreraDTO) {
+            alumno.setCurso(obtenerAnioCursada(alumno.getLegajoId()));
+        }
+        return alumnoLegajoInscripcionCarreraDTO;
+
     }
 
 

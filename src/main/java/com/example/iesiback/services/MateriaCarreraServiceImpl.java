@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class MateriaCarreraServiceImpl implements MateriaCarreraService {
@@ -90,6 +92,8 @@ public class MateriaCarreraServiceImpl implements MateriaCarreraService {
     public List<CatedraDTO> obtenerCatedrasPorDocenteYAnio(String dni, Integer year) {
         return materiaCarreraRepository.findCatedrasByDocenteAndYear(dni, year);
     }
+
+
 /*
 
 @Override
@@ -226,5 +230,54 @@ public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
 
         return materiaCarreraRepository
                 .findFechaByCarreraIdAndOrden(carreraId, orden);
+    }
+
+@Override
+public String cursoPorMateriasActual(String legajoId) {
+        // 1. Obtenemos dinámicamente el año actual
+        int anioActual = LocalDate.now().getYear();
+
+        // 2. Buscamos las materias del alumno para este año
+        List<MateriaCarrera> materiasDelAnio = materiaCarreraRepository.findMateriasPorLegajoYAnio(legajoId, anioActual);
+
+        // 3. Validación de lista vacía
+        if (materiasDelAnio.isEmpty()) {
+            System.out.println("El alumno con legajo " + legajoId + " no registra cursadas para el año " + anioActual);
+            return "Sin Cursadas";
+        }
+
+        // 4. Agrupamos los niveles sin duplicados
+        Set<String> nivelesCursados = new HashSet<>();
+
+        for (MateriaCarrera mc : materiasDelAnio) {
+            String nivel = mc.getMateria().getMateriaNivel();
+            if (nivel != null) {
+                // Convertimos a minúsculas y quitamos espacios por seguridad
+                nivelesCursados.add(nivel.trim().toLowerCase());
+            }
+        }
+
+        // 5. Evaluamos la lógica de los niveles
+        if (nivelesCursados.size() == 1) {
+            String nivelUnico = nivelesCursados.iterator().next();
+
+            // Evaluamos según el formato "1ro", "2do", "3ro"
+            switch (nivelUnico) {
+                case "1ro":
+                case "1":
+                    return "1ero";
+                case "2do":
+                case "2":
+                    return "2do";
+                case "3ro":
+                case "3":
+                    return "3ero";
+                default:
+                    return "Nivel Desconocido (" + nivelUnico + ")";
+            }
+        } else {
+            // El alumno tiene una mezcla de niveles (ej: materias de "1ro" y de "2do")
+            return "Recursante";
+        }
     }
 }

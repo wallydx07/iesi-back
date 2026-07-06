@@ -44,4 +44,7 @@ public interface MateriaCarreraService {
 //            String orden, String carreraId);
 
     LocalDate obtenerFechaVigencia(String carreraId, String ordenStr);
+
+
+    String cursoPorMateriasActual(String legajoId);
 }
