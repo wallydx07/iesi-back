@@ -55,7 +55,8 @@ public class CarreraController {
         String userRol= String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
         Long userId= Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
         if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_PERSONAL".equalsIgnoreCase(userRol) || "ROLE_TITULACION".equalsIgnoreCase(userRol) || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
-            carreras = carreraService.obtenerCarrerasOrdenadas();
+//            carreras = carreraService.obtenerCarrerasOrdenadas();
+            carreras = carreraService.findVigentesOrderedByYearAndName();
         } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
             carreras = carreraService.obtenerCarrerasPorTutor(userId);
         } else if("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {

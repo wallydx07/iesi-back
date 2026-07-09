@@ -53,17 +53,21 @@ public class AlumnoLegajoService {
                     "No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
         }
 
-        int diferencia = anioActual - anioInicio;
-        if (diferencia < 0) {
-            throw new IllegalStateException("El año de inicio es mayor al año actual.");
-        }
-        return switch (diferencia) {
-            case 0 -> "1er año";
-            case 1 -> "2do año";
-            case 2 -> "3er año";
-            default -> materiaCarreraService.cursoPorMateriasActual(libretaEstudiantil);
+        return materiaCarreraService.cursoPorMateriasActual(libretaEstudiantil);
         };
-    }
+
+//        int diferencia = anioActual - anioInicio;
+//        if (diferencia < 0) {
+//            throw new IllegalStateException("El año de inicio es mayor al año actual.");
+//        }
+//
+//        return switch (diferencia) {
+//            case 0 -> "1er año";
+//            case 1 -> "2do año";
+//            case 2 -> "3er año";
+//            default -> materiaCarreraService.cursoPorMateriasActual(libretaEstudiantil);
+//        };
+//    }
 
 
 
@@ -91,7 +95,6 @@ public class AlumnoLegajoService {
         String[] split = splitApellidoNombre(apellido);
         String apellidoFiltro = split[0];
         String nombreFiltro   = split[1];
-
 
         List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO=
                 alumnoLegajoRepository.obtenerAlumnosConCursadasNombre(dato, estado, apellidoFiltro, nombreFiltro, comision);

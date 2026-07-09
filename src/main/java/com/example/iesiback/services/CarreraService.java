@@ -23,6 +23,8 @@ public interface CarreraService {
     void eliminarCarrera(String id);
     List<Carrera> obtenerCarrerasOrdenadas();
 
+    List<Carrera> findVigentesOrderedByYearAndName();
+
     List<Carrera> obtenerCarreraInstcripcion(String alumnoDni);
 
     String obtenerAnioCursada(String libretaEstudiantil) throws Exception;

@@ -5,6 +5,7 @@ import com.example.iesiback.repositories.TutorCarreraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -94,6 +95,14 @@ public class CarreraServiceImpl implements CarreraService {
     public List<Carrera> obtenerCarrerasOrdenadas() {
         return carreraRepository.findAllOrderedByYearAndName();
     }
+
+    @Override
+    public List<Carrera> findVigentesOrderedByYearAndName() {
+        int anioMinimo = LocalDate.now().getYear() - 2; // cohortes 2024, 2025, 2026 en 2026
+        List<Carrera> carreras = carreraRepository.findVigentesOrderedByYearAndName(anioMinimo);
+        return carreras;
+    }
+
 
 
     @Override

@@ -19,6 +19,9 @@ public interface CarreraRepository extends JpaRepository<Carrera, String> {
     @Query("SELECT c FROM Carrera c ORDER BY c.carreraYear DESC, c.carreraNombre DESC")
     List<Carrera> findAllOrderedByYearAndName();
 
+    @Query("SELECT c FROM Carrera c WHERE c.carreraYear >= :anioMinimo ORDER BY c.carreraYear DESC, c.carreraNombre ASC")
+    List<Carrera> findVigentesOrderedByYearAndName(@Param("anioMinimo") Integer anioMinimo);
+
 
     @Query(value = "SELECT c.* FROM carrera c " +
             "INNER JOIN inscripcion i ON c.carrera_id = i.carrera_id " +

@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class MateriaCarreraServiceImpl implements MateriaCarreraService {
@@ -232,52 +229,56 @@ public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
                 .findFechaByCarreraIdAndOrden(carreraId, orden);
     }
 
-@Override
-public String cursoPorMateriasActual(String legajoId) {
-        // 1. Obtenemos dinámicamente el año actual
+    @Override
+    public String cursoPorMateriasActual(String legajoId) {
         int anioActual = LocalDate.now().getYear();
 
-        // 2. Buscamos las materias del alumno para este año
-        List<MateriaCarrera> materiasDelAnio = materiaCarreraRepository.findMateriasPorLegajoYAnio(legajoId, anioActual);
+        List<MateriaCarrera> materiasDelAnio =
+                materiaCarreraRepository.findMateriasPorLegajoYAnio(legajoId, anioActual);
 
-        // 3. Validación de lista vacía
         if (materiasDelAnio.isEmpty()) {
-            System.out.println("El alumno con legajo " + legajoId + " no registra cursadas para el año " + anioActual);
             return "Sin Cursadas";
         }
 
-        // 4. Agrupamos los niveles sin duplicados
-        Set<String> nivelesCursados = new HashSet<>();
+        // Contamos cuántas materias cursa en cada nivel (1, 2 o 3)
+        Map<Integer, Integer> materiasPorNivel = new HashMap<>();
 
         for (MateriaCarrera mc : materiasDelAnio) {
             String nivel = mc.getMateria().getMateriaNivel();
-            if (nivel != null) {
-                // Convertimos a minúsculas y quitamos espacios por seguridad
-                nivelesCursados.add(nivel.trim().toLowerCase());
+            Integer nivelNum = parsearNivel(nivel);
+            if (nivelNum != null) {
+                materiasPorNivel.merge(nivelNum, 1, Integer::sum);
             }
         }
 
-        // 5. Evaluamos la lógica de los niveles
-        if (nivelesCursados.size() == 1) {
-            String nivelUnico = nivelesCursados.iterator().next();
-
-            // Evaluamos según el formato "1ro", "2do", "3ro"
-            switch (nivelUnico) {
-                case "1ro":
-                case "1":
-                    return "1ero";
-                case "2do":
-                case "2":
-                    return "2do";
-                case "3ro":
-                case "3":
-                    return "3ero";
-                default:
-                    return "Nivel Desconocido (" + nivelUnico + ")";
-            }
-        } else {
-            // El alumno tiene una mezcla de niveles (ej: materias de "1ro" y de "2do")
-            return "Recursante";
+        if (materiasPorNivel.isEmpty()) {
+            return "Sin Datos";
         }
+
+        // Nivel con más materias; en caso de empate gana el nivel más alto
+        int nivelPredominante = materiasPorNivel.entrySet().stream()
+                .max(Comparator
+                        .comparingInt((Map.Entry<Integer, Integer> e) -> e.getValue())
+                        .thenComparingInt(Map.Entry::getKey))
+                .get()
+                .getKey();
+
+        return switch (nivelPredominante) {
+            case 1 -> "1er año";
+            case 2 -> "2do año";
+            case 3 -> "3er año";
+            default -> "Sin Datos";
+        };
+    }
+
+    /** Normaliza los formatos de nivel ("1ro", "1", "2do", etc.) a un número. */
+    private Integer parsearNivel(String nivel) {
+        if (nivel == null) return null;
+        return switch (nivel.trim().toLowerCase()) {
+            case "1ro", "1", "1ero" -> 1;
+            case "2do", "2" -> 2;
+            case "3ro", "3", "3ero" -> 3;
+            default -> null;
+        };
     }
 }

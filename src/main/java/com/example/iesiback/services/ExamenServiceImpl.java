@@ -27,19 +27,21 @@ public class ExamenServiceImpl implements ExamenService {
     private final CursadaService cursadaService;
     private final CursadaExamenRepository cursadaExamenRepository;
     private final ExamenHorarioService examenHorarioService;
+    private final CorrelativaService correlativaService;
 
     @Autowired
     public ExamenServiceImpl(
             ExamenRepository examenRepository,
             CursadaService cursadaService,
             CursadaExamenRepository cursadaExamenRepository,
-            PermisoService permisoService, NotaService notaService, ExamenHorarioService examenHorarioService) {
+            PermisoService permisoService, NotaService notaService, ExamenHorarioService examenHorarioService, CorrelativaService correlativaService) {
         this.examenRepository = examenRepository;
         this.cursadaService = cursadaService;
         this.cursadaExamenRepository = cursadaExamenRepository;
         this.permisoService = permisoService;
         this.notaService = notaService;
         this.examenHorarioService = examenHorarioService;
+        this.correlativaService = correlativaService;
     }
 
     @Override
@@ -77,28 +79,11 @@ public class ExamenServiceImpl implements ExamenService {
 
     @Transactional
     public List<InscripcionExamenDTO> completarCursadas(String legajoId, String turno) {
-
-        System.out.println("=== INICIO completarCursadas ===");
-        System.out.println("legajoId = " + legajoId);
-        System.out.println("turno = " + turno);
-
         List<Cursada> cursadas = cursadaService.getCursadasNoAprobadas(legajoId);
-
-        System.out.println("Cantidad de cursadas encontradas: " + cursadas.size());
-
         List<InscripcionExamenDTO> inscripciones = new ArrayList<>();
-
         cursadas.forEach(cursada -> {
-
             try {
-
-                System.out.println("-----------------------------------");
-                System.out.println("Procesando cursada ID: " + cursada.getId());
-
                 InscripcionExamenDTO inscripcion = new InscripcionExamenDTO();
-
-                System.out.println("Seteando datos básicos");
-
                 inscripcion.setCursadaId(cursada.getId());
                 inscripcion.setMateriaCarreraId(cursada.getMateriaCarrera().getId());
                 inscripcion.setMateriaOrden(
@@ -113,38 +98,19 @@ public class ExamenServiceImpl implements ExamenService {
                 inscripcion.setMateriaNombre(
                         cursada.getMateriaCarrera().getMateria().getMateriaNombre()
                 );
-
-                System.out.println("Obteniendo notas");
-
                 List<Nota> notas = new ArrayList<>(cursada.getNotas());
-
-                System.out.println("Cantidad de notas: " + notas.size());
-
-                System.out.println("Evaluando regularidad");
-
                 NotaServiceImpl.ResultadoRegularidad resultado =
                         notaService.evaluarRegularidad(notas);
-
                 System.out.println("Condición calculada: "
                         + resultado.condicion());
-
                 inscripcion.setCondicion(resultado.condicion());
                 inscripcion.setJustificacion(resultado.justificacion());
-
-                System.out.println("Evaluando sanción");
-
                 Boolean sancion =
                         notaService.evaluarSancion(
                                 cursada.getId(),
                                 Integer.valueOf(turno)
                         );
-
-                System.out.println("Sanción: " + sancion);
-
                 inscripcion.setSancion(sancion);
-
-                System.out.println("Antes de getEstadoExamen");
-
                 Boolean estado =
                         examenRepository.getEstadoExamen(
                                 turno,
@@ -152,12 +118,7 @@ public class ExamenServiceImpl implements ExamenService {
                                 legajoId
                         );
 
-                System.out.println("Estado obtenido: " + estado);
-
                 boolean inscripto = estado != null && estado;
-
-                System.out.println("isInscripto = " + inscripto);
-
                 inscripcion.setInscripto(inscripto);
 
                 if (inscripto) {
@@ -167,7 +128,6 @@ public class ExamenServiceImpl implements ExamenService {
                     );
 
                     if (nota != null && nota.getNotaCondicion() != null) {
-
                         String condicion = nota.getNotaCondicion().name();
 
                         if ("EXAMEN_REGULAR".equals(condicion)) {
@@ -231,9 +191,18 @@ public class ExamenServiceImpl implements ExamenService {
                 inscripcion.setHora(hora);
                 inscripcion.setFecha(fecha);
 
+
+
+//                inscripcion.setCorrelativas(correlativaService.pendientes(legajoId, materia));
+
+                CorrelativaService.Veredicto veredicto=correlativaService.evaluar(legajoId, inscripcion.getMateriaOrden(),EstadoCondicion.EXAMEN);
+
+                inscripcion.setVeredicto(veredicto);
+
+
+
                 inscripciones.add(inscripcion);
 
-                System.out.println("Cursada agregada correctamente");
 
             } catch (Exception e) {
 
@@ -245,10 +214,6 @@ public class ExamenServiceImpl implements ExamenService {
                 throw e;
             }
         });
-
-        System.out.println("=== FIN completarCursadas ===");
-        System.out.println("Total inscripciones: "
-                + inscripciones.size());
 
         return inscripciones;
     }

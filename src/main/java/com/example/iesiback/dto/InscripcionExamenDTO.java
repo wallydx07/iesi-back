@@ -1,5 +1,7 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.services.CorrelativaService;
+
 import java.util.List;
 
 public class InscripcionExamenDTO {
@@ -14,7 +16,7 @@ public class InscripcionExamenDTO {
     private Boolean inscripto;
     private String curso;
     private String fechaHoraMesa;
-    private List<String> correlativas;
+    CorrelativaService.Veredicto veredicto;
     private String turnoId;
     private String hora;
     private String justificacion; // ← agregar esto
@@ -22,6 +24,14 @@ public class InscripcionExamenDTO {
 
     public InscripcionExamenDTO() {
 
+    }
+
+    public CorrelativaService.Veredicto getVeredicto() {
+        return veredicto;
+    }
+
+    public void setVeredicto(CorrelativaService.Veredicto veredicto) {
+        this.veredicto = veredicto;
     }
 
     public Boolean getSancion() {
@@ -46,14 +56,6 @@ public class InscripcionExamenDTO {
 
     public void setHora(String hora) {
         this.hora = hora;
-    }
-
-    public List<String> getCorrelativas() {
-        return correlativas;
-    }
-
-    public void setCorrelativas(List<String> correlativas) {
-        this.correlativas = correlativas;
     }
 
     public int getMateriaCarreraId() {
@@ -144,4 +146,6 @@ public class InscripcionExamenDTO {
     public void setTurnoId(String turnoId) {
         this.turnoId = turnoId;
     }
+
+
 }
