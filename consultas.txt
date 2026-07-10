@@ -1,5 +1,5 @@
 UPDATE nota n
-SET nota_fecha_nota = DATE '2025-07-11'
+SET nota_fecha_nota = DATE '2026-07-10'
 FROM cursada c
 INNER JOIN materia_carrera mc ON c.cursada_materia_carrera_id = mc.id
 INNER JOIN materia m ON mc.materia_id = m.materia_id
@@ -47,7 +47,7 @@ AND materia_regimen = 'ANUAL';
 
 
 UPDATE materia_carrera
-SET fecha = DATE '2025-07-11'
+SET fecha = DATE '2026-07-10'
 FROM materia, carrera
 WHERE materia_carrera.materia_id = materia.materia_id
   AND materia_carrera.carrera_id = carrera.carrera_id
@@ -63,7 +63,7 @@ AND materia.materia_regimen = '1ER CUATRIMESTRE';
 
 
 UPDATE materia_carrera
-SET fecha = DATE '2025-12-05'
+SET fecha = DATE '2026-12-05'
 FROM materia, carrera
 WHERE materia_carrera.materia_id = materia.materia_id
   AND materia_carrera.carrera_id = carrera.carrera_id
@@ -398,5 +398,23 @@ WHERE cursada_id IN (
 
 
 
+BEGIN;
 
+-- Paso 1: en duplicados mixtos (true + false), borrar los false
+DELETE FROM asistencia_alumno a
+USING asistencia_alumno b
+WHERE a.id_informe = b.id_informe
+  AND a.legajo_id = b.legajo_id
+  AND a.estado = false
+  AND b.estado = true;
+
+-- Paso 2: en duplicados con mismo estado (true-true o false-false),
+-- dejar solo el de id más alto (el más nuevo)
+DELETE FROM asistencia_alumno a
+USING asistencia_alumno b
+WHERE a.id_informe = b.id_informe
+  AND a.legajo_id = b.legajo_id
+  AND a.id_asistencia_alumnos < b.id_asistencia_alumnos;
+
+COMMIT;
 

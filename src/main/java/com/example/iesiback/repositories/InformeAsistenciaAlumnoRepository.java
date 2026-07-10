@@ -22,5 +22,5 @@ public interface InformeAsistenciaAlumnoRepository extends JpaRepository<Informe
 
     List<InformeAsistenciaAlumno> findByMateriaCarrera_Id(Integer id);
 
-
+    List<InformeAsistenciaAlumno> findByMateriaCarrera_IdOrderByFechaDesc(Integer id);
 }

@@ -15,21 +15,40 @@ import java.util.List;
 @Repository
 public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlumno, Integer> {
 
+//    @Query("""
+//        SELECT distinct new com.example.iesiback.dto.AlumnoAsistenciaDTO(
+//            a.id, a.idInforme.idInforme, a.legajoId, a.estado,
+//            al.personaDni, al.personaApellido, al.personaNombre
+//        )
+//        FROM AsistenciaAlumno a
+//        JOIN Legajo l ON a.legajoId = l.legajoId
+//        JOIN Persona al ON l.legajoPersonaDni.personaDni= al.personaDni
+//        JOIN Cursada c ON c.legajo.legajoId = l.legajoId
+//        WHERE (:idInforme IS NULL OR a.idInforme.idInforme = :idInforme)
+//            ORDER BY al.personaApellido asc, al.personaNombre asc
+//    """)
+//    List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(
+//            @Param("idInforme") Integer idInforme
+//    );
+
+
     @Query("""
-        SELECT distinct new com.example.iesiback.dto.AlumnoAsistenciaDTO(
-            a.id, a.idInforme.idInforme, a.legajoId, a.estado,
-            al.personaDni, al.personaApellido, al.personaNombre
-        )
-        FROM AsistenciaAlumno a
-        JOIN Legajo l ON a.legajoId = l.legajoId
-        JOIN Persona al ON l.legajoPersonaDni.personaDni= al.personaDni
-        JOIN Cursada c ON c.legajo.legajoId = l.legajoId
-        WHERE (:idInforme IS NULL OR a.idInforme.idInforme = :idInforme)
-            ORDER BY al.personaApellido asc, al.personaNombre asc
-    """)
-    List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(
-            @Param("idInforme") Integer idInforme
-    );
+    SELECT new com.example.iesiback.dto.AlumnoAsistenciaDTO(
+        a.id, :idInforme, l.legajoId, a.estado,
+        al.personaDni, al.personaApellido, al.personaNombre
+    )
+    FROM Cursada c
+    JOIN c.legajo l
+    JOIN Persona al ON l.legajoPersonaDni.personaDni = al.personaDni
+    LEFT JOIN AsistenciaAlumno a ON a.legajoId = l.legajoId
+        AND a.idInforme.idInforme = :idInforme
+    WHERE c.materiaCarrera.id = (
+        SELECT i.materiaCarrera.id FROM InformeAsistenciaAlumno i
+        WHERE i.idInforme = :idInforme
+    )
+    ORDER BY al.personaApellido asc, al.personaNombre asc
+""")
+    List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(@Param("idInforme") Integer idInforme);
 
 
     //AQUI SE OBTIENE LOS ALUMNOS DE CURSADA///////

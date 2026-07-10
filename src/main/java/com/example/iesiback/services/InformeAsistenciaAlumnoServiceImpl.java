@@ -46,7 +46,7 @@ public class InformeAsistenciaAlumnoServiceImpl implements InformeAsistenciaAlum
 
     @Override
     public List<InformeAsistenciaAlumno> buscarPorMateriaCarreraId(Integer id) {
-        return repository.findByMateriaCarrera_Id(id);
+        return repository.findByMateriaCarrera_IdOrderByFechaDesc(id);
     }
 
 

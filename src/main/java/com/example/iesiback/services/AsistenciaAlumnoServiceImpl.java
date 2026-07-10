@@ -49,9 +49,15 @@ public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
 
     @Override
     public List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(Integer idInforme) {
-        return repository.obtenerAsistenciasConDetalle(idInforme);
+        return repository.obtenerAsistenciasConDetalle(idInforme)
+                .stream()
+                .peek(dto -> {
+                    if (dto.getEstado() == null) {
+                        dto.setEstado(false);
+                    }
+                })
+                .toList();
     }
-
 //    @Override
 //    public void guardarTodas(List<AsistenciaAlumno> asistencias) {
 //        repository.saveAll(asistencias);
