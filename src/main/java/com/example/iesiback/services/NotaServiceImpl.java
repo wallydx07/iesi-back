@@ -2,6 +2,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Materia;
+import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.enums.EstadoNota;
 import com.example.iesiback.enums.EstadoCondicion;
@@ -148,13 +149,17 @@ public class NotaServiceImpl implements NotaService {
 //    }
 
 
+
+//de aqui salken para ver las planillas en el navegador/pdf
 @Override
 public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
         String carreraId, String materiaId, String division, boolean cursadaInscripto) {
 
+    Materia mnateria= materiaService.findMateriaById(materiaId);
+
     List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateria(
             carreraId, materiaId, cursadaInscripto, EstadoCondicion.CURSADA, division);
-    Materia mnateria= materiaService.findMateriaById(materiaId);
+
 
   int ordenMateria =mnateria.getMateriaOrden();
 
@@ -383,10 +388,13 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 //
 
 
-
+    //de aqui salken para ver las planillas en el pdf
     @Override
     public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateriaAll(String carreraId, String materaId, String division,  boolean cursadaInscripto) {
-        List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "CURSADA", division);
+
+    List<NotaCursadaDTO> todasLasNotas = notaRepository.findNotasByCarreraAndMateriaAll(carreraId, materaId, "CURSADA", division);
+
+
         Materia mnateria= materiaService.findMateriaById(materaId);
 
         int ordenMateria =mnateria.getMateriaOrden();

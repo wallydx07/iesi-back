@@ -54,9 +54,10 @@ public class CarreraController {
         List<Carrera> carreras;
         String userRol= String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
         Long userId= Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
-        if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_PERSONAL".equalsIgnoreCase(userRol) || "ROLE_TITULACION".equalsIgnoreCase(userRol) || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
-//            carreras = carreraService.obtenerCarrerasOrdenadas();
-            carreras = carreraService.findVigentesOrderedByYearAndName();
+        if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_TITULACION".equalsIgnoreCase(userRol)) {
+          carreras = carreraService.obtenerCarrerasOrdenadas();
+        } else if ("ROLE_PERSONAL".equalsIgnoreCase(userRol) ||  "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
+                carreras = carreraService.findVigentesOrderedByYearAndName();
         } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
             carreras = carreraService.obtenerCarrerasPorTutor(userId);
         } else if("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
@@ -66,7 +67,14 @@ public class CarreraController {
             return ResponseEntity.status(
                     HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(carreras);
+//        return ResponseEntity.ok(carreras);
+
+        // Filtrar para excluir la carrera "ASISTENCIA PERSONAL"
+        List<Carrera> carrerasFiltradas = carreras.stream()
+                .filter(c -> c.getCarreraNombre() != null && !"ASISTENCIA PERSONAL".equalsIgnoreCase(c.getCarreraNombre().trim()))
+                .toList(); // Nota: En Java 16+ usa .toList(), si usas Java 8/11 usa .collect(Collectors.toList())
+
+        return ResponseEntity.ok(carrerasFiltradas);
     }
 
     @GetMapping("/inscripcion")

@@ -14,7 +14,7 @@ docker load -i iesi-front.tar
 
 ------------------------Reemplazar contenedores-----------------------
 # 1. Eliminar contenedores de docker-compose y órfanos
-docker-compose down --remove-orphans
+docker-compose down --PERSONALremove-orphans
 # 2. Eliminar cualquier contenedor detenido (no solo de docker-compose)
 docker container prune -f
 # 3. Cargar imágenes nuevas

@@ -244,6 +244,7 @@ ORDER BY p.personaApellido, p.personaNombre
             @Param("notaCondicion") EstadoCondicion notaCondicion
     );
 
+    //de aca se ven las notas de 1ero en el pantalla
     @Query(value = """
     SELECT nota.nota_id , persona.persona_dni,
            persona.persona_apellido , persona.persona_nombre ,

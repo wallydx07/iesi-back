@@ -4857,12 +4857,14 @@ public PDDocument crearPDFPorFecha(LocalDate fechaInicio, LocalDate fechaFin) {
         String tecnicatura = materiaCarrera.getCarrera().getCarreraNombre();
         String regimen = materiaCarrera.getMateria().getMateriaRegimen();
         List<NotaCursadaConEstadoDTO> cursadas;
-        if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
-            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId,division, inscripto);
-        } else {
+//        if (materiaCarrera.getMateria().getMateriaNivel().equals("1ro")) {
+//            cursadas = this.notaService.findNotasByCarreraAndMateriaAll(carreraId, materiaId,division, inscripto);
+//        } else {
             cursadas = this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId,division, inscripto);
-        }
+//        }
+
 //        List<NotaCursadaDTO> cursadas=this.notaService.findNotasByCarreraAndMateria(carreraId, materiaId, inscripto);
+
         PDDocument Documento = new PDDocument();
         try {
             InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
