@@ -8,6 +8,8 @@ import com.example.iesiback.entities.User;
 import com.example.iesiback.enums.EstadoCierre;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.repositories.CierreDiarioRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +22,11 @@ public class CierreDiarioServiceImpl implements CierreDiarioService {
     private final CierreDiarioRepository cierreRepo;
     private final UserService userService;
     private final PagoService pagoService;
+
+    // arriba en la clase:
+    private static final Logger log = LoggerFactory.getLogger(CierreDiarioServiceImpl.class);
+
+
 
     public CierreDiarioServiceImpl(CierreDiarioRepository cierreRepo, UserService userService, PagoService pagoService) {
         this.cierreRepo = cierreRepo;
@@ -62,21 +69,35 @@ public class CierreDiarioServiceImpl implements CierreDiarioService {
     }
 
 
+
     // 🔵 CERRAR DÍA POR USUARIO
     @Override
     public void cerrarDia(String usuarioId, LocalDate fecha) {
-        // Buscamos si ya existe el registro para la fecha indicada
+        log.info("Cerrando día {} para usuario {}", fecha, usuarioId);
+
         CierreDiario cierre = cierreRepo.findByFechaAndUsuarioId(fecha, usuarioId)
                 .orElse(new CierreDiario(fecha, EstadoCierre.ABIERTO, usuarioId));
+
+        log.info("Estado actual del cierre: {}", cierre.getEstado());
+
         if (cierre.getEstado() == EstadoCierre.CERRADO) {
+            log.warn("Intento de cerrar día ya cerrado. Usuario: {}, fecha: {}", usuarioId, fecha);
             throw new RuntimeException("El día ya fue cerrado por este usuario");
         }
         if (cierre.getEstado() == EstadoCierre.AUDITADO) {
+            log.warn("Intento de cerrar día auditado. Usuario: {}, fecha: {}", usuarioId, fecha);
             throw new RuntimeException("No se puede cerrar un día que ya fue auditado");
         }
-        cierre.setEstado(EstadoCierre.CERRADO);
-        cierre.setFechaCierre(LocalDateTime.now()); // Marca de tiempo real de la ejecución
-        cierreRepo.save(cierre);
+
+        try {
+            cierre.setEstado(EstadoCierre.CERRADO);
+            cierre.setFechaCierre(LocalDateTime.now());
+            cierreRepo.save(cierre);
+            log.info("Día {} cerrado correctamente por usuario {}", fecha, usuarioId);
+        } catch (Exception e) {
+            log.error("Error al guardar el cierre. Usuario: {}, fecha: {}", usuarioId, fecha, e);
+            throw e;
+        }
     }
 
 
@@ -136,4 +157,14 @@ public class CierreDiarioServiceImpl implements CierreDiarioService {
                 .map(c -> c.getEstado().name())
                 .orElse("ABIERTO");
     }
+
+    // 🟡 CIERRE COMPLETO DEL DÍA (o de una fecha dada) DEL USUARIO LOGUEADO
+    @Override
+    public CierreDiario cierrePorFecha(String usuarioId, LocalDate fecha) {
+        LocalDate fechaBuscada = (fecha != null) ? fecha : LocalDate.now();
+
+        return cierreRepo.findByFechaAndUsuarioId(fechaBuscada, usuarioId)
+                .orElseGet(() -> new CierreDiario(fechaBuscada, EstadoCierre.ABIERTO, usuarioId));
+    }
+
 }

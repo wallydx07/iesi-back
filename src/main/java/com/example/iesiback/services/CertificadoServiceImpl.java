@@ -8492,7 +8492,7 @@ public PDDocument generarReciboPago(Integer pagoId) {
         float pageW  = a6.getWidth();   // 298
         float pageH  = a6.getHeight();  // 420
         float margin = 16f;
-
+        Integer tam=7;
         // ── LÍNEA SUPERIOR DECORATIVA ─────────────────────────────────────────
         try (PDPageContentStream cs = new PDPageContentStream(
                 documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
@@ -8577,55 +8577,93 @@ public PDDocument generarReciboPago(Integer pagoId) {
                 .ofPattern("dd/MM/yyyy HH:mm")
                 .withZone(ZoneId.systemDefault());
 
-        // ── DATOS DEL RECIBO ──────────────────────────────────────────────────
+// ── DATOS DEL RECIBO ──────────────────────────────────────────────────
 
         Row<PDPage> filaIds = tabla.createRow(11);
         Cell<PDPage> cNro = filaIds.createCell(50, "Recibo N\u00BA: " + pago.getId());
         cNro.setFont(negrita);
-        cNro.setFontSize(8);
+        cNro.setFontSize(tam);
         cNro.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
         cNro.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
         cNro.setTopBorderStyle(new LineStyle(Color.WHITE, 0));
 
         String fechaStr = pago.getFechaPago() != null ? fmt.format(pago.getFechaPago()) : "\u2014";
+
         Cell<PDPage> cFecha = filaIds.createCell(50, "Fecha: " + fechaStr);
         cFecha.setFont(normal);
-        cFecha.setFontSize(8);
+        cFecha.setFontSize(tam);
         cFecha.setAlign(HorizontalAlignment.RIGHT);
         cFecha.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
         cFecha.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
         cFecha.setTopBorderStyle(new LineStyle(Color.WHITE, 0));
 
-        if (pago.getTramite() != null) {
-            Row<PDPage> filaTram = tabla.createRow(10);
-            Cell<PDPage> cTram = filaTram.createCell(100,
-                    "Tr\u00E1mite asociado N\u00BA: " + pago.getTramite().getId());
-            cTram.setFont(normal);
-            cTram.setFontSize(8);
-            sinBordes(cTram);
-        }
+// ── TRÁMITE / CAJERO (una sola fila) ──────────────────────────────────
 
+        String tramiteStr = pago.getTramite() != null
+                ? "Tr\u00E1mite N\u00BA: " + pago.getTramite().getId()
+                : "";
+
+        String cajeroStr = "";
         if (pago.getResponsable() != null && !pago.getResponsable().isBlank()) {
             persona = this.alumnoService.findAlumnoById(pago.getResponsable());
-
-            Row<PDPage> filaResp = tabla.createRow(10);
-            Cell<PDPage> cResp = filaResp.createCell(100,
-                    "Cajero: " + persona.getPersonaApellido()+", "+persona.getPersonaNombre());
-            cResp.setFont(normal);
-            cResp.setFontSize(8);
-            sinBordes(cResp);
+            cajeroStr = "Cajero: " + persona.getPersonaApellido() + ", " + persona.getPersonaNombre();
         }
 
+        if (!tramiteStr.isEmpty() || !cajeroStr.isEmpty()) {
+            Row<PDPage> filaTramCaj = tabla.createRow(10);
+
+            Cell<PDPage> cTram = filaTramCaj.createCell(50, tramiteStr);
+            cTram.setFont(normal);
+            cTram.setFontSize(tam);
+            sinBordes(cTram);
+
+            Cell<PDPage> cCajero = filaTramCaj.createCell(50, cajeroStr);
+            cCajero.setFont(normal);
+            cCajero.setFontSize(tam);
+            cCajero.setAlign(HorizontalAlignment.RIGHT);
+            sinBordes(cCajero);
+        }
+
+
+        // ── ALUMNO / PAGADOR ──────────────────────────────────────────────────
+
+        String alumno = Optional.ofNullable(pago.getTramite())
+                .map(Tramite::getTramiteApellidoNombre)
+                .orElse("Sin datos");
+
+        String pagador = Optional.ofNullable(pago.getNombrePagador())
+                .filter(p -> !p.isBlank())
+                .orElse("");
+
+        Row<PDPage> filaPersonas = tabla.createRow(11);
+
+        Cell<PDPage> cAlumno = filaPersonas.createCell(50, "Estudiante: " + alumno);
+        cAlumno.setFont(normal);
+        cAlumno.setFontSize(8);
+        cAlumno.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
+        cAlumno.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
+        cAlumno.setTopBorderStyle(new LineStyle(Color.WHITE, 0));
+        cAlumno.setBottomBorderStyle(new LineStyle(Color.WHITE, 0));
+
+        Cell<PDPage> cPagador = filaPersonas.createCell(50, "" + pagador);
+        cPagador.setFont(normal);
+        cPagador.setFontSize(tam);
+        cPagador.setAlign(HorizontalAlignment.RIGHT);
+        cPagador.setLeftBorderStyle(new LineStyle(Color.WHITE, 0));
+        cPagador.setRightBorderStyle(new LineStyle(Color.WHITE, 0));
+        cPagador.setTopBorderStyle(new LineStyle(Color.WHITE, 0));
+        cPagador.setBottomBorderStyle(new LineStyle(Color.WHITE, 0));
+
         Row<PDPage> filaMetodo = tabla.createRow(10);
-        String metodo = pago.getMetodoPago() != null ? pago.getMetodoPago() : "\u2014";
-        String tipo   = pago.getTipoPago()   != null ? pago.getTipoPago()   : "\u2014";
+        String metodo = pago.getMetodoPago() != null ? pago.getMetodoPago().toUpperCase() : "\u2014";
+        String tipo   = pago.getTipoPago()   != null ? pago.getTipoPago().toUpperCase()   : "\u2014";
         Cell<PDPage> cMet = filaMetodo.createCell(50, "M\u00E9todo: " + metodo);
         cMet.setFont(normal);
-        cMet.setFontSize(8);
+        cMet.setFontSize(tam);
         sinBordes(cMet);
         Cell<PDPage> cTipo = filaMetodo.createCell(50, "Tipo: " + tipo);
         cTipo.setFont(normal);
-        cTipo.setFontSize(8);
+        cTipo.setFontSize(tam);
         cTipo.setAlign(HorizontalAlignment.RIGHT);
         sinBordes(cTipo);
 
@@ -8634,7 +8672,7 @@ public PDDocument generarReciboPago(Integer pagoId) {
             Cell<PDPage> cMp = filaMp.createCell(100,
                     "ID transacci\u00F3n: " + pago.getMpPaymentId());
             cMp.setFont(italica);
-            cMp.setFontSize(7);
+            cMp.setFontSize(tam);
             cMp.setTextColor(new Color(120, 120, 120));
             sinBordes(cMp);
         }
@@ -8652,18 +8690,18 @@ public PDDocument generarReciboPago(Integer pagoId) {
         Row<PDPage> filaColH = tabla.createRow(11);
         Cell<PDPage> chCon = filaColH.createCell(55, "Concepto");
         chCon.setFont(negrita);
-        chCon.setFontSize(8);
+        chCon.setFontSize(tam);
         chCon.setFillColor(new Color(230, 235, 242));
 
         Cell<PDPage> chCant = filaColH.createCell(15, "Cant.");
         chCant.setFont(negrita);
-        chCant.setFontSize(8);
+        chCant.setFontSize(tam);
         chCant.setFillColor(new Color(230, 235, 242));
         chCant.setAlign(HorizontalAlignment.CENTER);
 
         Cell<PDPage> chMon = filaColH.createCell(30, "Importe");
         chMon.setFont(negrita);
-        chMon.setFontSize(8);
+        chMon.setFontSize(tam);
         chMon.setFillColor(new Color(230, 235, 242));
         chMon.setAlign(HorizontalAlignment.RIGHT);
 
@@ -8680,21 +8718,21 @@ public PDDocument generarReciboPago(Integer pagoId) {
                 Row<PDPage> fila = tabla.createRow(11);
                 Cell<PDPage> cc = fila.createCell(55,
                         d.getConcepto() != null ? d.getConcepto() : "\u2014");
-                cc.setFont(normal); cc.setFontSize(8); cc.setFillColor(bg);
+                cc.setFont(normal); cc.setFontSize(tam); cc.setFillColor(bg);
 
                 Cell<PDPage> cq = fila.createCell(15, String.valueOf(cant));
-                cq.setFont(normal); cq.setFontSize(8);
+                cq.setFont(normal); cq.setFontSize(tam);
                 cq.setAlign(HorizontalAlignment.CENTER); cq.setFillColor(bg);
 
                 Cell<PDPage> cm = fila.createCell(30,
                         formatearMonto(subtotal, pago.getMoneda()));
-                cm.setFont(normal); cm.setFontSize(8);
+                cm.setFont(normal); cm.setFontSize(tam);
                 cm.setAlign(HorizontalAlignment.RIGHT); cm.setFillColor(bg);
             }
         } else {
             Row<PDPage> fsd = tabla.createRow(11);
             Cell<PDPage> csd = fsd.createCell(100, "Sin detalle de conceptos registrado.");
-            csd.setFont(italica); csd.setFontSize(8);
+            csd.setFont(italica); csd.setFontSize(tam);
             csd.setTextColor(new Color(140, 140, 140));
         }
 
@@ -8708,7 +8746,7 @@ public PDDocument generarReciboPago(Integer pagoId) {
 
         Row<PDPage> filaTotal = tabla.createRow(14);
         Cell<PDPage> cLbl = filaTotal.createCell(60, "TOTAL ABONADO");
-        cLbl.setFont(negrita); cLbl.setFontSize(9);
+        cLbl.setFont(negrita); cLbl.setFontSize(tam);
         cLbl.setFillColor(new Color(240, 243, 248));
 
         Cell<PDPage> cVal = filaTotal.createCell(40,
@@ -8997,7 +9035,8 @@ public PDDocument generarRendicionTurno(LocalDate fecha) {
 
                     Row<PDPage> filaR = tabla.createRow(10);
 
-                    Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteNroRecibo()));
+//                    Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteNroRecibo()));
+                                        Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteId().toString()));
                     c1.setFont(normal); c1.setFontSize(7); c1.setFillColor(bg);
 
                     Cell<PDPage> c2 = filaR.createCell(22f, alumno);

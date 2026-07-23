@@ -1,5 +1,6 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.entities.CierreDiario;
 import com.example.iesiback.services.CierreDiarioService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity; // 👈 FALTABA ESTO
@@ -23,18 +24,6 @@ public class CierreDiarioController {
     public ResponseEntity<Boolean> estaCerradoHoy() {
         return ResponseEntity.ok(cierreService.estaCerradoHoy());
     }
-
-
-//    @PostMapping("/cerrar-dia")
-//    public ResponseEntity<String> cerrarDia(@RequestParam String usuarioId) {
-//        cierreService.cerrarDia(usuarioId);
-//        return ResponseEntity.ok("Día cerrado correctamente");
-//    }
-//    @PostMapping("/auditar-dia")
-//    public ResponseEntity<String> auditarDia(@RequestParam String usuarioId) {
-//        cierreService.auditarDia(usuarioId);
-//        return ResponseEntity.ok("Día auditado correctamente");
-//    }
 
 
 
@@ -69,4 +58,20 @@ public class CierreDiarioController {
     public ResponseEntity<String> estadoCompleto() {
         return ResponseEntity.ok(cierreService.estadoHoy());
     }
+
+
+
+    @GetMapping("/cierre")
+    public ResponseEntity<CierreDiario> cierrePorFecha(
+            @RequestParam String usuarioId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+
+        CierreDiario cierre = cierreService.cierrePorFecha(usuarioId, fecha);
+
+        return cierre != null
+                ? ResponseEntity.ok(cierre)
+                : ResponseEntity.noContent().build();   // 204 si no hay cierre para esa fecha
+    }
+
+
 }
