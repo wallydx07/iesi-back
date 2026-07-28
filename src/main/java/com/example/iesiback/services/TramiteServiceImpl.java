@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.TramiteArbolDTO;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.User;
@@ -199,5 +200,20 @@ public class TramiteServiceImpl implements TramiteService {
     @Override
     public List<Tramite> findByAtencionLegajoId(String legajoId) {
         return repository.findByLegajoId(legajoId);
+    }
+
+
+    @Override
+    public List<TramiteArbolDTO> obtenerArbolCompleto(Long id) {
+
+        return repository.findArbolCompleto(id).stream()
+                .map(t -> new TramiteArbolDTO(
+                        t.getId().longValue(),
+                        t.getTramiteReferencia() != null ? t.getTramiteReferencia().longValue(): null,
+                        t.getTramiteAsunto(),
+                        t.getTramiteEstado().toString(),
+                        t.getTramiteApellidoNombre()
+                ))
+                .toList();
     }
 }

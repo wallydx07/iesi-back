@@ -1,5 +1,6 @@
 package com.example.iesiback.services;
 
+import com.example.iesiback.dto.TramiteArbolDTO;
 import com.example.iesiback.entities.Tramite;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,4 +27,5 @@ public interface TramiteService {
 
     List<Tramite> findByAtencionLegajoId(String legajoId);
 
+    List<TramiteArbolDTO> obtenerArbolCompleto(Long id);
 }
