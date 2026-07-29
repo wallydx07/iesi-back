@@ -205,7 +205,9 @@ public class AporteServiceImpl implements AporteService {
     @Override
     public List<Aporte> obtenerAportesPorLegajoId(String legajoId) {
         Optional<Legajo> legajo = this.legajoService.findById(legajoId);
-        return legajo.map(aporteRepository::findByAporteLegajo).orElseThrow(() -> new RuntimeException("Legajo no encontrado"));
+//        return legajo.map(aporteRepository::findByAporteLegajo).orElseThrow(() -> new RuntimeException("Legajo no encontrado"));
+        return legajo.map(l -> aporteRepository.buscarUnificadoPorLegajo(l.getLegajoId()))
+                .orElseThrow(() -> new RuntimeException("Legajo no encontrado"));
     }
 
     @Override
