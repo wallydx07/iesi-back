@@ -23,7 +23,7 @@ public class Tramite {
     @Column(name = "tramite_id", nullable = false)
     private Integer id;
 
-    @ColumnDefault("Pendiente")
+    @ColumnDefault("'Pendiente'")
     @Column(name = "tramite_estado")
     private String tramiteEstado;
 

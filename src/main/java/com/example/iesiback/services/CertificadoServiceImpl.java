@@ -25,7 +25,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
+import org.apache.pdfbox.util.Matrix;
 import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
@@ -8823,431 +8823,759 @@ public PDDocument generarReciboPago(Integer pagoId) {
     }
 
 
-@Override
-public PDDocument generarRendicionTurno(LocalDate fecha) {
+
+    @Override
+    public PDDocument generarRendicionTurno(LocalDate fecha) {
         PDDocument documento = new PDDocument();
         User user = userService.getAuthenticatedUser().get();
         try {
-            ResumenRecaudacionDTO resumen =
-                    pagoService.ResumenRecaudacionDTO(fecha)
-                            .orElse(null);
-
-            PDPage pagina = new PDPage(PDRectangle.A4);
-            documento.addPage(pagina);
+            ResumenRecaudacionDTO resumen = pagoService.ResumenRecaudacionDTO(fecha).orElse(null);
 
             PDType1Font normal  = PDType1Font.HELVETICA;
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             PDType1Font italica = PDType1Font.HELVETICA_OBLIQUE;
 
-            float pageW  = pagina.getMediaBox().getWidth();   // 595
-            float pageH  = pagina.getMediaBox().getHeight();  // 842
-            float margin = 35f;
+            // A4 en horizontal: 842 x 595. Cada mitad vertical = 421 x 595 = A5 vertical.
+            PDRectangle a4Landscape = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
+            float pageW  = a4Landscape.getWidth();   // 842
+            float pageH  = a4Landscape.getHeight();  // 595
+            float margin = 18f;
+            float mitadW = pageW / 2f;               // 421
 
-            // ── ENCABEZADO INSTITUCIONAL (texto directo) ──────────────────────────
-            try (PDPageContentStream cs = new PDPageContentStream(
-                    documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
+            // ── dentro de generarRendicionTurno, reemplazar las constantes de alto ────
+            float ALTO_ENCABEZADO   = 40f;
+            float ALTO_FIRMA        = 78f;   // antes 26f — ahora entra operador+supervisor+campos
+            float ALTO_FILA_HEAD    = 9f;
+            float ALTO_FILA_DATA    = 8f;
+            float ALTO_FILA_TOTAL   = 9f;
+            float ALTO_FILA_DESGLOSE = 9f;   // nueva: 2 filas fijas (efectivo / digital)
 
-                // Línea azul superior
-                cs.setStrokingColor(new Color(0, 51, 102));
-                cs.setLineWidth(3f);
-                cs.moveTo(margin, pageH - 5);
-                cs.lineTo(pageW - margin, pageH - 5);
-                cs.stroke();
+            float altoDisponibleTabla = (pageH - 2 * margin) - ALTO_ENCABEZADO - ALTO_FIRMA;
+            int filasPorMitad = (int) Math.floor(
+                    (altoDisponibleTabla - ALTO_FILA_HEAD - ALTO_FILA_TOTAL - 2 * ALTO_FILA_DESGLOSE) / ALTO_FILA_DATA);
+            if (filasPorMitad < 1) filasPorMitad = 1;
 
-                // Nombre institución
-                cs.beginText();
-                cs.setNonStrokingColor(new Color(0, 51, 102));
-                cs.setFont(negrita, 9f);
-                cs.newLineAtOffset(margin, pageH - 22);
-                cs.showText("INSTITUTO DE EDUCACI\u00D3N SUPERIOR INTERCULTURAL");
-                cs.endText();
+            List<ReciboDTO> recibos = (resumen != null && resumen.getRecibos() != null)
+                    ? resumen.getRecibos() : Collections.emptyList();
 
-                cs.beginText();
-                cs.setNonStrokingColor(new Color(0, 51, 102));
-                cs.setFont(negrita, 8.5f);
-                cs.newLineAtOffset(margin, pageH - 32);
-                cs.showText("\u201CCAMPINTA GUAZ\u00DA GLORIA P\u00C9REZ\u201D");
-                cs.endText();
-
-                cs.beginText();
-                cs.setNonStrokingColor(new Color(80, 80, 80));
-                cs.setFont(normal, 7.5f);
-                cs.newLineAtOffset(margin, pageH - 42);
-                cs.showText("Incorporado a la Ense\u00F1anza Oficial \u2013 Resol. N\u00BA 2936-E-15");
-                cs.endText();
-
-                cs.beginText();
-                cs.setFont(normal, 7.5f);
-                cs.newLineAtOffset(margin, pageH - 51);
-                cs.showText("Bah\u00EDa Blanca N\u00BA 235, B\u00BA Kennedy \u2013 Tel. (0388) 6256119 \u2013 (C.P. 4600) San Salvador de Jujuy \u2013 Rep\u00FAblica Argentina");
-                cs.endText();
-
-                // Línea separadora
-                cs.setStrokingColor(new Color(180, 180, 180));
-                cs.setLineWidth(0.5f);
-                cs.moveTo(margin, pageH - 58);
-                cs.lineTo(pageW - margin, pageH - 58);
-                cs.stroke();
-
-                // Título centrado
-                String titulo = "PLANILLA DE RENDICI\u00D3N DE TURNO";
-                float tituloW = negrita.getStringWidth(titulo) / 1000 * 11f;
-                cs.beginText();
-                cs.setNonStrokingColor(new Color(20, 20, 20));
-                cs.setFont(negrita, 11f);
-                cs.newLineAtOffset((pageW - tituloW) / 2f, pageH - 76);
-                cs.showText(titulo);
-                cs.endText();
-
-                // Línea bajo título
-                cs.setStrokingColor(new Color(0, 51, 102));
-                cs.setLineWidth(1.2f);
-                cs.moveTo(margin, pageH - 82);
-                cs.lineTo(pageW - margin, pageH - 82);
-                cs.stroke();
-            }
-
-            // ── TABLA PRINCIPAL ───────────────────────────────────────────────────
-            float tableWidth   = pageW - 2 * margin;
-            float yStart       = pageH - 86f;
-            float yStartNew    = pageH - margin;
-            float bottomMargin = 80f; // espacio para firmas al pie
-
-            BaseTable tabla = new BaseTable(
-                    yStart, yStartNew, bottomMargin,
-                    tableWidth, margin, documento, pagina, true, true);
-
-            DateTimeFormatter fmtFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            String fechaStr = fecha != null ? fmtFecha.format(fecha) : "\u2014";
-
-            // ── DATOS DEL TURNO ───────────────────────────────────────────────────
-
-            Row<PDPage> filaDatos = tabla.createRow(13);
-            Cell<PDPage> cOp = filaDatos.createCell(50,
-                    "Operador/a responsable: " + nvl(user.getUserApellido()+", "+user.getUserNombre()));
-            cOp.setFont(normal); cOp.setFontSize(9); sinBordes(cOp);
-
-            Cell<PDPage> cFecha = filaDatos.createCell(50, "Fecha: " + fechaStr);
-            cFecha.setFont(normal); cFecha.setFontSize(9);
-            cFecha.setAlign(HorizontalAlignment.RIGHT); sinBordes(cFecha);
-
-// ── RESUMEN GLOBAL ────────────────────────────────────────────────────────
-
-            Row<PDPage> filaResTitle = tabla.createRow(12);
-            Cell<PDPage> cRt = filaResTitle.createCell(100, "RESUMEN DEL TURNO");
-            cRt.setFont(negrita); cRt.setFontSize(8);
-            cRt.setFillColor(new Color(230, 235, 242));
-            cRt.setAlign(HorizontalAlignment.CENTER);
-
-// Fila de labels
-            Row<PDPage> filaResLabels = tabla.createRow(11);
-            String[] resLabels = {"Total operaciones", "Validados", "Pendientes", "Total recaudado"};
-            for (String lbl : resLabels) {
-                Cell<PDPage> c = filaResLabels.createCell(25f, lbl);
-                c.setFont(normal); c.setFontSize(7);
-                c.setAlign(HorizontalAlignment.CENTER);
-                c.setFillColor(new Color(244, 246, 250));
-            }
-
-// Fila de valores
-            Row<PDPage> filaResValores = tabla.createRow(13);
-            String[] resValores = {
-                    nvlInt(resumen.getTotalOperaciones()),
-                    nvlInt(resumen.getTotalValidados()),
-                    nvlInt(resumen.getTotalPendientes()),
-                    fmt(resumen.getTotalRecaudado())
-            };
-            for (int i = 0; i < resValores.length; i++) {
-                Cell<PDPage> c = filaResValores.createCell(25f, resValores[i]);
-                c.setFont(negrita); c.setFontSize(10);
-                c.setAlign(HorizontalAlignment.CENTER);
-                if (i == 3) c.setFillColor(new Color(240, 243, 248));
-            }
-            // ── RESUMEN POR CONCEPTO ──────────────────────────────────────────────
-
-            if (resumen.getPorConcepto() != null && !resumen.getPorConcepto().isEmpty()) {
-
-                Row<PDPage> filaConTitle = tabla.createRow(12);
-                Cell<PDPage> cCt = filaConTitle.createCell(100, "RECAUDACIÓN POR CONCEPTO");
-                cCt.setFont(negrita); cCt.setFontSize(8);
-                cCt.setFillColor(new Color(230, 235, 242));
-                cCt.setAlign(HorizontalAlignment.CENTER);
-
-                // Header
-                Row<PDPage> filaConH = tabla.createRow(11);
-                Cell<PDPage> chN = filaConH.createCell(75, "Concepto");
-                chN.setFont(negrita); chN.setFontSize(8);
-                chN.setFillColor(new Color(244, 246, 250));
-
-                Cell<PDPage> chT = filaConH.createCell(25, "Total");
-                chT.setFont(negrita); chT.setFontSize(8);
-                chT.setFillColor(new Color(244, 246, 250));
-                chT.setAlign(HorizontalAlignment.RIGHT);
-
-                boolean par = false;
-                for (ConceptoDTO c : resumen.getPorConcepto()) {
-                    Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
-                    par = !par;
-
-                    Row<PDPage> filaC = tabla.createRow(11);
-                    Cell<PDPage> cN = filaC.createCell(75, nvl(c.getNombre()));
-                    cN.setFont(normal); cN.setFontSize(8); cN.setFillColor(bg);
-
-                    Cell<PDPage> cT = filaC.createCell(25, fmt(c.getTotal()));
-                    cT.setFont(normal); cT.setFontSize(8);
-                    cT.setAlign(HorizontalAlignment.RIGHT); cT.setFillColor(bg);
+            List<List<ReciboDTO>> partes = new ArrayList<>();
+            if (recibos.isEmpty()) {
+                partes.add(Collections.emptyList());
+            } else {
+                for (int i = 0; i < recibos.size(); i += filasPorMitad) {
+                    partes.add(recibos.subList(i, Math.min(i + filasPorMitad, recibos.size())));
                 }
             }
 
-            // ── DETALLE DE RECIBOS ────────────────────────────────────────────────
+            int totalPartes = partes.size();
 
-            if (resumen.getRecibos() != null && !resumen.getRecibos().isEmpty()) {
+            for (int idx = 0; idx < totalPartes; idx++) {
+                boolean esInicioDePagina = (idx % 2 == 0); // mitad izquierda de cada hoja
+                PDPage pagina;
 
-                // Espacio
-                Row<PDPage> filaEsp = tabla.createRow(5);
-                filaEsp.createCell(100, "").setFillColor(Color.WHITE);
+                if (esInicioDePagina) {
+                    pagina = new PDPage(a4Landscape);
+                    documento.addPage(pagina);
 
-                Row<PDPage> filaRecTitle = tabla.createRow(12);
-                Cell<PDPage> cRecT = filaRecTitle.createCell(100, "DETALLE DE RECIBOS");
-                cRecT.setFont(negrita); cRecT.setFontSize(8);
-                cRecT.setFillColor(new Color(230, 235, 242));
-                cRecT.setAlign(HorizontalAlignment.CENTER);
+                    // línea de corte punteada VERTICAL, al centro
+                    try (PDPageContentStream cs = new PDPageContentStream(
+                            documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
+                        cs.setStrokingColor(new Color(150, 150, 150));
+                        cs.setLineWidth(0.7f);
+                        cs.setLineDashPattern(new float[]{3, 3}, 0);
+                        cs.moveTo(mitadW, margin);
+                        cs.lineTo(mitadW, pageH - margin);
+                        cs.stroke();
+                        cs.setLineDashPattern(new float[]{}, 0);
 
-                // Header columnas
-                Row<PDPage> filaH = tabla.createRow(11);
-                String[] headers = {"N° Recibo", "Alumno/a", "DNI", "Concepto", "Método", "Importe", "Estado"};
-                float[]  anchos  = {10f, 22f, 10f, 22f, 11f, 13f, 12f};
-
-                for (int i = 0; i < headers.length; i++) {
-                    Cell<PDPage> ch = filaH.createCell(anchos[i], headers[i]);
-                    ch.setFont(negrita); ch.setFontSize(7);
-                    ch.setFillColor(new Color(244, 246, 250));
-                    if (i >= 4) ch.setAlign(HorizontalAlignment.RIGHT);
-                }
-
-                boolean par = false;
-                for (ReciboDTO r : resumen.getRecibos()) {
-                    Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
-                    par = !par;
-
-                    String alumno = nvl(r.getAlumnoApellido()) + ", " + nvl(r.getAlumnoNombre());
-                    String estado = r.getEstado() != null ? r.getEstado().name() : "\u2014";
-
-                    Row<PDPage> filaR = tabla.createRow(10);
-
-//                    Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteNroRecibo()));
-                                        Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteId().toString()));
-                    c1.setFont(normal); c1.setFontSize(7); c1.setFillColor(bg);
-
-                    Cell<PDPage> c2 = filaR.createCell(22f, alumno);
-                    c2.setFont(normal); c2.setFontSize(7); c2.setFillColor(bg);
-
-                    Cell<PDPage> c3 = filaR.createCell(10f, nvl(r.getAlumnoDni()));
-                    c3.setFont(normal); c3.setFontSize(7); c3.setFillColor(bg);
-
-                    Cell<PDPage> c4 = filaR.createCell(22f, nvl(r.getConcepto()));
-                    c4.setFont(normal); c4.setFontSize(7); c4.setFillColor(bg);
-
-                    Cell<PDPage> c5 = filaR.createCell(11f, nvl(r.getMetodo()));
-                    c5.setFont(normal); c5.setFontSize(7);
-                    c5.setAlign(HorizontalAlignment.RIGHT); c5.setFillColor(bg);
-
-                    Cell<PDPage> c6 = filaR.createCell(13f, fmt(r.getAporteMonto()));
-                    c6.setFont(normal); c6.setFontSize(7);
-                    c6.setAlign(HorizontalAlignment.RIGHT); c6.setFillColor(bg);
-
-                    Cell<PDPage> c7 = filaR.createCell(12f, estado);
-                    c7.setFont(normal); c7.setFontSize(7);
-                    c7.setAlign(HorizontalAlignment.RIGHT); c7.setFillColor(bg);
-                }
-
-                // Subtotal al pie de la lista
-                Row<PDPage> filaSubT = tabla.createRow(12);
-                Cell<PDPage> cStLbl = filaSubT.createCell(87f, "TOTAL RENDIDO");
-                cStLbl.setFont(negrita); cStLbl.setFontSize(8);
-                cStLbl.setFillColor(new Color(240, 243, 248));
-                cStLbl.setAlign(HorizontalAlignment.RIGHT);
-
-                Cell<PDPage> cStVal = filaSubT.createCell(13f,
-                        fmt(resumen.getTotalRecaudado()));
-                cStVal.setFont(negrita); cStVal.setFontSize(8);
-                cStVal.setFillColor(new Color(240, 243, 248));
-                cStVal.setAlign(HorizontalAlignment.RIGHT);
-            }
-
-            // ── RENDICIÓN POR MÉTODO DE PAGO ─────────────────────────────────────
-
-            if (resumen.getRecibos() != null && !resumen.getRecibos().isEmpty()) {
-
-                // Agrupar montos por método
-                Map<String, BigDecimal> porMetodo = new LinkedHashMap<>();
-                for (ReciboDTO r : resumen.getRecibos()) {
-                    String metodo = r.getMetodo() != null ? r.getMetodo().trim().toUpperCase() : "SIN ESPECIFICAR";
-                    BigDecimal monto = r.getAporteMonto() != null ? r.getAporteMonto() : BigDecimal.ZERO;
-                    porMetodo.merge(metodo, monto, BigDecimal::add);
-                }
-
-                // Clasificar: efectivo se rinde en mano; el resto ya entró digital
-                BigDecimal totalEfectivo = BigDecimal.ZERO;
-                BigDecimal totalDigital  = BigDecimal.ZERO;
-                for (Map.Entry<String, BigDecimal> e : porMetodo.entrySet()) {
-                    if (e.getKey().contains("EFECTIVO")) {
-                        totalEfectivo = totalEfectivo.add(e.getValue());
-                    } else {
-                        totalDigital = totalDigital.add(e.getValue());
+                        // texto de corte rotado 90°
+                        cs.beginText();
+                        cs.setNonStrokingColor(new Color(150, 150, 150));
+                        cs.setFont(normal, 7f);
+                        Matrix rot = Matrix.getRotateInstance(Math.PI / 2, mitadW + 3, pageH / 2f - 25);
+                        cs.setTextMatrix(rot);
+                        cs.showText("corte aqui");
+                        cs.endText();
                     }
+                } else {
+                    pagina = documento.getPage(documento.getNumberOfPages() - 1);
                 }
 
-                // Espacio
-                Row<PDPage> filaEspM = tabla.createRow(5);
-                filaEspM.createCell(100, "").setFillColor(Color.WHITE);
-
-                Row<PDPage> filaMetTitle = tabla.createRow(12);
-                Cell<PDPage> cMt = filaMetTitle.createCell(100, "RENDICI\u00D3N POR M\u00C9TODO DE PAGO");
-                cMt.setFont(negrita); cMt.setFontSize(8);
-                cMt.setFillColor(new Color(230, 235, 242));
-                cMt.setAlign(HorizontalAlignment.CENTER);
-
-                // Header
-                Row<PDPage> filaMetH = tabla.createRow(11);
-                Cell<PDPage> mhN = filaMetH.createCell(75, "M\u00E9todo");
-                mhN.setFont(negrita); mhN.setFontSize(8);
-                mhN.setFillColor(new Color(244, 246, 250));
-
-                Cell<PDPage> mhT = filaMetH.createCell(25, "Total");
-                mhT.setFont(negrita); mhT.setFontSize(8);
-                mhT.setFillColor(new Color(244, 246, 250));
-                mhT.setAlign(HorizontalAlignment.RIGHT);
-
-                // Detalle por método
-                boolean parM = false;
-                for (Map.Entry<String, BigDecimal> e : porMetodo.entrySet()) {
-                    Color bg = parM ? new Color(249, 250, 252) : Color.WHITE;
-                    parM = !parM;
-
-                    Row<PDPage> filaM = tabla.createRow(11);
-                    Cell<PDPage> cN = filaM.createCell(75, e.getKey());
-                    cN.setFont(normal); cN.setFontSize(8); cN.setFillColor(bg);
-
-                    Cell<PDPage> cT = filaM.createCell(25, fmt(e.getValue()));
-                    cT.setFont(normal); cT.setFontSize(8);
-                    cT.setAlign(HorizontalAlignment.RIGHT); cT.setFillColor(bg);
+                float xLeft, xRight;
+                if (esInicioDePagina) {
+                    xLeft  = margin;
+                    xRight = mitadW - 6;
+                } else {
+                    xLeft  = mitadW + 6;
+                    xRight = pageW - margin;
                 }
 
-                // Fila destacada: efectivo a rendir en caja
-                Row<PDPage> filaEf = tabla.createRow(13);
-                Cell<PDPage> cEfLbl = filaEf.createCell(75, "TOTAL A RENDIR EN EFECTIVO (caja)");
-                cEfLbl.setFont(negrita); cEfLbl.setFontSize(9);
-                cEfLbl.setFillColor(new Color(255, 249, 230));
+                boolean esContinuacion = idx > 0;
+                boolean esUltima = idx == totalPartes - 1;
 
-                Cell<PDPage> cEfVal = filaEf.createCell(25, fmt(totalEfectivo));
-                cEfVal.setFont(negrita); cEfVal.setFontSize(9);
-                cEfVal.setFillColor(new Color(255, 249, 230));
-                cEfVal.setAlign(HorizontalAlignment.RIGHT);
-
-                // Fila informativa: cobrado por medios digitales
-                Row<PDPage> filaDig = tabla.createRow(12);
-                Cell<PDPage> cDigLbl = filaDig.createCell(75,
-                        "Cobrado por medios digitales (billetera virtual / transferencia \u2013 no se rinde en mano)");
-                cDigLbl.setFont(normal); cDigLbl.setFontSize(8);
-                cDigLbl.setFillColor(new Color(240, 247, 240));
-
-                Cell<PDPage> cDigVal = filaDig.createCell(25, fmt(totalDigital));
-                cDigVal.setFont(negrita); cDigVal.setFontSize(8);
-                cDigVal.setFillColor(new Color(240, 247, 240));
-                cDigVal.setAlign(HorizontalAlignment.RIGHT);
-            }
-
-            // ── OBSERVACIONES ─────────────────────────────────────────────────────
-
-            Row<PDPage> filaObsT = tabla.createRow(12);
-            Cell<PDPage> cObsT = filaObsT.createCell(100, "OBSERVACIONES");
-            cObsT.setFont(negrita); cObsT.setFontSize(8);
-            cObsT.setFillColor(new Color(230, 235, 242));
-
-            Row<PDPage> filaObs = tabla.createRow(30);
-            Cell<PDPage> cObs = filaObs.createCell(100, "");
-            cObs.setFont(normal); cObs.setFontSize(8);
-
-            tabla.draw();
-
-            // ── BLOQUE DE FIRMAS (al pie, texto directo) ──────────────────────────
-            try (PDPageContentStream cs = new PDPageContentStream(
-                    documento, pagina, PDPageContentStream.AppendMode.APPEND, false)) {
-
-                float firmaY   = 68f;
-                float col1X    = margin;
-                float col2X    = pageW / 2f + 10f;
-                float lineaLen = (pageW / 2f) - margin - 20f;
-
-                // Líneas de firma
-                cs.setStrokingColor(new Color(60, 60, 60));
-                cs.setLineWidth(0.7f);
-
-                cs.moveTo(col1X, firmaY);
-                cs.lineTo(col1X + lineaLen, firmaY);
-                cs.stroke();
-
-                cs.moveTo(col2X, firmaY);
-                cs.lineTo(col2X + lineaLen, firmaY);
-                cs.stroke();
-
-                // Etiquetas firma
-                cs.beginText();
-                cs.setNonStrokingColor(new Color(60, 60, 60));
-                cs.setFont(normal, 7.5f);
-                cs.newLineAtOffset(col1X, firmaY - 11);
-                cs.showText("Firma y aclaraci\u00F3n del operador/a");
-                cs.endText();
-
-                cs.beginText();
-                cs.setFont(normal, 7.5f);
-                cs.newLineAtOffset(col2X, firmaY - 11);
-                cs.showText("Firma y aclaraci\u00F3n del supervisor/a");
-                cs.endText();
-
-                // Nombres bajo las líneas
-                cs.beginText();
-                cs.setFont(italica, 7.5f);
-                cs.newLineAtOffset(col1X, firmaY - 21);
-                cs.showText("Personal");
-                cs.endText();
-
-                cs.beginText();
-                cs.setFont(italica, 7.5f);
-                cs.newLineAtOffset(col2X, firmaY - 21);
-                cs.showText("Supervisor");
-                cs.endText();
-
-                // Aclaración DNI
-                cs.beginText();
-                cs.setFont(normal, 7f);
-                cs.setNonStrokingColor(new Color(130, 130, 130));
-                cs.newLineAtOffset(col1X, firmaY - 31);
-                cs.showText("Aclaraci\u00F3n / D.N.I.:");
-                cs.endText();
-
-                cs.beginText();
-                cs.setFont(normal, 7f);
-                cs.newLineAtOffset(col2X, firmaY - 31);
-                cs.showText("Aclaraci\u00F3n / D.N.I.:");
-                cs.endText();
-
-                // Línea inferior azul
-                cs.setStrokingColor(new Color(0, 51, 102));
-                cs.setLineWidth(3f);
-                cs.moveTo(margin, 10);
-                cs.lineTo(pageW - margin, 10);
-                cs.stroke();
+                dibujarMitad(documento, pagina, resumen, partes.get(idx), user, fecha,
+                        pageH, margin, xLeft, xRight,
+                        normal, negrita, italica,
+                        idx + 1, totalPartes, esContinuacion, esUltima);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-
         return documento;
     }
+    // ── dibujarMitad completo, actualizado ──────────────────────────────────
+    private void dibujarMitad(PDDocument documento, PDPage pagina,
+                              ResumenRecaudacionDTO resumen, List<ReciboDTO> reciboParte,
+                              User user, LocalDate fecha,
+                              float pageH, float margin, float xLeft, float xRight,
+                              PDType1Font normal, PDType1Font negrita, PDType1Font italica,
+                              int numeroParte, int totalPartes,
+                              boolean esContinuacion, boolean esUltima) throws IOException {
+
+        DateTimeFormatter fmtFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String fechaStr = fecha != null ? fmtFecha.format(fecha) : "\u2014";
+        float yTop = pageH - margin;
+        float yBottom = margin;
+        float anchoMitad = xRight - xLeft;
+
+        // ── Encabezado ────────────────────────────────────────────────────────
+        try (PDPageContentStream cs = new PDPageContentStream(
+                documento, pagina, PDPageContentStream.AppendMode.APPEND, false)) {
+
+            cs.setStrokingColor(new Color(0, 51, 102));
+            cs.setLineWidth(1.5f);
+            cs.moveTo(xLeft, yTop);
+            cs.lineTo(xRight, yTop);
+            cs.stroke();
+
+            String tituloBloque = "IESI \u201CCAMPINTA GUAZ\u00DA\u201D \u2013 RENDICI\u00D3N"
+                    + (totalPartes > 1 ? "  (Parte " + numeroParte + "/" + totalPartes + ")" : "");
+
+            cs.beginText();
+            cs.setNonStrokingColor(new Color(0, 51, 102));
+            cs.setFont(negrita, 7f);
+            cs.newLineAtOffset(xLeft, yTop - 11);
+            cs.showText(tituloBloque);
+            cs.endText();
+
+            cs.beginText();
+            cs.setNonStrokingColor(Color.BLACK);
+            cs.setFont(normal, 6.5f);
+            cs.newLineAtOffset(xLeft, yTop - 21);
+            cs.showText("Operador/a: " + nvl(user.getUserApellido() + ", " + user.getUserNombre()));
+            cs.endText();
+
+            String fechaTxt = "Fecha: " + fechaStr;
+            float fechaW = normal.getStringWidth(fechaTxt) / 1000 * 6.5f;
+            cs.beginText();
+            cs.setFont(normal, 6.5f);
+            cs.newLineAtOffset(xRight - fechaW, yTop - 21);
+            cs.showText(fechaTxt);
+            cs.endText();
+
+            String lineaTres;
+            if (!esContinuacion && resumen != null) {
+                lineaTres = String.format(
+                        "Op: %s | Val: %s | Pend: %s | Total: %s",
+                        nvlInt(resumen.getTotalOperaciones()),
+                        nvlInt(resumen.getTotalValidados()),
+                        nvlInt(resumen.getTotalPendientes()),
+                        fmt(resumen.getTotalRecaudado()));
+            } else {
+                lineaTres = "Contin\u00FAa listado \u2013 parte " + numeroParte + "/" + totalPartes;
+            }
+            cs.beginText();
+            cs.setFont(negrita, 7f);
+            cs.setNonStrokingColor(new Color(0, 51, 102));
+            cs.newLineAtOffset(xLeft, yTop - 32);
+            cs.showText(lineaTres);
+            cs.endText();
+
+            cs.setStrokingColor(new Color(200, 200, 200));
+            cs.setLineWidth(0.5f);
+            cs.moveTo(xLeft, yTop - 37);
+            cs.lineTo(xRight, yTop - 37);
+            cs.stroke();
+        }
+
+        // ── Tabla de recibos ─────────────────────────────────────────────────
+        float tablaYStart = yTop - 40f;
+        float bottomFirma = yBottom + 78f; // deja lugar al bloque de firmas ampliado
+
+        BaseTable tabla = new BaseTable(
+                tablaYStart, tablaYStart, bottomFirma,
+                anchoMitad, xLeft, documento, pagina, true, true);
+
+        Row<PDPage> filaH = tabla.createRow(9);
+        String[] headers = {"Tr\u00E1m.", "Alumno/a", "DNI", "Concepto", "M\u00E9t.", "Importe"};
+        float[] anchos = {8f, 30f, 12f, 24f, 11f, 15f};
+        for (int i = 0; i < headers.length; i++) {
+            Cell<PDPage> ch = filaH.createCell(anchos[i], headers[i]);
+            ch.setFont(negrita); ch.setFontSize(6f);
+            ch.setFillColor(new Color(244, 246, 250));
+            if (i == 5) ch.setAlign(HorizontalAlignment.RIGHT);
+        }
+
+        BigDecimal subtotalParte = BigDecimal.ZERO;
+        BigDecimal efectivoParte = BigDecimal.ZERO;
+        BigDecimal digitalParte  = BigDecimal.ZERO;
+
+        boolean par = false;
+        for (ReciboDTO r : reciboParte) {
+            Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
+            par = !par;
+
+            String alumno = nvl(r.getAlumnoApellido()) + ", " + nvl(r.getAlumnoNombre());
+            BigDecimal monto = r.getAporteMonto() != null ? r.getAporteMonto() : BigDecimal.ZERO;
+            subtotalParte = subtotalParte.add(monto);
+
+            String metodoUp = r.getMetodo() != null ? r.getMetodo().trim().toUpperCase() : "";
+            if (metodoUp.contains("EFECTIVO")) {
+                efectivoParte = efectivoParte.add(monto);
+            } else {
+                digitalParte = digitalParte.add(monto);
+            }
+
+            Row<PDPage> filaR = tabla.createRow(8);
+            Cell<PDPage> c1 = filaR.createCell(8f, nvl(r.getTramiteId() != null ? r.getTramiteId().toString() : null));
+            c1.setFont(normal); c1.setFontSize(6f); c1.setFillColor(bg);
+
+            Cell<PDPage> c2 = filaR.createCell(30f, alumno);
+            c2.setFont(normal); c2.setFontSize(6f); c2.setFillColor(bg);
+
+            Cell<PDPage> c3 = filaR.createCell(12f, nvl(r.getAlumnoDni()));
+            c3.setFont(normal); c3.setFontSize(6f); c3.setFillColor(bg);
+
+            Cell<PDPage> c4 = filaR.createCell(24f, nvl(r.getConcepto()));
+            c4.setFont(normal); c4.setFontSize(6f); c4.setFillColor(bg);
+
+            Cell<PDPage> c5 = filaR.createCell(11f, nvl(r.getMetodo()));
+            c5.setFont(normal); c5.setFontSize(6f); c5.setFillColor(bg);
+
+            Cell<PDPage> c6 = filaR.createCell(15f, fmt(monto));
+            c6.setFont(normal); c6.setFontSize(6f);
+            c6.setAlign(HorizontalAlignment.RIGHT); c6.setFillColor(bg);
+        }
+
+        Row<PDPage> filaTot = tabla.createRow(9);
+        String etiquetaTotal = esUltima ? "TOTAL RENDIDO" : "SUBTOTAL (contin\u00FAa \u2192)";
+        BigDecimal valorTotal = esUltima && resumen != null ? resumen.getTotalRecaudado() : subtotalParte;
+
+        Cell<PDPage> ctL = filaTot.createCell(85f, etiquetaTotal);
+        ctL.setFont(negrita); ctL.setFontSize(6.5f);
+        ctL.setFillColor(esUltima ? new Color(240, 243, 248) : new Color(255, 249, 230));
+        ctL.setAlign(HorizontalAlignment.RIGHT);
+
+        Cell<PDPage> ctV = filaTot.createCell(15f, fmt(valorTotal));
+        ctV.setFont(negrita); ctV.setFontSize(6.5f);
+        ctV.setFillColor(esUltima ? new Color(240, 243, 248) : new Color(255, 249, 230));
+        ctV.setAlign(HorizontalAlignment.RIGHT);
+
+        // ── Desglose efectivo / digital de ESTA parte ────────────────────────
+        Row<PDPage> filaEf = tabla.createRow(9);
+        Cell<PDPage> cEfL = filaEf.createCell(85f, "Efectivo (a rendir en caja)");
+        cEfL.setFont(negrita); cEfL.setFontSize(6f);
+        cEfL.setFillColor(new Color(255, 249, 230));
+        cEfL.setAlign(HorizontalAlignment.RIGHT);
+
+        Cell<PDPage> cEfV = filaEf.createCell(15f, fmt(efectivoParte));
+        cEfV.setFont(negrita); cEfV.setFontSize(6f);
+        cEfV.setFillColor(new Color(255, 249, 230));
+        cEfV.setAlign(HorizontalAlignment.RIGHT);
+
+        Row<PDPage> filaDig = tabla.createRow(9);
+        Cell<PDPage> cDigL = filaDig.createCell(85f, "Billetera virtual / transferencia");
+        cDigL.setFont(normal); cDigL.setFontSize(6f);
+        cDigL.setFillColor(new Color(240, 247, 240));
+        cDigL.setAlign(HorizontalAlignment.RIGHT);
+
+        Cell<PDPage> cDigV = filaDig.createCell(15f, fmt(digitalParte));
+        cDigV.setFont(negrita); cDigV.setFontSize(6f);
+        cDigV.setFillColor(new Color(240, 247, 240));
+        cDigV.setAlign(HorizontalAlignment.RIGHT);
+
+        tabla.draw();
+
+// ── Bloque de firmas: operador y supervisor a la MISMA altura, lado a lado ──
+        try (PDPageContentStream cs = new PDPageContentStream(
+                documento, pagina, PDPageContentStream.AppendMode.APPEND, false)) {
+
+            float colGap    = 12f;
+            float lineaLen  = (anchoMitad - colGap) / 2f - 4f;
+            float col1X     = xLeft;
+            float col2X     = xLeft + lineaLen + colGap;
+
+            float yFirma = yBottom + 66f; // misma altura para ambas líneas
+
+            cs.setStrokingColor(new Color(60, 60, 60));
+            cs.setLineWidth(0.5f);
+
+            cs.moveTo(col1X, yFirma);
+            cs.lineTo(col1X + lineaLen, yFirma);
+            cs.stroke();
+
+            cs.moveTo(col2X, yFirma);
+            cs.lineTo(col2X + lineaLen, yFirma);
+            cs.stroke();
+
+            // Etiquetas debajo de cada línea
+            cs.beginText();
+            cs.setFont(italica, 5.8f);
+            cs.setNonStrokingColor(new Color(90, 90, 90));
+            cs.newLineAtOffset(col1X, yFirma - 8);
+            cs.showText("Firma y aclaraci\u00F3n operador/a");
+            cs.endText();
+
+            cs.beginText();
+            cs.setFont(italica, 5.8f);
+            cs.newLineAtOffset(col2X, yFirma - 8);
+            cs.showText("Firma y aclaraci\u00F3n supervisor/a");
+            cs.endText();
+
+            // Campos a completar por el supervisor: monto recibido / fecha / hora
+            float yCampos = yBottom + 20f;
+            cs.beginText();
+            cs.setFont(normal, 5.8f);
+            cs.newLineAtOffset(xLeft, yCampos);
+            cs.showText("Monto recibido: ____________");
+            cs.endText();
+
+            cs.beginText();
+            cs.setFont(normal, 5.8f);
+            cs.newLineAtOffset(xLeft, yCampos - 9);
+            cs.showText("Fecha: __________   Hora: ________");
+            cs.endText();
+        }
+    }
+
+//@Override
+//public PDDocument generarRendicionTurno(LocalDate fecha) {
+//        PDDocument documento = new PDDocument();
+//        User user = userService.getAuthenticatedUser().get();
+//        try {
+//            ResumenRecaudacionDTO resumen =
+//                    pagoService.ResumenRecaudacionDTO(fecha)
+//                            .orElse(null);
+//
+//            PDPage pagina = new PDPage(PDRectangle.A4);
+//            documento.addPage(pagina);
+//
+//            PDType1Font normal  = PDType1Font.HELVETICA;
+//            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+//            PDType1Font italica = PDType1Font.HELVETICA_OBLIQUE;
+//
+//            float pageW  = pagina.getMediaBox().getWidth();   // 595
+//            float pageH  = pagina.getMediaBox().getHeight();  // 842
+//            float margin = 35f;
+//
+//            // ── ENCABEZADO INSTITUCIONAL (texto directo) ──────────────────────────
+//            try (PDPageContentStream cs = new PDPageContentStream(
+//                    documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
+//
+//                // Línea azul superior
+//                cs.setStrokingColor(new Color(0, 51, 102));
+//                cs.setLineWidth(3f);
+//                cs.moveTo(margin, pageH - 5);
+//                cs.lineTo(pageW - margin, pageH - 5);
+//                cs.stroke();
+//
+//                // Nombre institución
+//                cs.beginText();
+//                cs.setNonStrokingColor(new Color(0, 51, 102));
+//                cs.setFont(negrita, 9f);
+//                cs.newLineAtOffset(margin, pageH - 22);
+//                cs.showText("INSTITUTO DE EDUCACI\u00D3N SUPERIOR INTERCULTURAL");
+//                cs.endText();
+//
+//                cs.beginText();
+//                cs.setNonStrokingColor(new Color(0, 51, 102));
+//                cs.setFont(negrita, 8.5f);
+//                cs.newLineAtOffset(margin, pageH - 32);
+//                cs.showText("\u201CCAMPINTA GUAZ\u00DA GLORIA P\u00C9REZ\u201D");
+//                cs.endText();
+//
+//                cs.beginText();
+//                cs.setNonStrokingColor(new Color(80, 80, 80));
+//                cs.setFont(normal, 7.5f);
+//                cs.newLineAtOffset(margin, pageH - 42);
+//                cs.showText("Incorporado a la Ense\u00F1anza Oficial \u2013 Resol. N\u00BA 2936-E-15");
+//                cs.endText();
+//
+//                cs.beginText();
+//                cs.setFont(normal, 7.5f);
+//                cs.newLineAtOffset(margin, pageH - 51);
+//                cs.showText("Bah\u00EDa Blanca N\u00BA 235, B\u00BA Kennedy \u2013 Tel. (0388) 6256119 \u2013 (C.P. 4600) San Salvador de Jujuy \u2013 Rep\u00FAblica Argentina");
+//                cs.endText();
+//
+//                // Línea separadora
+//                cs.setStrokingColor(new Color(180, 180, 180));
+//                cs.setLineWidth(0.5f);
+//                cs.moveTo(margin, pageH - 58);
+//                cs.lineTo(pageW - margin, pageH - 58);
+//                cs.stroke();
+//
+//                // Título centrado
+//                String titulo = "PLANILLA DE RENDICI\u00D3N DE TURNO";
+//                float tituloW = negrita.getStringWidth(titulo) / 1000 * 11f;
+//                cs.beginText();
+//                cs.setNonStrokingColor(new Color(20, 20, 20));
+//                cs.setFont(negrita, 11f);
+//                cs.newLineAtOffset((pageW - tituloW) / 2f, pageH - 76);
+//                cs.showText(titulo);
+//                cs.endText();
+//
+//                // Línea bajo título
+//                cs.setStrokingColor(new Color(0, 51, 102));
+//                cs.setLineWidth(1.2f);
+//                cs.moveTo(margin, pageH - 82);
+//                cs.lineTo(pageW - margin, pageH - 82);
+//                cs.stroke();
+//            }
+//
+//            // ── TABLA PRINCIPAL ───────────────────────────────────────────────────
+//            float tableWidth   = pageW - 2 * margin;
+//            float yStart       = pageH - 86f;
+//            float yStartNew    = pageH - margin;
+//            float bottomMargin = 80f; // espacio para firmas al pie
+//
+//            BaseTable tabla = new BaseTable(
+//                    yStart, yStartNew, bottomMargin,
+//                    tableWidth, margin, documento, pagina, true, true);
+//
+//            DateTimeFormatter fmtFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+//            String fechaStr = fecha != null ? fmtFecha.format(fecha) : "\u2014";
+//
+//            // ── DATOS DEL TURNO ───────────────────────────────────────────────────
+//
+//            Row<PDPage> filaDatos = tabla.createRow(13);
+//            Cell<PDPage> cOp = filaDatos.createCell(50,
+//                    "Operador/a responsable: " + nvl(user.getUserApellido()+", "+user.getUserNombre()));
+//            cOp.setFont(normal); cOp.setFontSize(9); sinBordes(cOp);
+//
+//            Cell<PDPage> cFecha = filaDatos.createCell(50, "Fecha: " + fechaStr);
+//            cFecha.setFont(normal); cFecha.setFontSize(9);
+//            cFecha.setAlign(HorizontalAlignment.RIGHT); sinBordes(cFecha);
+//
+//// ── RESUMEN GLOBAL ────────────────────────────────────────────────────────
+//
+//            Row<PDPage> filaResTitle = tabla.createRow(12);
+//            Cell<PDPage> cRt = filaResTitle.createCell(100, "RESUMEN DEL TURNO");
+//            cRt.setFont(negrita); cRt.setFontSize(8);
+//            cRt.setFillColor(new Color(230, 235, 242));
+//            cRt.setAlign(HorizontalAlignment.CENTER);
+//
+//// Fila de labels
+//            Row<PDPage> filaResLabels = tabla.createRow(11);
+//            String[] resLabels = {"Total operaciones", "Validados", "Pendientes", "Total recaudado"};
+//            for (String lbl : resLabels) {
+//                Cell<PDPage> c = filaResLabels.createCell(25f, lbl);
+//                c.setFont(normal); c.setFontSize(7);
+//                c.setAlign(HorizontalAlignment.CENTER);
+//                c.setFillColor(new Color(244, 246, 250));
+//            }
+//
+//// Fila de valores
+//            Row<PDPage> filaResValores = tabla.createRow(13);
+//            String[] resValores = {
+//                    nvlInt(resumen.getTotalOperaciones()),
+//                    nvlInt(resumen.getTotalValidados()),
+//                    nvlInt(resumen.getTotalPendientes()),
+//                    fmt(resumen.getTotalRecaudado())
+//            };
+//            for (int i = 0; i < resValores.length; i++) {
+//                Cell<PDPage> c = filaResValores.createCell(25f, resValores[i]);
+//                c.setFont(negrita); c.setFontSize(10);
+//                c.setAlign(HorizontalAlignment.CENTER);
+//                if (i == 3) c.setFillColor(new Color(240, 243, 248));
+//            }
+//            // ── RESUMEN POR CONCEPTO ──────────────────────────────────────────────
+//
+//            if (resumen.getPorConcepto() != null && !resumen.getPorConcepto().isEmpty()) {
+//
+//                Row<PDPage> filaConTitle = tabla.createRow(12);
+//                Cell<PDPage> cCt = filaConTitle.createCell(100, "RECAUDACIÓN POR CONCEPTO");
+//                cCt.setFont(negrita); cCt.setFontSize(8);
+//                cCt.setFillColor(new Color(230, 235, 242));
+//                cCt.setAlign(HorizontalAlignment.CENTER);
+//
+//                // Header
+//                Row<PDPage> filaConH = tabla.createRow(11);
+//                Cell<PDPage> chN = filaConH.createCell(75, "Concepto");
+//                chN.setFont(negrita); chN.setFontSize(8);
+//                chN.setFillColor(new Color(244, 246, 250));
+//
+//                Cell<PDPage> chT = filaConH.createCell(25, "Total");
+//                chT.setFont(negrita); chT.setFontSize(8);
+//                chT.setFillColor(new Color(244, 246, 250));
+//                chT.setAlign(HorizontalAlignment.RIGHT);
+//
+//                boolean par = false;
+//                for (ConceptoDTO c : resumen.getPorConcepto()) {
+//                    Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
+//                    par = !par;
+//
+//                    Row<PDPage> filaC = tabla.createRow(11);
+//                    Cell<PDPage> cN = filaC.createCell(75, nvl(c.getNombre()));
+//                    cN.setFont(normal); cN.setFontSize(8); cN.setFillColor(bg);
+//
+//                    Cell<PDPage> cT = filaC.createCell(25, fmt(c.getTotal()));
+//                    cT.setFont(normal); cT.setFontSize(8);
+//                    cT.setAlign(HorizontalAlignment.RIGHT); cT.setFillColor(bg);
+//                }
+//            }
+//
+//            // ── DETALLE DE RECIBOS ────────────────────────────────────────────────
+//
+//            if (resumen.getRecibos() != null && !resumen.getRecibos().isEmpty()) {
+//
+//                // Espacio
+//                Row<PDPage> filaEsp = tabla.createRow(5);
+//                filaEsp.createCell(100, "").setFillColor(Color.WHITE);
+//
+//                Row<PDPage> filaRecTitle = tabla.createRow(12);
+//                Cell<PDPage> cRecT = filaRecTitle.createCell(100, "DETALLE DE RECIBOS");
+//                cRecT.setFont(negrita); cRecT.setFontSize(8);
+//                cRecT.setFillColor(new Color(230, 235, 242));
+//                cRecT.setAlign(HorizontalAlignment.CENTER);
+//
+//                // Header columnas
+//                Row<PDPage> filaH = tabla.createRow(11);
+//                String[] headers = {"N° Tramite", "Alumno/a", "DNI", "Concepto", "Método", "Importe", "Estado"};
+//                float[]  anchos  = {10f, 22f, 10f, 22f, 11f, 13f, 12f};
+//
+//                for (int i = 0; i < headers.length; i++) {
+//                    Cell<PDPage> ch = filaH.createCell(anchos[i], headers[i]);
+//                    ch.setFont(negrita); ch.setFontSize(7);
+//                    ch.setFillColor(new Color(244, 246, 250));
+//                    if (i >= 4) ch.setAlign(HorizontalAlignment.RIGHT);
+//                }
+//
+//                boolean par = false;
+//                for (ReciboDTO r : resumen.getRecibos()) {
+//                    Color bg = par ? new Color(249, 250, 252) : Color.WHITE;
+//                    par = !par;
+//
+//                    String alumno = nvl(r.getAlumnoApellido()) + ", " + nvl(r.getAlumnoNombre());
+//                    String estado = r.getEstado() != null ? r.getEstado().name() : "\u2014";
+//
+//                    Row<PDPage> filaR = tabla.createRow(10);
+//
+////                    Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteNroRecibo()));
+////                                        Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getAporteId().toString()));
+//                                        Cell<PDPage> c1 = filaR.createCell(10f, nvl(r.getTramiteId().toString()));
+//                    c1.setFont(normal); c1.setFontSize(7); c1.setFillColor(bg);
+//
+//                    Cell<PDPage> c2 = filaR.createCell(22f, alumno);
+//                    c2.setFont(normal); c2.setFontSize(7); c2.setFillColor(bg);
+//
+//                    Cell<PDPage> c3 = filaR.createCell(10f, nvl(r.getAlumnoDni()));
+//                    c3.setFont(normal); c3.setFontSize(7); c3.setFillColor(bg);
+//
+//                    Cell<PDPage> c4 = filaR.createCell(22f, nvl(r.getConcepto()));
+//                    c4.setFont(normal); c4.setFontSize(7); c4.setFillColor(bg);
+//
+//                    Cell<PDPage> c5 = filaR.createCell(11f, nvl(r.getMetodo()));
+//                    c5.setFont(normal); c5.setFontSize(7);
+//                    c5.setAlign(HorizontalAlignment.RIGHT); c5.setFillColor(bg);
+//
+//                    Cell<PDPage> c6 = filaR.createCell(13f, fmt(r.getAporteMonto()));
+//                    c6.setFont(normal); c6.setFontSize(7);
+//                    c6.setAlign(HorizontalAlignment.RIGHT); c6.setFillColor(bg);
+//
+//                    Cell<PDPage> c7 = filaR.createCell(12f, estado);
+//                    c7.setFont(normal); c7.setFontSize(7);
+//                    c7.setAlign(HorizontalAlignment.RIGHT); c7.setFillColor(bg);
+//                }
+//
+//                // Subtotal al pie de la lista
+//                Row<PDPage> filaSubT = tabla.createRow(12);
+//                Cell<PDPage> cStLbl = filaSubT.createCell(87f, "TOTAL RENDIDO");
+//                cStLbl.setFont(negrita); cStLbl.setFontSize(8);
+//                cStLbl.setFillColor(new Color(240, 243, 248));
+//                cStLbl.setAlign(HorizontalAlignment.RIGHT);
+//
+//                Cell<PDPage> cStVal = filaSubT.createCell(13f,
+//                        fmt(resumen.getTotalRecaudado()));
+//                cStVal.setFont(negrita); cStVal.setFontSize(8);
+//                cStVal.setFillColor(new Color(240, 243, 248));
+//                cStVal.setAlign(HorizontalAlignment.RIGHT);
+//            }
+//
+//            // ── RENDICIÓN POR MÉTODO DE PAGO ─────────────────────────────────────
+//
+//            if (resumen.getRecibos() != null && !resumen.getRecibos().isEmpty()) {
+//
+//                // Agrupar montos por método
+//                Map<String, BigDecimal> porMetodo = new LinkedHashMap<>();
+//                for (ReciboDTO r : resumen.getRecibos()) {
+//                    String metodo = r.getMetodo() != null ? r.getMetodo().trim().toUpperCase() : "SIN ESPECIFICAR";
+//                    BigDecimal monto = r.getAporteMonto() != null ? r.getAporteMonto() : BigDecimal.ZERO;
+//                    porMetodo.merge(metodo, monto, BigDecimal::add);
+//                }
+//
+//                // Clasificar: efectivo se rinde en mano; el resto ya entró digital
+//                BigDecimal totalEfectivo = BigDecimal.ZERO;
+//                BigDecimal totalDigital  = BigDecimal.ZERO;
+//                for (Map.Entry<String, BigDecimal> e : porMetodo.entrySet()) {
+//                    if (e.getKey().contains("EFECTIVO")) {
+//                        totalEfectivo = totalEfectivo.add(e.getValue());
+//                    } else {
+//                        totalDigital = totalDigital.add(e.getValue());
+//                    }
+//                }
+//
+//                // Espacio
+//                Row<PDPage> filaEspM = tabla.createRow(5);
+//                filaEspM.createCell(100, "").setFillColor(Color.WHITE);
+//
+//                Row<PDPage> filaMetTitle = tabla.createRow(12);
+//                Cell<PDPage> cMt = filaMetTitle.createCell(100, "RENDICI\u00D3N POR M\u00C9TODO DE PAGO");
+//                cMt.setFont(negrita); cMt.setFontSize(8);
+//                cMt.setFillColor(new Color(230, 235, 242));
+//                cMt.setAlign(HorizontalAlignment.CENTER);
+//
+//                // Header
+//                Row<PDPage> filaMetH = tabla.createRow(11);
+//                Cell<PDPage> mhN = filaMetH.createCell(75, "M\u00E9todo");
+//                mhN.setFont(negrita); mhN.setFontSize(8);
+//                mhN.setFillColor(new Color(244, 246, 250));
+//
+//                Cell<PDPage> mhT = filaMetH.createCell(25, "Total");
+//                mhT.setFont(negrita); mhT.setFontSize(8);
+//                mhT.setFillColor(new Color(244, 246, 250));
+//                mhT.setAlign(HorizontalAlignment.RIGHT);
+//
+//                // Detalle por método
+//                boolean parM = false;
+//                for (Map.Entry<String, BigDecimal> e : porMetodo.entrySet()) {
+//                    Color bg = parM ? new Color(249, 250, 252) : Color.WHITE;
+//                    parM = !parM;
+//
+//                    Row<PDPage> filaM = tabla.createRow(11);
+//                    Cell<PDPage> cN = filaM.createCell(75, e.getKey());
+//                    cN.setFont(normal); cN.setFontSize(8); cN.setFillColor(bg);
+//
+//                    Cell<PDPage> cT = filaM.createCell(25, fmt(e.getValue()));
+//                    cT.setFont(normal); cT.setFontSize(8);
+//                    cT.setAlign(HorizontalAlignment.RIGHT); cT.setFillColor(bg);
+//                }
+//
+//                // Fila destacada: efectivo a rendir en caja
+//                Row<PDPage> filaEf = tabla.createRow(13);
+//                Cell<PDPage> cEfLbl = filaEf.createCell(75, "TOTAL A RENDIR EN EFECTIVO (caja)");
+//                cEfLbl.setFont(negrita); cEfLbl.setFontSize(9);
+//                cEfLbl.setFillColor(new Color(255, 249, 230));
+//
+//                Cell<PDPage> cEfVal = filaEf.createCell(25, fmt(totalEfectivo));
+//                cEfVal.setFont(negrita); cEfVal.setFontSize(9);
+//                cEfVal.setFillColor(new Color(255, 249, 230));
+//                cEfVal.setAlign(HorizontalAlignment.RIGHT);
+//
+//                // Fila informativa: cobrado por medios digitales
+//                Row<PDPage> filaDig = tabla.createRow(12);
+//                Cell<PDPage> cDigLbl = filaDig.createCell(75,
+//                        "Cobrado por medios digitales (billetera virtual / transferencia \u2013 no se rinde en mano)");
+//                cDigLbl.setFont(normal); cDigLbl.setFontSize(8);
+//                cDigLbl.setFillColor(new Color(240, 247, 240));
+//
+//                Cell<PDPage> cDigVal = filaDig.createCell(25, fmt(totalDigital));
+//                cDigVal.setFont(negrita); cDigVal.setFontSize(8);
+//                cDigVal.setFillColor(new Color(240, 247, 240));
+//                cDigVal.setAlign(HorizontalAlignment.RIGHT);
+//            }
+//
+//            // ── OBSERVACIONES ─────────────────────────────────────────────────────
+//
+//            Row<PDPage> filaObsT = tabla.createRow(12);
+//            Cell<PDPage> cObsT = filaObsT.createCell(100, "OBSERVACIONES");
+//            cObsT.setFont(negrita); cObsT.setFontSize(8);
+//            cObsT.setFillColor(new Color(230, 235, 242));
+//
+//            Row<PDPage> filaObs = tabla.createRow(30);
+//            Cell<PDPage> cObs = filaObs.createCell(100, "");
+//            cObs.setFont(normal); cObs.setFontSize(8);
+//
+//            tabla.draw();
+//
+//            // ── BLOQUE DE FIRMAS (al pie, texto directo) ──────────────────────────
+//            try (PDPageContentStream cs = new PDPageContentStream(
+//                    documento, pagina, PDPageContentStream.AppendMode.APPEND, false)) {
+//
+//                float firmaY   = 68f;
+//                float col1X    = margin;
+//                float col2X    = pageW / 2f + 10f;
+//                float lineaLen = (pageW / 2f) - margin - 20f;
+//
+//                // Líneas de firma
+//                cs.setStrokingColor(new Color(60, 60, 60));
+//                cs.setLineWidth(0.7f);
+//
+//                cs.moveTo(col1X, firmaY);
+//                cs.lineTo(col1X + lineaLen, firmaY);
+//                cs.stroke();
+//
+//                cs.moveTo(col2X, firmaY);
+//                cs.lineTo(col2X + lineaLen, firmaY);
+//                cs.stroke();
+//
+//                // Etiquetas firma
+//                cs.beginText();
+//                cs.setNonStrokingColor(new Color(60, 60, 60));
+//                cs.setFont(normal, 7.5f);
+//                cs.newLineAtOffset(col1X, firmaY - 11);
+//                cs.showText("Firma y aclaraci\u00F3n del operador/a");
+//                cs.endText();
+//
+//                cs.beginText();
+//                cs.setFont(normal, 7.5f);
+//                cs.newLineAtOffset(col2X, firmaY - 11);
+//                cs.showText("Firma y aclaraci\u00F3n del supervisor/a");
+//                cs.endText();
+//
+//                // Nombres bajo las líneas
+//                cs.beginText();
+//                cs.setFont(italica, 7.5f);
+//                cs.newLineAtOffset(col1X, firmaY - 21);
+//                cs.showText("Personal");
+//                cs.endText();
+//
+//                cs.beginText();
+//                cs.setFont(italica, 7.5f);
+//                cs.newLineAtOffset(col2X, firmaY - 21);
+//                cs.showText("Supervisor");
+//                cs.endText();
+//
+//                // Aclaración DNI
+//                cs.beginText();
+//                cs.setFont(normal, 7f);
+//                cs.setNonStrokingColor(new Color(130, 130, 130));
+//                cs.newLineAtOffset(col1X, firmaY - 31);
+//                cs.showText("Aclaraci\u00F3n / D.N.I.:");
+//                cs.endText();
+//
+//                cs.beginText();
+//                cs.setFont(normal, 7f);
+//                cs.newLineAtOffset(col2X, firmaY - 31);
+//                cs.showText("Aclaraci\u00F3n / D.N.I.:");
+//                cs.endText();
+//
+//                // Línea inferior azul
+//                cs.setStrokingColor(new Color(0, 51, 102));
+//                cs.setLineWidth(3f);
+//                cs.moveTo(margin, 10);
+//                cs.lineTo(pageW - margin, 10);
+//                cs.stroke();
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//
+//        return documento;
+//    }
 
     private String fmt(BigDecimal v) {
         if (v == null) return "$ 0,00";

@@ -346,14 +346,6 @@ public class PagoServiceImpl implements PagoService {
                         .atStartOfDay(zona)
                         .toInstant();
 
-
-//        List<Pago> pagos =
-//                pagoRepository.findByFechaPagoBetween(
-//                        inicio,
-//                        fin
-//                );
-
-
         User user=this.userService.getAuthenticatedUser().get();
 
         boolean esDirectivo = user.getRoles().stream()
@@ -362,8 +354,6 @@ public class PagoServiceImpl implements PagoService {
         List<Pago> pagos = esDirectivo
                 ? pagoRepository.findByFechaPagoBetween(inicio, fin)
                 : pagoRepository.findByFechaPagoBetweenAndResponsable(inicio, fin, (user.getUsername()));
-
-
 
         if (pagos.isEmpty()) {
             return Optional.empty();
@@ -436,6 +426,10 @@ public class PagoServiceImpl implements PagoService {
 
             r.setMetodo(
                     p.getMetodoPago()
+            );
+
+            r.setTramiteId(
+                    p.getTramite().getId()
             );
 
             return r;

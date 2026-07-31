@@ -39,6 +39,33 @@ public class ReciboDTO {
     private String usuario; // Campo vital para el agrupamiento por operador
     private EstadoPago estado;
 
+    private Integer tramiteId;
+
+    public Integer getTramiteId() {
+        return tramiteId;
+    }
+
+    public void setTramiteId(Integer tramiteId) {
+        this.tramiteId = tramiteId;
+    }
+
+    public String getCurso() {
+        return curso;
+    }
+
+    public void setCurso(String curso) {
+        this.curso = curso;
+    }
+
+    public String getCarrera() {
+        return carrera;
+    }
+
+    public void setCarrera(String carrera) {
+        this.carrera = carrera;
+    }
+
+
 
     public Long getAporteId() {
         return aporteId;
