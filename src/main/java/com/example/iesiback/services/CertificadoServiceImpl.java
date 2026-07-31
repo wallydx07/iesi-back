@@ -8835,20 +8835,18 @@ public PDDocument generarReciboPago(Integer pagoId) {
             PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
             PDType1Font italica = PDType1Font.HELVETICA_OBLIQUE;
 
-            // A4 en horizontal: 842 x 595. Cada mitad vertical = 421 x 595 = A5 vertical.
             PDRectangle a4Landscape = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
-            float pageW  = a4Landscape.getWidth();   // 842
-            float pageH  = a4Landscape.getHeight();  // 595
+            float pageW  = a4Landscape.getWidth();
+            float pageH  = a4Landscape.getHeight();
             float margin = 18f;
-            float mitadW = pageW / 2f;               // 421
+            float mitadW = pageW / 2f;
 
-            // ── dentro de generarRendicionTurno, reemplazar las constantes de alto ────
             float ALTO_ENCABEZADO   = 40f;
-            float ALTO_FIRMA        = 78f;   // antes 26f — ahora entra operador+supervisor+campos
+            float ALTO_FIRMA        = 78f;
             float ALTO_FILA_HEAD    = 9f;
             float ALTO_FILA_DATA    = 8f;
             float ALTO_FILA_TOTAL   = 9f;
-            float ALTO_FILA_DESGLOSE = 9f;   // nueva: 2 filas fijas (efectivo / digital)
+            float ALTO_FILA_DESGLOSE = 9f;
 
             float altoDisponibleTabla = (pageH - 2 * margin) - ALTO_ENCABEZADO - ALTO_FIRMA;
             int filasPorMitad = (int) Math.floor(
@@ -8869,52 +8867,43 @@ public PDDocument generarReciboPago(Integer pagoId) {
 
             int totalPartes = partes.size();
 
+            // ── una página por cada parte, con la MISMA parte duplicada en ambas mitades ──
             for (int idx = 0; idx < totalPartes; idx++) {
-                boolean esInicioDePagina = (idx % 2 == 0); // mitad izquierda de cada hoja
-                PDPage pagina;
+                PDPage pagina = new PDPage(a4Landscape);
+                documento.addPage(pagina);
 
-                if (esInicioDePagina) {
-                    pagina = new PDPage(a4Landscape);
-                    documento.addPage(pagina);
+                // línea de corte punteada VERTICAL, al centro
+                try (PDPageContentStream cs = new PDPageContentStream(
+                        documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
+                    cs.setStrokingColor(new Color(150, 150, 150));
+                    cs.setLineWidth(0.7f);
+                    cs.setLineDashPattern(new float[]{3, 3}, 0);
+                    cs.moveTo(mitadW, margin);
+                    cs.lineTo(mitadW, pageH - margin);
+                    cs.stroke();
+                    cs.setLineDashPattern(new float[]{}, 0);
 
-                    // línea de corte punteada VERTICAL, al centro
-                    try (PDPageContentStream cs = new PDPageContentStream(
-                            documento, pagina, PDPageContentStream.AppendMode.OVERWRITE, false)) {
-                        cs.setStrokingColor(new Color(150, 150, 150));
-                        cs.setLineWidth(0.7f);
-                        cs.setLineDashPattern(new float[]{3, 3}, 0);
-                        cs.moveTo(mitadW, margin);
-                        cs.lineTo(mitadW, pageH - margin);
-                        cs.stroke();
-                        cs.setLineDashPattern(new float[]{}, 0);
-
-                        // texto de corte rotado 90°
-                        cs.beginText();
-                        cs.setNonStrokingColor(new Color(150, 150, 150));
-                        cs.setFont(normal, 7f);
-                        Matrix rot = Matrix.getRotateInstance(Math.PI / 2, mitadW + 3, pageH / 2f - 25);
-                        cs.setTextMatrix(rot);
-                        cs.showText("corte aqui");
-                        cs.endText();
-                    }
-                } else {
-                    pagina = documento.getPage(documento.getNumberOfPages() - 1);
-                }
-
-                float xLeft, xRight;
-                if (esInicioDePagina) {
-                    xLeft  = margin;
-                    xRight = mitadW - 6;
-                } else {
-                    xLeft  = mitadW + 6;
-                    xRight = pageW - margin;
+                    cs.beginText();
+                    cs.setNonStrokingColor(new Color(150, 150, 150));
+                    cs.setFont(normal, 7f);
+                    Matrix rot = Matrix.getRotateInstance(Math.PI / 2, mitadW + 3, pageH / 2f - 25);
+                    cs.setTextMatrix(rot);
+                    cs.showText("corte aqui");
+                    cs.endText();
                 }
 
                 boolean esContinuacion = idx > 0;
                 boolean esUltima = idx == totalPartes - 1;
 
+                // copia izquierda
                 dibujarMitad(documento, pagina, resumen, partes.get(idx), user, fecha,
-                        pageH, margin, xLeft, xRight,
+                        pageH, margin, margin, mitadW - 6,
+                        normal, negrita, italica,
+                        idx + 1, totalPartes, esContinuacion, esUltima);
+
+                // copia derecha (idéntica, misma parte)
+                dibujarMitad(documento, pagina, resumen, partes.get(idx), user, fecha,
+                        pageH, margin, mitadW + 6, pageW - margin,
                         normal, negrita, italica,
                         idx + 1, totalPartes, esContinuacion, esUltima);
             }
@@ -8925,7 +8914,7 @@ public PDDocument generarReciboPago(Integer pagoId) {
         }
         return documento;
     }
-    // ── dibujarMitad completo, actualizado ──────────────────────────────────
+
     private void dibujarMitad(PDDocument documento, PDPage pagina,
                               ResumenRecaudacionDTO resumen, List<ReciboDTO> reciboParte,
                               User user, LocalDate fecha,

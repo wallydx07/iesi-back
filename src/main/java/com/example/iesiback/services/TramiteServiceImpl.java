@@ -172,6 +172,8 @@ public class TramiteServiceImpl implements TramiteService {
                 return "seq_matricula";
             case "Permiso Examen":
                 return "seq_permiso_examen";
+            case "Solicitud de Libreta":
+                return "seq_solicitud_libreta";
             default:
                 throw new IllegalArgumentException("Tipo de trámite no reconocido: " + tipo);
         }
