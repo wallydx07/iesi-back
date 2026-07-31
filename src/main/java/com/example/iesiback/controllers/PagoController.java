@@ -228,13 +228,8 @@ public class PagoController {
     }
 
     @PostMapping
-    public ResponseEntity<Pago> guardar(
-            @RequestBody Pago pago
-    ) {
-
-        Pago pagoGuardado =
-                pagoService.guardar(pago);
-
+    public ResponseEntity<Pago> guardar(@RequestBody Pago pago) {
+        Pago pagoGuardado = pagoService.guardar(pago);
         return ResponseEntity.ok(pagoGuardado);
     }
 }

@@ -2,6 +2,8 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.TramiteArbolDTO;
 import com.example.iesiback.entities.Tramite;
+import jakarta.transaction.Transactional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +30,7 @@ public interface TramiteService {
     List<Tramite> findByAtencionLegajoId(String legajoId);
 
     List<TramiteArbolDTO> obtenerArbolCompleto(Long id);
+
+    @Transactional
+    void updatePagosTramite(Integer tramiteId, Integer pagoId);
 }

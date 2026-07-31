@@ -2,6 +2,7 @@ package com.example.iesiback.repositories;
 
 import com.example.iesiback.entities.Tramite;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -99,5 +100,10 @@ public interface TramiteRepository extends JpaRepository<Tramite, Integer> {
     FROM descendentes
     """, nativeQuery = true)
     List<Tramite> findArbolCompleto(@Param("id") Long id);
+
+
+    @Modifying
+    @Query(value = "UPDATE pago SET tramite_id = :tramiteId WHERE id = :pagoId", nativeQuery = true)
+    int linkearPagoTramite(@Param("tramiteId") Integer tramiteId, @Param("pagoId") Integer pagoId);
 
 }

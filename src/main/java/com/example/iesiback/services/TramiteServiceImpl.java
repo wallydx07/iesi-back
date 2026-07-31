@@ -6,6 +6,7 @@ import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.User;
 import com.example.iesiback.repositories.PagoRepository;
 import com.example.iesiback.repositories.TramiteRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -215,5 +216,11 @@ public class TramiteServiceImpl implements TramiteService {
                         t.getTramiteApellidoNombre()
                 ))
                 .toList();
+    }
+
+    @Transactional
+    @Override
+    public void updatePagosTramite(Integer tramiteId, Integer pagoId) {
+        repository.linkearPagoTramite(tramiteId, pagoId);
     }
 }

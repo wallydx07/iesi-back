@@ -1,6 +1,7 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.TramiteArbolDTO;
+import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.services.TramiteService;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +16,7 @@ import java.util.List;
 @RequestMapping("/api/tramite")
 public class TramiteController {
 
-
     private final TramiteService service;
-
 
     public TramiteController(TramiteService service) {
         this.service = service;
@@ -70,6 +69,12 @@ public class TramiteController {
             existing.setTramiteReferencia(atencion.getTramiteReferencia());
             return ResponseEntity.ok(service.update(existing));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{tramiteId}/pagos/{pagoId}/link")
+    public ResponseEntity<Void> linkearPago(@PathVariable Integer tramiteId, @PathVariable Integer pagoId) {
+        service.updatePagosTramite(tramiteId, pagoId);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
@@ -139,7 +144,6 @@ public class TramiteController {
     public List<Tramite> findByLegajoId(@PathVariable String legajoId) {
         return service.findByAtencionLegajoId(legajoId);
     }
-
 
     @GetMapping("/{id}/arbol")
     public ResponseEntity<List<TramiteArbolDTO>> obtenerArbol(@PathVariable Long id) {
