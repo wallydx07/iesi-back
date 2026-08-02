@@ -34,9 +34,7 @@ public class PagoServiceImpl implements PagoService {
     private final UserService userService;
     private final PersonaService personaService;
     private final PagoDetalleService pagoDetalleService;
-
     private final ObjectMapper objectMapper; // Spring te inyecta el autoconfigurado
-
     private final PagoPresencialService pagoPresencialService;
 
     @Value("${app.front-url}")
@@ -48,6 +46,7 @@ public class PagoServiceImpl implements PagoService {
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
+
 
     @Autowired
     private PagoRepository pagoRepository;
