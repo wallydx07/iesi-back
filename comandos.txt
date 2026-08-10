@@ -35,6 +35,8 @@ git checkout master
 
 ssh root@147.93.35.109
 
+
+
 ngrok config edit
 ngrok start --all
 ________________________________________________________________________________________

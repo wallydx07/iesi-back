@@ -6848,10 +6848,23 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
             //cellL1.setBorderStyle(null);
-            cell0 = l0.createCell(30, "Cod Seguimiento: "+atencion.getCodigoSeguimiento());
+//            cell0 = l0.createCell(30, "Cod Seguimiento: "+atencion.getCodigoSeguimiento());
+//            cell0.setAlign(HorizontalAlignment.LEFT);
+//            cell0.setValign(VerticalAlignment.MIDDLE);
+//            cell0.setFontSize(tan);
+
+            String idsPagos = (atencion.getPagos() == null || atencion.getPagos().isEmpty())
+                    ? "-"
+                    : atencion.getPagos().stream()
+                    .map(p -> String.valueOf(p.getId()))
+                    .collect(Collectors.joining("-"));
+
+            cell0 = l0.createCell(30, "Pagos: "+idsPagos);
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
+
+
             cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0 = l0.createCell(30,  atencion.getTramiteFechaFormateada());
@@ -8998,8 +9011,8 @@ public PDDocument generarReciboPago(Integer pagoId) {
                 anchoMitad, xLeft, documento, pagina, true, true);
 
         Row<PDPage> filaH = tabla.createRow(9);
-        String[] headers = {"Tr\u00E1m.", "Alumno/a", "DNI", "Concepto", "M\u00E9t.", "Importe"};
-        float[] anchos = {8f, 30f, 12f, 24f, 11f, 15f};
+        String[] headers = {"Tr\u00E1m.", "Recibo.","Alumno/a", "DNI", "Concepto", "M\u00E9t.", "Importe"};
+        float[] anchos = {8f, 8f, 26f, 10f, 22f, 11f, 15f};
         for (int i = 0; i < headers.length; i++) {
             Cell<PDPage> ch = filaH.createCell(anchos[i], headers[i]);
             ch.setFont(negrita); ch.setFontSize(6f);
@@ -9031,13 +9044,16 @@ public PDDocument generarReciboPago(Integer pagoId) {
             Cell<PDPage> c1 = filaR.createCell(8f, nvl(r.getTramiteId() != null ? r.getTramiteId().toString() : null));
             c1.setFont(normal); c1.setFontSize(6f); c1.setFillColor(bg);
 
-            Cell<PDPage> c2 = filaR.createCell(30f, alumno);
+            Cell<PDPage> ciBis = filaR.createCell(8f, nvl(r.getAporteId() != null ? r.getAporteId().toString() : null));
+            ciBis.setFont(normal); ciBis.setFontSize(6f); ciBis.setFillColor(bg);
+
+            Cell<PDPage> c2 = filaR.createCell(26f, alumno);
             c2.setFont(normal); c2.setFontSize(6f); c2.setFillColor(bg);
 
-            Cell<PDPage> c3 = filaR.createCell(12f, nvl(r.getAlumnoDni()));
+            Cell<PDPage> c3 = filaR.createCell(10f, nvl(r.getAlumnoDni()));
             c3.setFont(normal); c3.setFontSize(6f); c3.setFillColor(bg);
 
-            Cell<PDPage> c4 = filaR.createCell(24f, nvl(r.getConcepto()));
+            Cell<PDPage> c4 = filaR.createCell(22f, nvl(r.getConcepto()));
             c4.setFont(normal); c4.setFontSize(6f); c4.setFillColor(bg);
 
             Cell<PDPage> c5 = filaR.createCell(11f, nvl(r.getMetodo()));

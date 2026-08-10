@@ -185,8 +185,14 @@ public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
         CorrelativaService.VeredictoDoble vd = veredictos.get(ordenMateria);
 
         if (vd == null || vd.rechazado()) {
-            log.debug("Omitido por correlativas de cursada. Legajo={} Materia={}",
-                    legajoId, ordenMateria);
+
+                                log.debug("Omitido por correlativas de cursada. Legajo={} Materia={}",
+                            legajoId, ordenMateria);
+
+
+            entry.getValue().forEach(nota ->
+                    eliminarNotaIndividual(nota.getNotaId())
+            );
             continue;
         }
 
