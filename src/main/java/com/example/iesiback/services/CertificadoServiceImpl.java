@@ -6856,10 +6856,10 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
             String idsPagos = (atencion.getPagos() == null || atencion.getPagos().isEmpty())
                     ? "-"
                     : atencion.getPagos().stream()
-                    .map(p -> String.valueOf(p.getId()))
+                    .map(p -> p.getId() + " (" + convertirMetodoPago(p.getMetodoPago()) + ")")
                     .collect(Collectors.joining("-"));
 
-            cell0 = l0.createCell(30, "Pagos: "+idsPagos);
+            cell0 = l0.createCell(35, "Pagos: "+idsPagos);
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
@@ -6867,13 +6867,15 @@ public PDDocument generaTroquelTramite(String legajoId, Integer atencionId) {
 
             cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
+            //==================================FECHA==========================================
             cell0 = l0.createCell(30,  atencion.getTramiteFechaFormateada());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
             cell0.setLeftBorderStyle(new LineStyle(Color.WHITE, 0f));
             cell0.setRightBorderStyle(new LineStyle(Color.WHITE, 0f));
-            cell0 = l0.createCell(25, "Prioridad: "+atencion.getTramitePrioridad());
+            //==================================PRIORIDAD==========================================
+            cell0 = l0.createCell(20, "Prioridad: "+atencion.getTramitePrioridad());
             cell0.setAlign(HorizontalAlignment.LEFT);
             cell0.setValign(VerticalAlignment.MIDDLE);
             cell0.setFontSize(tan);
@@ -9972,6 +9974,29 @@ public PDDocument generarReciboPago(Integer pagoId) {
         };
     }
 
+
+    private String convertirMetodoPago(String metodoPago) {
+        if (metodoPago == null) {
+            return "-";
+        }
+
+        return switch (metodoPago.toLowerCase()) {
+            case "efectivo" -> "EFECTIVO";
+            case "transferencia" -> "TRANSFERENCIA";
+            case "mercadopago_qr" -> "QR";
+            case "mercadopago_point" -> "POSNET";
+
+            case "account_money",
+                 "debmaster",
+                 "debvisa",
+                 "naranja",
+                 "pagofacil",
+                 "rapipago",
+                 "visa" -> "LINK";
+
+            default -> metodoPago.toUpperCase();
+        };
+    }
 
 }
 

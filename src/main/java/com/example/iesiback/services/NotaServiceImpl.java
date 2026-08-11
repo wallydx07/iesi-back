@@ -190,10 +190,14 @@ public List<NotaCursadaConEstadoDTO> findNotasByCarreraAndMateria(
                             legajoId, ordenMateria);
 
 
-            entry.getValue().forEach(nota ->
-                    eliminarNotaIndividual(nota.getNotaId())
-            );
-            continue;
+            int anioActual = LocalDate.now().getYear();
+
+            entry.getValue().forEach(nota -> {
+                if (nota.getNotaFechaNota() != null &&
+                        nota.getNotaFechaNota().getYear() == anioActual) {
+                    eliminarNotaIndividual(nota.getNotaId());
+                }
+            });
         }
 
 

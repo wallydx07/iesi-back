@@ -51,7 +51,7 @@ public class PagoController {
 
     // =====================================================
     // INICIAR PAGO (guarda Pago PENDIENTE + crea preferencia MP)
-    // ÚNICO punto de entrada para arrancar un pago desde el front
+    // ÚNICO punto de entrada para arrancar un pago desde el front/check out pro
     // =====================================================
 
     @PostMapping("/iniciar")
@@ -63,7 +63,8 @@ public class PagoController {
         pago.setMontoTotal(request.monto());
         pago.setTipoPago(request.concepto());
         pago.setEstado(EstadoPago.PENDIENTE);
-        pago.setResponsable(tramite.getTramiteUsuario());
+        pago.setResponsable("Alumno");//QUEDA DEFINIDO SOLO PARA QUE EL ALUMNO PUEDA USARLO
+        pago.setMetodoPago("checkout_pro");
         Pago pagoGuardado = pagoService.guardar(pago);
         ProductoDTO producto = new ProductoDTO();
         producto.setNombre(request.concepto());

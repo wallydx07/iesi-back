@@ -142,7 +142,7 @@ JOIN l.legajoPersonaDni p
 JOIN c.materiaCarrera mc
 JOIN mc.materia m
 JOIN mc.carrera ca
-WHERE ca.carreraId = :carreraId
+WHERE ca.carreraId = :carreraId 
   AND m.materiaId = :materiaId
   AND (:cursadaInscripto = FALSE OR c.cursadaInscripto = TRUE)
   AND n.notaCondicion = :notaCondicion
