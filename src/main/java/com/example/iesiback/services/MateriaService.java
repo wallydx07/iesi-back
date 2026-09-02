@@ -26,4 +26,6 @@ public interface MateriaService {
 
     // <--- AQUÍ SÍ VA
     Optional<Materia> obtenerMateriaPorNotaId(Long notaId);
+
+    List<ReinscripcionMateriaDTO> obtenerMateriasPorCarreraYCurso(String carreraNombre, String nivel);
 }

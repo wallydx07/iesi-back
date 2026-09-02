@@ -11,4 +11,5 @@ public interface MateriaDTO {
     String getMateriaExamen();
     String getCatedras();
     String getDivision();
+    String getCarreraId();   // 👈 nuevo
 }

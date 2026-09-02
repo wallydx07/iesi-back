@@ -2,6 +2,7 @@ package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.dto.ProcesadoReinscripcionMateriaDTO;
+import com.example.iesiback.dto.ReinscripcionMateriaDTO;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.services.MateriaCarreraService;
 import com.example.iesiback.services.MateriaService;
@@ -110,9 +111,14 @@ public ResponseEntity<List<MateriaDTO>> getMateriasPorCarrerasyUsuario(@PathVari
         System.out.println("Catedras: " + m.getCatedras());
         System.out.println("Division: " + m.getDivision());
     }
-
-
     return ResponseEntity.ok(materias);
 }
 
+    @GetMapping("/carrera-nombre-curso")
+    public ResponseEntity<List<ReinscripcionMateriaDTO>> obtenerMateriasPorCarreraYCurso(
+            @RequestParam String carreraNombre,
+            @RequestParam String nivel) {
+        List<ReinscripcionMateriaDTO> materias = materiaService.obtenerMateriasPorCarreraYCurso(carreraNombre, nivel);
+        return ResponseEntity.ok(materias);
+    }
 }

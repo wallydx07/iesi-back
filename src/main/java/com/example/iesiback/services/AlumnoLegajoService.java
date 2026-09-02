@@ -1,9 +1,7 @@
 package com.example.iesiback.services;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO;
@@ -11,6 +9,7 @@ import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.enums.EstadoCondicion;
+import com.example.iesiback.projection.AnioInicioProjection;
 import com.example.iesiback.repositories.AlumnoLegajoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,29 +31,42 @@ public class AlumnoLegajoService {
 
     public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosLegajos(String carreraId, String estado, String busqueda) {
 
-        List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO=
+        List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO =
                 alumnoLegajoRepository.obtenerAlumnosLegajos(carreraId, estado, busqueda);
 
-        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnoLegajoInscripcionCarreraDTO) {
-            alumno.setCurso(obtenerAnioCursada(alumno.getLegajoId()));
+        if (alumnoLegajoInscripcionCarreraDTO.isEmpty()) {
+            return alumnoLegajoInscripcionCarreraDTO;
         }
 
+        List<String> legajoIds = alumnoLegajoInscripcionCarreraDTO.stream()
+                .map(AlumnoLegajoInscripcionCarreraDTO::getLegajoId)
+                .toList();
+
+        // Validación batch: detecta legajos sin año de inicio (mismo chequeo que antes hacía obtenerAnioCursada)
+        List<AnioInicioProjection> aniosInicio = alumnoLegajoRepository.findCursoBatch(legajoIds);
+        Set<String> legajosConAnio = aniosInicio.stream()
+                .map(AnioInicioProjection::getLegajoId)
+                .collect(Collectors.toSet());
+
+        List<String> legajosSinAnio = legajoIds.stream()
+                .filter(id -> !legajosConAnio.contains(id))
+                .toList();
+        if (!legajosSinAnio.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No se encontró el año de inicio para las libretas: " + legajosSinAnio);
+        }
+
+        // Cálculo de curso batch (reemplaza el loop con obtenerAnioCursada por alumno)
+        Map<String, String> cursoPorLegajo = materiaCarreraService.cursoPorMateriasActualBatch(legajoIds);
+        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnoLegajoInscripcionCarreraDTO) {
+            alumno.setCurso(cursoPorLegajo.getOrDefault(alumno.getLegajoId(), "Sin Datos"));
+        }
 
         return alumnoLegajoInscripcionCarreraDTO;
     }
 
 
-    public String obtenerAnioCursada(String libretaEstudiantil) {
 
-        int anioActual = LocalDate.now().getYear();
-        Integer anioInicio = alumnoLegajoRepository.findCurso(libretaEstudiantil);
-        if (anioInicio == null) {
-            throw new IllegalArgumentException(
-                    "No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
-        }
-
-        return materiaCarreraService.cursoPorMateriasActual(libretaEstudiantil);
-        };
 
 //        int diferencia = anioActual - anioInicio;
 //        if (diferencia < 0) {
@@ -92,17 +104,43 @@ public class AlumnoLegajoService {
 
     public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadas(
             String dato, String estado, String apellido, String comision) {
+
         String[] split = splitApellidoNombre(apellido);
         String apellidoFiltro = split[0];
         String nombreFiltro   = split[1];
 
-        List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO=
+        List<AlumnoLegajoInscripcionCarreraDTO> alumnoLegajoInscripcionCarreraDTO =
                 alumnoLegajoRepository.obtenerAlumnosConCursadasNombre(dato, estado, apellidoFiltro, nombreFiltro, comision);
-        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnoLegajoInscripcionCarreraDTO) {
-            alumno.setCurso(obtenerAnioCursada(alumno.getLegajoId()));
-        }
-        return alumnoLegajoInscripcionCarreraDTO;
 
+        if (alumnoLegajoInscripcionCarreraDTO.isEmpty()) {
+            return alumnoLegajoInscripcionCarreraDTO;
+        }
+
+        List<String> legajoIds = alumnoLegajoInscripcionCarreraDTO.stream()
+                .map(AlumnoLegajoInscripcionCarreraDTO::getLegajoId)
+                .toList();
+
+        // Validación batch: detecta legajos sin año de inicio (mismo chequeo que antes hacía obtenerAnioCursada)
+        List<AnioInicioProjection> aniosInicio = alumnoLegajoRepository.findCursoBatch(legajoIds);
+        Set<String> legajosConAnio = aniosInicio.stream()
+                .map(AnioInicioProjection::getLegajoId)
+                .collect(Collectors.toSet());
+
+        List<String> legajosSinAnio = legajoIds.stream()
+                .filter(id -> !legajosConAnio.contains(id))
+                .toList();
+        if (!legajosSinAnio.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No se encontró el año de inicio para las libretas: " + legajosSinAnio);
+        }
+
+        // Cálculo de curso batch (reemplaza el loop con obtenerAnioCursada por alumno)
+        Map<String, String> cursoPorLegajo = materiaCarreraService.cursoPorMateriasActualBatch(legajoIds);
+        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnoLegajoInscripcionCarreraDTO) {
+            alumno.setCurso(cursoPorLegajo.getOrDefault(alumno.getLegajoId(), "Sin Datos"));
+        }
+
+        return alumnoLegajoInscripcionCarreraDTO;
     }
 
 
@@ -122,4 +160,45 @@ public class AlumnoLegajoService {
     }
 
 
+    public List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosPorCarreraNombre(
+            String carreraNombre, String estado, String apellido, String comision) {
+
+        String[] split = splitApellidoNombre(apellido);
+        String apellidoFiltro = split[0];
+        String nombreFiltro   = split[1];
+
+        List<AlumnoLegajoInscripcionCarreraDTO> alumnos =
+                alumnoLegajoRepository.obtenerAlumnosConCursadasPorCarreraNombre(
+                        carreraNombre, estado, apellidoFiltro, nombreFiltro, comision);
+
+        if (alumnos.isEmpty()) {
+            return alumnos;
+        }
+
+        List<String> legajoIds = alumnos.stream()
+                .map(AlumnoLegajoInscripcionCarreraDTO::getLegajoId)
+                .toList();
+
+        // Validación batch: detecta legajos sin año de inicio (mismo chequeo que antes hacía obtenerAnioCursada)
+        List<AnioInicioProjection> aniosInicio = alumnoLegajoRepository.findCursoBatch(legajoIds);
+        Set<String> legajosConAnio = aniosInicio.stream()
+                .map(AnioInicioProjection::getLegajoId)
+                .collect(Collectors.toSet());
+
+        List<String> legajosSinAnio = legajoIds.stream()
+                .filter(id -> !legajosConAnio.contains(id))
+                .toList();
+        if (!legajosSinAnio.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No se encontró el año de inicio para las libretas: " + legajosSinAnio);
+        }
+
+        // Cálculo de curso batch (reemplaza el loop con obtenerAnioCursada por alumno)
+        Map<String, String> cursoPorLegajo = materiaCarreraService.cursoPorMateriasActualBatch(legajoIds);
+        for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnos) {
+            alumno.setCurso(cursoPorLegajo.getOrDefault(alumno.getLegajoId(), "Sin Datos"));
+        }
+
+        return alumnos;
+    }
 }

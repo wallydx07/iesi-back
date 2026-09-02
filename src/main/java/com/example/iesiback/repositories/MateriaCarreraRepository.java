@@ -7,6 +7,7 @@ import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Materia;
 import com.example.iesiback.entities.MateriaCarrera;
+import com.example.iesiback.projection.MateriaNivelPorLegajoProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -337,6 +338,16 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
             @Param("anioActual") int anioActual
     );
 
+
+    @Query("SELECT c.legajo.legajoId AS legajoId, mc.materia.materiaNivel AS materiaNivel " +
+            "FROM MateriaCarrera mc " +
+            "JOIN mc.cursadas c " +
+            "WHERE c.legajo.legajoId IN :legajoIds " +
+            "AND YEAR(mc.fechaInicio) = :anioActual")
+    List<MateriaNivelPorLegajoProjection> findNivelesPorLegajosYAnio(
+            @Param("legajoIds") List<String> legajoIds,
+            @Param("anioActual") int anioActual
+    );
 }
 
 

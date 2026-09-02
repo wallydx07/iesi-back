@@ -5,6 +5,7 @@ import com.example.iesiback.dto.CatedraDTO;
 import com.example.iesiback.dto.MateriaDTO;
 import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.MateriaCarrera;
+import com.example.iesiback.projection.MateriaNivelPorLegajoProjection;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -228,49 +229,106 @@ public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
         return materiaCarreraRepository
                 .findFechaByCarreraIdAndOrden(carreraId, orden);
     }
+//
+//    @Override
+//    public String cursoPorMateriasActual(String legajoId) {
+//        int anioActual = LocalDate.now().getYear();
+//
+//        List<MateriaCarrera> materiasDelAnio =
+//                materiaCarreraRepository.findMateriasPorLegajoYAnio(legajoId, anioActual);
+//
+//        if (materiasDelAnio.isEmpty()) {
+//            return "Sin Cursadas";
+//        }
+//
+//        // Contamos cuántas materias cursa en cada nivel (1, 2 o 3)
+//        Map<Integer, Integer> materiasPorNivel = new HashMap<>();
+//
+//        for (MateriaCarrera mc : materiasDelAnio) {
+//            String nivel = mc.getMateria().getMateriaNivel();
+//            Integer nivelNum = parsearNivel(nivel);
+//            if (nivelNum != null) {
+//                materiasPorNivel.merge(nivelNum, 1, Integer::sum);
+//            }
+//        }
+//
+//        if (materiasPorNivel.isEmpty()) {
+//            return "Sin Datos";
+//        }
+//
+//        // Nivel con más materias; en caso de empate gana el nivel más alto
+//        int nivelPredominante = materiasPorNivel.entrySet().stream()
+//                .max(Comparator
+//                        .comparingInt((Map.Entry<Integer, Integer> e) -> e.getValue())
+//                        .thenComparingInt(Map.Entry::getKey))
+//                .get()
+//                .getKey();
+//
+//        return switch (nivelPredominante) {
+//            case 1 -> "1er año";
+//            case 2 -> "2do año";
+//            case 3 -> "3er año";
+//            default -> "Sin Datos";
+//        };
+//    }
+
 
     @Override
-    public String cursoPorMateriasActual(String legajoId) {
-        int anioActual = LocalDate.now().getYear();
-
-        List<MateriaCarrera> materiasDelAnio =
-                materiaCarreraRepository.findMateriasPorLegajoYAnio(legajoId, anioActual);
-
-        if (materiasDelAnio.isEmpty()) {
-            return "Sin Cursadas";
+    public Map<String, String> cursoPorMateriasActualBatch(List<String> legajoIds) {
+        if (legajoIds.isEmpty()) {
+            return Collections.emptyMap();
         }
 
-        // Contamos cuántas materias cursa en cada nivel (1, 2 o 3)
-        Map<Integer, Integer> materiasPorNivel = new HashMap<>();
+        int anioActual = LocalDate.now().getYear();
+        List<MateriaNivelPorLegajoProjection> filas =
+                materiaCarreraRepository.findNivelesPorLegajosYAnio(legajoIds, anioActual);
 
-        for (MateriaCarrera mc : materiasDelAnio) {
-            String nivel = mc.getMateria().getMateriaNivel();
-            Integer nivelNum = parsearNivel(nivel);
+        // Agrupamos filas por legajoId
+        Map<String, List<Integer>> nivelesPorLegajo = new HashMap<>();
+        for (MateriaNivelPorLegajoProjection fila : filas) {
+            Integer nivelNum = parsearNivel(fila.getMateriaNivel());
             if (nivelNum != null) {
-                materiasPorNivel.merge(nivelNum, 1, Integer::sum);
+                nivelesPorLegajo
+                        .computeIfAbsent(fila.getLegajoId(), k -> new ArrayList<>())
+                        .add(nivelNum);
             }
         }
 
-        if (materiasPorNivel.isEmpty()) {
-            return "Sin Datos";
+        // Calculamos el curso de cada alumno con el mismo criterio de antes
+        Map<String, String> resultado = new HashMap<>();
+        for (String legajoId : legajoIds) {
+            List<Integer> niveles = nivelesPorLegajo.get(legajoId);
+
+            if (niveles == null || niveles.isEmpty()) {
+                resultado.put(legajoId, filas.stream().anyMatch(f -> f.getLegajoId().equals(legajoId))
+                        ? "Sin Datos" : "Sin Cursadas");
+                continue;
+            }
+
+            Map<Integer, Integer> materiasPorNivel = new HashMap<>();
+            for (Integer nivel : niveles) {
+                materiasPorNivel.merge(nivel, 1, Integer::sum);
+            }
+
+            int nivelPredominante = materiasPorNivel.entrySet().stream()
+                    .max(Comparator
+                            .comparingInt((Map.Entry<Integer, Integer> e) -> e.getValue())
+                            .thenComparingInt(Map.Entry::getKey))
+                    .get()
+                    .getKey();
+
+            resultado.put(legajoId, switch (nivelPredominante) {
+                case 1 -> "1er año";
+                case 2 -> "2do año";
+                case 3 -> "3er año";
+                default -> "Sin Datos";
+            });
         }
 
-        // Nivel con más materias; en caso de empate gana el nivel más alto
-        int nivelPredominante = materiasPorNivel.entrySet().stream()
-                .max(Comparator
-                        .comparingInt((Map.Entry<Integer, Integer> e) -> e.getValue())
-                        .thenComparingInt(Map.Entry::getKey))
-                .get()
-                .getKey();
-
-        return switch (nivelPredominante) {
-            case 1 -> "1er año";
-            case 2 -> "2do año";
-            case 3 -> "3er año";
-            default -> "Sin Datos";
-        };
+        return resultado;
     }
 
+// parsearNivel queda igual, se reutiliza sin cambios
     /** Normaliza los formatos de nivel ("1ro", "1", "2do", etc.) a un número. */
     private Integer parsearNivel(String nivel) {
         if (nivel == null) return null;

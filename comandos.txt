@@ -33,9 +33,7 @@ docker network inspect app-network
 sudo systemctl restart apache2
 git checkout master
 
-ssh root@147.93.35.109
-
-
+ssh root@147.93.35.10
 
 ngrok config edit
 ngrok start --all

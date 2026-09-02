@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -45,6 +46,8 @@ public interface MateriaCarreraService {
 
     LocalDate obtenerFechaVigencia(String carreraId, String ordenStr);
 
+    Map<String, String> cursoPorMateriasActualBatch(List<String> legajoIds);
 
-    String cursoPorMateriasActual(String legajoId);
+//
+//    String cursoPorMateriasActual(String legajoId);
 }

@@ -6,6 +6,8 @@ import com.example.iesiback.entities.Materia;
 import com.example.iesiback.repositories.MateriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -91,4 +93,14 @@ public class MateriaServiceImpl implements MateriaService {
 public Optional<Materia> obtenerMateriaPorNotaId(Long notaId) {
     return materiaRepository.findMateriaByNotaIdNativo(notaId);
 }
+
+    @Override
+    public List<ReinscripcionMateriaDTO> obtenerMateriasPorCarreraYCurso(String carreraNombre, String nivel) {
+        int anioActual = LocalDate.now().getYear();
+        List<ReinscripcionMateriaDTO> todas = materiaRepository.findReinscripciones(anioActual, carreraNombre, "");
+        return todas.stream()
+                .filter(m -> nivel.trim().equalsIgnoreCase(m.getMateriaNivel()))
+                .toList();
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.example.iesiback.repositories;
 import com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO;
 import com.example.iesiback.entities.Legajo;
+import com.example.iesiback.projection.AnioInicioProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -216,4 +217,53 @@ public interface AlumnoLegajoRepository extends JpaRepository<Legajo, Long> {
             "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +
             "WHERE l.legajo_id = :libretaEstudiantil", nativeQuery = true)
     Integer findCurso(@Param("libretaEstudiantil") String libretaEstudiantil);
+
+    @Query("SELECT DISTINCT new com.example.iesiback.dto.AlumnoLegajoInscripcionCarreraDTO(" +
+            "l.legajoId, " +
+            "a.personaDni, " +
+            "a.personaApellido, " +
+            "a.personaNombre, " +
+            "l.inscripcion.carrera.carreraId, " +
+            "l.legajoFotocopiaDni, " +
+            "l.legajoCertificadoNacimiento, " +
+            "l.legajoFotocopiaTitulo, " +
+            "l.legajoPlanillaProntuarial, " +
+            "l.legajoCarnetSanitario, " +
+            "l.legajoFoto, " +
+            "l.legajoAval, " +
+            "l.legajoCarpetaColgante, " +
+            "l.usuario, " +
+            "a.personaFechaNacimiento, " +
+            "a.personaCorreo, " +
+            "a.personaDomicilioCelular, " +
+            "l.legajoComision " +
+            ") " +
+            "FROM Legajo l " +
+            "JOIN l.legajoPersonaDni a " +
+            "LEFT JOIN l.cursadas cu " +
+            "LEFT JOIN cu.materiaCarrera mc " +
+            "LEFT JOIN mc.carrera car " +
+            "WHERE ( " +
+            "    (:carreraNombre IS NULL OR :carreraNombre = '') " +
+            "    OR (car IS NOT NULL AND car.carreraNombre = :carreraNombre) " +
+            ") " +
+            "AND (:estado IS NULL OR :estado = '' OR l.legajoEstado = :estado) " +
+            "AND (:apellido IS NULL OR :apellido = '' OR LOWER(a.personaApellido) LIKE CONCAT(LOWER(:apellido), '%')) " +
+            "AND (:nombre IS NULL OR :nombre = '' OR LOWER(a.personaNombre) LIKE CONCAT(LOWER(:nombre), '%')) " +
+            "AND (:comision IS NULL OR :comision = '' OR l.legajoComision LIKE CONCAT(:comision, '%')) " +
+            "ORDER BY a.personaApellido ASC, a.personaNombre ASC")
+    List<AlumnoLegajoInscripcionCarreraDTO> obtenerAlumnosConCursadasPorCarreraNombre(
+            @Param("carreraNombre") String carreraNombre,
+            @Param("estado")   String estado,
+            @Param("apellido") String apellido,
+            @Param("nombre")   String nombre,
+            @Param("comision") String comision
+    );
+
+    @Query(value = "SELECT l.legajo_id AS legajoId, c.carrera_year AS anioInicio " +
+            "FROM carrera c " +
+            "INNER JOIN inscripcion i ON c.carrera_id = i.carrera_id " +
+            "INNER JOIN legajo l ON i.legajo_id = l.legajo_id " +
+            "WHERE l.legajo_id IN :legajoIds", nativeQuery = true)
+    List<AnioInicioProjection> findCursoBatch(@Param("legajoIds") List<String> legajoIds);
 }
