@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.example.iesiback.controllers.PagoController.logger;
+
 @Service
 public class MateriaServiceImpl implements MateriaService {
 
@@ -96,11 +98,25 @@ public Optional<Materia> obtenerMateriaPorNotaId(Long notaId) {
 
     @Override
     public List<ReinscripcionMateriaDTO> obtenerMateriasPorCarreraYCurso(String carreraNombre, String nivel) {
-        int anioActual = LocalDate.now().getYear();
-        List<ReinscripcionMateriaDTO> todas = materiaRepository.findReinscripciones(anioActual, carreraNombre, "");
-        return todas.stream()
-                .filter(m -> nivel.trim().equalsIgnoreCase(m.getMateriaNivel()))
-                .toList();
-    }
 
+        logger.info("Obteniendo materias por carrera y nivel. carreraNombre='{}', nivel='{}'",
+                carreraNombre, nivel);
+
+        int anioActual = LocalDate.now().getYear();
+
+        logger.info("Año actual utilizado para la consulta: {}", anioActual);
+
+        List<ReinscripcionMateriaDTO> todas =
+                materiaRepository.findReinscripciones(anioActual, carreraNombre, "");
+
+        logger.info("Materias obtenidas del repositorio: {}", todas.size());
+
+//        List<ReinscripcionMateriaDTO> resultado = todas.stream()
+//                .filter(m -> nivel.trim().equalsIgnoreCase(m.getMateriaNivel()))
+//                .toList();
+
+//        logger.info("Materias después de filtrar por nivel '{}': {}", nivel, resultado.size());
+
+        return todas;
+    }
 }

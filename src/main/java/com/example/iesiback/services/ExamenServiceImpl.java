@@ -187,23 +187,11 @@ public class ExamenServiceImpl implements ExamenService {
                             ? eh.getHora().toString()
                             : "-";
                 }
-
                 inscripcion.setHora(hora);
                 inscripcion.setFecha(fecha);
-
-
-
-//                inscripcion.setCorrelativas(correlativaService.pendientes(legajoId, materia));
-
                 CorrelativaService.Veredicto veredicto=correlativaService.evaluar(legajoId, inscripcion.getMateriaOrden(),EstadoCondicion.EXAMEN);
-
                 inscripcion.setVeredicto(veredicto);
-
-
-
                 inscripciones.add(inscripcion);
-
-
             } catch (Exception e) {
 
                 System.out.println("ERROR procesando cursada "

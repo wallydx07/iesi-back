@@ -36,7 +36,7 @@ public class PagoController {
     private final TramiteService tramiteService;
     private final PagoDetalleService pagoDetalleService;
     private final UserService userService;
-    private static final Logger logger = LoggerFactory.getLogger(PagoService.class);
+    public static final Logger logger = LoggerFactory.getLogger(PagoService.class);
     public PagoController(
             PagoService pagoService,
             TramiteService tramiteService,

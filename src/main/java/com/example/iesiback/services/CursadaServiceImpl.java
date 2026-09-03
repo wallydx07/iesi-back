@@ -116,44 +116,83 @@ public class CursadaServiceImpl implements CursadaService {
         return cursadaRepository.findEstadoByLegajoAndMateria(legajoId, materiaId, Integer.parseInt(materiaYear),division);
     }
 
+//
+//    @Override
+//    public List<Cursada> getCursadasNoAprobadas(String legajoId) {
+//        List<Cursada> cursadas = cursadaRepository.findByLegajoId(legajoId);
+//        // Filtrar cursadas con notas, y que no tengan ninguna "Aprobado" ni "Cursando"
+//        List<Cursada> filtradas = cursadas.stream()
+//                .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty())
+//                .filter(cursada -> cursada.getNotas().stream()
+//                        .noneMatch(nota ->
+//                                nota.getNotaEstado() == EstadoNota.APROBADO ||
+//                                        nota.getNotaEstado() == EstadoNota.CURSANDO
+//                        ))
+//                .collect(Collectors.toList());
+//
+//        // Quedarse con la cursada más reciente por materia
+//        Map<String, Cursada> cursadaMasRecientePorMateria = filtradas.stream()
+//                .collect(Collectors.toMap(
+//                        Cursada::getMateriaId, // Agrupar por materia
+//                        cursada -> cursada,    // Valor inicial
+//                        (c1, c2) -> {          // Resolver duplicados: quedarse con la más reciente
+//                            LocalDate fecha1 = c1.getNotas().stream()
+//                                    .map(nota -> nota.getNotaFechaNota())
+//                                    .filter(Objects::nonNull) // ✅ Ignorar fechas nulas
+//                                    .max(LocalDate::compareTo)
+//                                    .orElse(LocalDate.MIN);
+//
+//                            LocalDate fecha2 = c2.getNotas().stream()
+//                                    .map(nota -> nota.getNotaFechaNota())
+//                                    .filter(Objects::nonNull) // ✅ Ignorar fechas nulas
+//                                    .max(LocalDate::compareTo)
+//                                    .orElse(LocalDate.MIN);
+//
+//
+//                            return fecha1.isAfter(fecha2) ? c1 : c2;
+//                        }
+//                ));
+//
+//        return new ArrayList<>(cursadaMasRecientePorMateria.values());
+//    }
+
 
     @Override
     public List<Cursada> getCursadasNoAprobadas(String legajoId) {
         List<Cursada> cursadas = cursadaRepository.findByLegajoId(legajoId);
-        // Filtrar cursadas con notas, y que no tengan ninguna "Aprobado" ni "Cursando"
-        List<Cursada> filtradas = cursadas.stream()
+
+        List<Cursada> conNotas = cursadas.stream()
                 .filter(cursada -> cursada.getNotas() != null && !cursada.getNotas().isEmpty())
+                .collect(Collectors.toList());
+
+        // 1) Agrupar por materia y quedarse con la cursada MÁS RECIENTE (sin filtrar aprobadas todavía)
+        Map<String, Cursada> cursadaMasRecientePorMateria = conNotas.stream()
+                .collect(Collectors.toMap(
+                        Cursada::getMateriaId,
+                        cursada -> cursada,
+                        (c1, c2) -> {
+                            LocalDate fecha1 = fechaMasReciente(c1);
+                            LocalDate fecha2 = fechaMasReciente(c2);
+                            return fecha1.isAfter(fecha2) ? c1 : c2;
+                        }
+                ));
+
+        // 2) Recién ahora filtrar: descartar del resultado final la que YA está aprobada/cursando
+        return cursadaMasRecientePorMateria.values().stream()
                 .filter(cursada -> cursada.getNotas().stream()
                         .noneMatch(nota ->
                                 nota.getNotaEstado() == EstadoNota.APROBADO ||
                                         nota.getNotaEstado() == EstadoNota.CURSANDO
                         ))
                 .collect(Collectors.toList());
+    }
 
-        // Quedarse con la cursada más reciente por materia
-        Map<String, Cursada> cursadaMasRecientePorMateria = filtradas.stream()
-                .collect(Collectors.toMap(
-                        Cursada::getMateriaId, // Agrupar por materia
-                        cursada -> cursada,    // Valor inicial
-                        (c1, c2) -> {          // Resolver duplicados: quedarse con la más reciente
-                            LocalDate fecha1 = c1.getNotas().stream()
-                                    .map(nota -> nota.getNotaFechaNota())
-                                    .filter(Objects::nonNull) // ✅ Ignorar fechas nulas
-                                    .max(LocalDate::compareTo)
-                                    .orElse(LocalDate.MIN);
-
-                            LocalDate fecha2 = c2.getNotas().stream()
-                                    .map(nota -> nota.getNotaFechaNota())
-                                    .filter(Objects::nonNull) // ✅ Ignorar fechas nulas
-                                    .max(LocalDate::compareTo)
-                                    .orElse(LocalDate.MIN);
-
-
-                            return fecha1.isAfter(fecha2) ? c1 : c2;
-                        }
-                ));
-
-        return new ArrayList<>(cursadaMasRecientePorMateria.values());
+    private LocalDate fechaMasReciente(Cursada cursada) {
+        return cursada.getNotas().stream()
+                .map(Nota::getNotaFechaNota)
+                .filter(Objects::nonNull)
+                .max(LocalDate::compareTo)
+                .orElse(LocalDate.MIN);
     }
 
     @Override
