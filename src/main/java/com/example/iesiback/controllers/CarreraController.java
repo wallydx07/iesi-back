@@ -49,33 +49,89 @@ public class CarreraController {
         return carreraService.obtenerCarreraPorLegajoId(legajoId);
     }
 
-    @GetMapping("/ordenadas/por-usuario/")
-    public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario() {
-        List<Carrera> carreras;
-        String userRol= String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
-        Long userId= Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
-        if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_TITULACION".equalsIgnoreCase(userRol)) {
-          carreras = carreraService.obtenerCarrerasOrdenadas();
-        } else if ("ROLE_PERSONAL".equalsIgnoreCase(userRol) ||  "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
-                carreras = carreraService.findVigentesOrderedByYearAndName();
-        } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
-            carreras = carreraService.obtenerCarrerasPorTutor(userId);
-        } else if("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
-            carreras = materiaCarreraService.obtenerCarrerasPorDocente(userId);
-        }else {
-            System.out.println("NO AUTORIZADO!!!!!");
-            return ResponseEntity.status(
-                    HttpStatus.FORBIDDEN).build();
-        }
-//        return ResponseEntity.ok(carreras);
+//    @GetMapping("/ordenadas/por-usuario/")
+//    public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario() {
+//        List<Carrera> carreras;
+//        String userRol= String.valueOf(userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre());
+//        Long userId= Long.valueOf(userService.getAuthenticatedUser().get().getUsername());
+//        if ("ROLE_ADMIN".equalsIgnoreCase(userRol) || "ROLE_TITULACION".equalsIgnoreCase(userRol)) {
+//          carreras = carreraService.obtenerCarrerasOrdenadas();
+//        } else if ("ROLE_PERSONAL".equalsIgnoreCase(userRol) ||  "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
+//                carreras = carreraService.findVigentesOrderedByYearAndName();
+//        } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
+//            carreras = carreraService.obtenerCarrerasPorTutor(userId);
+//        } else if("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
+//            carreras = materiaCarreraService.obtenerCarrerasPorDocente(userId);
+//        }else {
+//            System.out.println("NO AUTORIZADO!!!!!");
+//            return ResponseEntity.status(
+//                    HttpStatus.FORBIDDEN).build();
+//        }
+//        // Filtrar para excluir la carrera "ASISTENCIA PERSONAL"
+//        List<Carrera> carrerasFiltradas = carreras.stream()
+//                .filter(c -> c.getCarreraNombre() != null && !"ASISTENCIA PERSONAL".equalsIgnoreCase(c.getCarreraNombre().trim()))
+//                .toList(); // Nota: En Java 16+ usa .toList(), si usas Java 8/11 usa .collect(Collectors.toList())
+//
+//        return ResponseEntity.ok(carrerasFiltradas);
+//    }
 
-        // Filtrar para excluir la carrera "ASISTENCIA PERSONAL"
+
+    @GetMapping("/ordenadas/por-usuario/")
+    public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario(
+            @RequestParam Integer cicloLectivo) {
+
+        List<Carrera> carreras;
+
+        String userRol = String.valueOf(
+                userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre()
+        );
+
+        Long userId = Long.valueOf(
+                userService.getAuthenticatedUser().get().getUsername()
+        );
+
+        if ("ROLE_ADMIN".equalsIgnoreCase(userRol)
+                || "ROLE_TITULACION".equalsIgnoreCase(userRol)) {
+
+            carreras = carreraService.obtenerCarrerasOrdenadas();
+
+        } else if ("ROLE_PERSONAL".equalsIgnoreCase(userRol)
+                || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
+
+            carreras = carreraService.findVigentesOrderedByYearAndName();
+
+        } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
+
+            carreras = carreraService.obtenerCarrerasPorTutor(userId);
+
+        } else if ("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
+
+            carreras = materiaCarreraService.obtenerCarrerasPorDocente(userId);
+
+        } else {
+
+            System.out.println("NO AUTORIZADO!!!!!");
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Filtrar carreras vigentes para el ciclo lectivo solicitado
         List<Carrera> carrerasFiltradas = carreras.stream()
-                .filter(c -> c.getCarreraNombre() != null && !"ASISTENCIA PERSONAL".equalsIgnoreCase(c.getCarreraNombre().trim()))
-                .toList(); // Nota: En Java 16+ usa .toList(), si usas Java 8/11 usa .collect(Collectors.toList())
+                .filter(c -> c.getCarreraNombre() != null)
+                .filter(c -> !"ASISTENCIA PERSONAL"
+                        .equalsIgnoreCase(c.getCarreraNombre().trim()))
+                .filter(c -> c.getCarreraYear() != null)
+                .filter(c -> {
+                    int anioInicio = c.getCarreraYear();
+                    return cicloLectivo >= anioInicio
+                            && cicloLectivo < anioInicio + 3;
+                })
+                .toList();
 
         return ResponseEntity.ok(carrerasFiltradas);
     }
+
+
 
     @GetMapping("/inscripcion")
     public ResponseEntity<List<Carrera>> obtenerCarrerasInscripcion(@RequestParam String alumnoDni) {

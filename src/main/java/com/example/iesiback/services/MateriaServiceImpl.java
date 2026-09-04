@@ -97,12 +97,12 @@ public Optional<Materia> obtenerMateriaPorNotaId(Long notaId) {
 }
 
     @Override
-    public List<ReinscripcionMateriaDTO> obtenerMateriasPorCarreraYCurso(String carreraNombre, String nivel) {
+    public List<ReinscripcionMateriaDTO> obtenerMateriasPorCarreraYCurso(String carreraNombre, Integer cicloLectivo) {
 
-        logger.info("Obteniendo materias por carrera y nivel. carreraNombre='{}', nivel='{}'",
-                carreraNombre, nivel);
+        logger.info("Obteniendo materias por carrera y nivel. carreraNombre='{}', cicloLectivo='{}'",
+                carreraNombre, cicloLectivo);
 
-        int anioActual = LocalDate.now().getYear();
+        int anioActual = cicloLectivo;
 
         logger.info("Año actual utilizado para la consulta: {}", anioActual);
 

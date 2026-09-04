@@ -117,8 +117,8 @@ public ResponseEntity<List<MateriaDTO>> getMateriasPorCarrerasyUsuario(@PathVari
     @GetMapping("/carrera-nombre-curso")
     public ResponseEntity<List<ReinscripcionMateriaDTO>> obtenerMateriasPorCarreraYCurso(
             @RequestParam String carreraNombre,
-            @RequestParam String nivel) {
-        List<ReinscripcionMateriaDTO> materias = materiaService.obtenerMateriasPorCarreraYCurso(carreraNombre, nivel);
+            @RequestParam Integer cicloLectivo) {
+        List<ReinscripcionMateriaDTO> materias = materiaService.obtenerMateriasPorCarreraYCurso(carreraNombre, cicloLectivo);
         return ResponseEntity.ok(materias);
     }
 }
