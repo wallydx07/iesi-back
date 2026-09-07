@@ -2,7 +2,6 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Materia;
-import com.example.iesiback.entities.MateriaCarrera;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.enums.EstadoNota;
 import com.example.iesiback.enums.EstadoCondicion;
@@ -946,15 +945,27 @@ public List<NotaMateriaDTO> obtenerTodasNotasPorLegajoSinCorrelativas(String leg
 
 
 
-        @Override
-        public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarrera(String carreraId) {
-            List<AlumnoCursadaMateriaNotaDTO> alumnos = notaRepository.findAlumnosPorCarrera(carreraId);
+    @Override
+    public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarrera(String carreraId) {
+    List<AlumnoCursadaMateriaNotaDTO> alumnos = notaRepository.findAlumnosPorCarrera(carreraId);
+    for (AlumnoCursadaMateriaNotaDTO alumno : alumnos) {
+        List<NotaMateriaDTO> notas = notaRepository.findBylegajoId(alumno.getLegajoId());
+            alumno.setNotaMateriaDTO(notas);
+    }
+    return alumnos;
+}
+
+
+    @Override
+    public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarreraNombre(String carreraNombre) {
+        List<AlumnoCursadaMateriaNotaDTO> alumnos = notaRepository.findAlumnosPorCarreraNombre(carreraNombre);
         for (AlumnoCursadaMateriaNotaDTO alumno : alumnos) {
             List<NotaMateriaDTO> notas = notaRepository.findBylegajoId(alumno.getLegajoId());
             alumno.setNotaMateriaDTO(notas);
         }
-            return alumnos;
-        }
+        return alumnos;
+    }
+
 
 
     @Transactional(readOnly = true)
@@ -1359,7 +1370,6 @@ private String explicarExamen(NotaMateriaDTO nota, CorrelativaService.Veredicto 
                         PRIORIDAD_ESTADO.getOrDefault(n.getNotaEstado(), -1)))
                 .orElseThrow();
     }
-
 
     @Override
     public List<Nota> updateFechaNotasByMateriaCarreraId(Integer materiaCarreraId, EstadoCondicion estadoCondicion, LocalDate fecha) {

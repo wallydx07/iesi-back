@@ -24,6 +24,9 @@ public interface MateriaCarreraService {
     List<MateriaCarrera> obtenerMateriaCarreraDivision(String carreraId, String materiaId, String division);
 
     List<MateriaCarrera> obtenerMateriasPorCarrera(String carreraId);
+
+    List<MateriaCarrera> obtenerMateriasPorCarreraNombre(String carreraNombre);
+
     Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id);
     List<CatedraDTO> obtenerCatedrasPorDocenteYAnio(String dni, Integer year);
 //    int actualizarMateriaCarrera(Long id, MateriaCarreraDTO materiaCarreraDTO);

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/materiacarreras")
 public class MateriaCarreraController {
@@ -28,7 +28,6 @@ public class MateriaCarreraController {
     public MateriaCarreraController(UserService userService) {
         this.userService = userService;
     }
-
 
     @GetMapping
     public List<MateriaCarrera> obtenerMateriaCarreras() {
@@ -56,6 +55,12 @@ public class MateriaCarreraController {
     @GetMapping("carreraId/{carreraId}")
     public ResponseEntity<List<MateriaCarrera>> obtenerMateriasPorCarrera(@PathVariable String carreraId) {
         List<MateriaCarrera> materias = materiaCarreraService.obtenerMateriasPorCarrera(carreraId);
+        return ResponseEntity.ok(materias);
+    }
+
+    @GetMapping("carreraNombre/{carreraNombre}")
+    public ResponseEntity<List<MateriaCarrera>> obtenerMateriasPorCarreraNombre(@PathVariable String carreraNombre) {
+        List<MateriaCarrera> materias = materiaCarreraService.obtenerMateriasPorCarreraNombre(carreraNombre);
         return ResponseEntity.ok(materias);
     }
 
@@ -118,5 +123,7 @@ public class MateriaCarreraController {
     public List<ActaCursadaDTO> obtenerActasPorAnio(@PathVariable int anio) {
         return materiaCarreraService.obtenerActasPorAnio(anio);
     }
+
+
 }
 

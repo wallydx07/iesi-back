@@ -65,6 +65,9 @@ public interface NotaService {
     Nota saveNotaWithCursadsa(Nota nota, Integer cursadaId);
     NotaServiceImpl.ResultadoRegularidad evaluarRegularidad(List<Nota> notas);
     List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarrera(String carreraId);
+
+    List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarreraNombre(String carreraId);
+
     @Transactional(readOnly = true)
     Nota findByCursadaId(Integer cursadaId);
     Nota obtenerExamenPorCursadaYPermiso(Integer cursadaId, Integer permisoId);

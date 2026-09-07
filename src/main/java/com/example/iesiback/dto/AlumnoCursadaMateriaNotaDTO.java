@@ -20,6 +20,7 @@ public class AlumnoCursadaMateriaNotaDTO {
     private String folio;
     private boolean notasCorregidas;
     private List<NotaMateriaDTO> notaMateriaDTO;
+    private String carreraNombre;
 
     // Constructor usado por JPA
     public AlumnoCursadaMateriaNotaDTO(String legajoId, Long personaDni, String personaApellido,
@@ -27,7 +28,7 @@ public class AlumnoCursadaMateriaNotaDTO {
                                        String tituloSerie, String tituloYear, String tituloFecha,
                                        String carreraId, String legajoSede, String legajoFotocopiaDni,
                                        String legajoCertificadoNacimiento, String legajoFotocopiaTitulo,
-                                       String folio, boolean notasCorregidas) {
+                                       String folio, boolean notasCorregidas, String carreraNombre) {
         this.legajoId = legajoId;
         this.personaDni = personaDni;
         this.personaApellido = personaApellido;
@@ -44,6 +45,15 @@ public class AlumnoCursadaMateriaNotaDTO {
         this.legajoFotocopiaTitulo = legajoFotocopiaTitulo;
         this.folio = folio;
         this.notasCorregidas = notasCorregidas;
+        this.carreraNombre=carreraNombre;
+    }
+
+    public String getCarreraNombre() {
+        return carreraNombre;
+    }
+
+    public void setCarreraNombre(String carreraNombre) {
+        this.carreraNombre = carreraNombre;
     }
 
     public String getLegajoId() {

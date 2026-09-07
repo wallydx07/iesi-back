@@ -228,6 +228,11 @@ public class NotaController {
         return notaService.getAlumnosPorCarrera(carreraId);
     }
 
+    @GetMapping("/carreraNombre/{carreraNombre}")
+    public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarreraNombre(@PathVariable String carreraNombre) {
+        return notaService.getAlumnosPorCarreraNombre(carreraNombre);
+    }
+
 //    @PostMapping("/notas/importar")
 //    public void importarNotas(@RequestBody List<NotaImportDTO> notas) {
 //        notaService.importarNotas(notas);

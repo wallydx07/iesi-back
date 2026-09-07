@@ -80,6 +80,12 @@ public class MateriaCarreraServiceImpl implements MateriaCarreraService {
         return materiaCarreraRepository.findByCarrera_CarreraId(carreraId);
     }
 
+    @Override
+    public List<MateriaCarrera> obtenerMateriasPorCarreraNombre(String carreraNombre) {
+        return materiaCarreraRepository.findByCarrera_CarreraNombre(carreraNombre);
+    }
+
+
     // 🔹 Nuevo método para buscar por ID
     public Optional<MateriaCarrera> obtenerMateriaCarreraPorId(Long id) {
         return materiaCarreraRepository.findById(id);

@@ -348,6 +348,8 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
             @Param("legajoIds") List<String> legajoIds,
             @Param("anioActual") int anioActual
     );
+
+    List<MateriaCarrera> findByCarrera_CarreraNombre(String carreraNombre);
 }
 
 

@@ -571,7 +571,8 @@ CAST(n.notaCalificacionNotaNumero AS string),
            legajo.legajoCertificadoNacimiento,
            legajo.legajoFotocopiaTitulo,
            legajo.folio,
-           legajo.notasCorregidas
+           legajo.notasCorregidas,
+           inscripcion.carrera.carreraNombre
        )
        FROM Persona persona
        JOIN persona.legajos legajo
@@ -580,6 +581,36 @@ CAST(n.notaCalificacionNotaNumero AS string),
        ORDER BY persona.personaApellido, persona.personaNombre ASC
 """)
     List<AlumnoCursadaMateriaNotaDTO> findAlumnosPorCarrera(@Param("carreraId") String carreraId);
+
+
+    @Query(value = """
+       SELECT new com.example.iesiback.dto.AlumnoCursadaMateriaNotaDTO(
+           legajo.legajoId,
+           persona.personaDni,
+           persona.personaApellido,
+           persona.personaNombre,
+           legajo.legajoCambia,
+           legajo.tituloEntregado,
+           legajo.tituloSerie,
+           legajo.tituloYear,
+           legajo.tituloFecha,
+           inscripcion.carrera.carreraId,
+           legajo.legajoSede,
+           legajo.legajoFotocopiaDni,
+           legajo.legajoCertificadoNacimiento,
+           legajo.legajoFotocopiaTitulo,
+           legajo.folio,
+           legajo.notasCorregidas,
+           inscripcion.carrera.carreraNombre
+           
+       )
+       FROM Persona persona
+       JOIN persona.legajos legajo
+       JOIN legajo.inscripcion inscripcion
+       WHERE inscripcion.carrera.carreraNombre = :carreraNombre
+       ORDER BY persona.personaApellido, persona.personaNombre ASC
+""")
+    List<AlumnoCursadaMateriaNotaDTO> findAlumnosPorCarreraNombre(@Param("carreraNombre") String carreraNombre);
 
 
     @Query("""
