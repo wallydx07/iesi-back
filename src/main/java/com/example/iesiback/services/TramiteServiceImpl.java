@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.dto.TramiteArbolDTO;
+import com.example.iesiback.dto.TramiteListadoDTO;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.User;
@@ -12,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -224,5 +226,19 @@ public class TramiteServiceImpl implements TramiteService {
     @Override
     public void updatePagosTramite(Integer tramiteId, Integer pagoId) {
         repository.linkearPagoTramite(tramiteId, pagoId);
+    }
+
+    @Override
+    public List<Tramite> findByAnio(int anio) {
+        LocalDateTime desde = LocalDateTime.of(anio, 1, 1, 0, 0, 0);
+        LocalDateTime hasta = LocalDateTime.of(anio, 12, 31, 23, 59, 59);
+        return repository.findByTramiteFechaBetweenOrderByTramiteFechaDescNumeroTipoDesc(desde, hasta);
+    }
+
+    @Override
+    public List<TramiteListadoDTO> findListadoByAnio(int anio) {
+        LocalDateTime desde = LocalDateTime.of(anio, 1, 1, 0, 0, 0);
+        LocalDateTime hasta = LocalDateTime.of(anio, 12, 31, 23, 59, 59);
+        return repository.findListadoByAnio(desde, hasta);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.iesiback.controllers;
 
 import com.example.iesiback.dto.TramiteArbolDTO;
+import com.example.iesiback.dto.TramiteListadoDTO;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.services.TramiteService;
@@ -67,6 +68,7 @@ public class TramiteController {
             existing.setTramiteAsunto(atencion.getTramiteAsunto());
             existing.setTramiteSubTipo(atencion.getTramiteSubTipo());
             existing.setTramiteReferencia(atencion.getTramiteReferencia());
+            existing.setTramitePrioridad(atencion.getTramitePrioridad());
             return ResponseEntity.ok(service.update(existing));
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -148,5 +150,11 @@ public class TramiteController {
     @GetMapping("/{id}/arbol")
     public ResponseEntity<List<TramiteArbolDTO>> obtenerArbol(@PathVariable Long id) {
         return ResponseEntity.ok(service.obtenerArbolCompleto(id));
+    }
+
+    @GetMapping("/findByAnio")
+    public List<TramiteListadoDTO> findByAnio(@RequestParam(required = false) Integer anio) {
+        int year = (anio != null) ? anio : java.time.Year.now().getValue();
+        return service.findListadoByAnio(year);
     }
 }

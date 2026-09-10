@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.enums.PrioridadTramite;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -80,9 +81,13 @@ public class Tramite {
     @Column(name = "numero_tipo")
     private Long numeroTipo;
 
-    @Size(max = 20)
-    @Column(name = "tramite_prioridad", length = 20)
-    private String tramitePrioridad;
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "tramite_prioridad",
+            length = 20,
+            columnDefinition = "varchar(20) default 'MEDIA'"
+    )
+    private PrioridadTramite tramitePrioridad = PrioridadTramite.MEDIA;
 
     @Column(name = "tramite_folios")
     private Long tramiteFolios;
@@ -125,6 +130,18 @@ public class Tramite {
         return "Fecha: " + tramiteFecha.format(f) +
                 "   Hora: " + tramiteFecha.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
 
+    }
+
+    @Size(max = 100)
+    @Column(name = "tramite_area", length = 100)
+    private String tramiteArea;
+
+    public String getTramiteArea() {
+        return tramiteArea;
+    }
+
+    public void setTramiteArea(String tramiteArea) {
+        this.tramiteArea = tramiteArea;
     }
 
     public List<Pago> getPagos() {
@@ -271,11 +288,11 @@ public class Tramite {
         this.numeroTipo = numeroTipo;
     }
 
-    public String getTramitePrioridad() {
+    public PrioridadTramite getTramitePrioridad() {
         return tramitePrioridad;
     }
 
-    public void setTramitePrioridad(String tramitePrioridad) {
+    public void setTramitePrioridad(PrioridadTramite tramitePrioridad) {
         this.tramitePrioridad = tramitePrioridad;
     }
 

@@ -47,6 +47,7 @@ public class Pases {
             nullable = false,
             columnDefinition = "varchar(20) default 'MEDIA'"
     )
+
     private PrioridadTramite prioridad = PrioridadTramite.MEDIA;
 
     private LocalDateTime fecha = LocalDateTime.now();

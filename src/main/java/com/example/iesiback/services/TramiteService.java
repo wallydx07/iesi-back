@@ -1,6 +1,7 @@
 package com.example.iesiback.services;
 
 import com.example.iesiback.dto.TramiteArbolDTO;
+import com.example.iesiback.dto.TramiteListadoDTO;
 import com.example.iesiback.entities.Tramite;
 import jakarta.transaction.Transactional;
 
@@ -33,4 +34,8 @@ public interface TramiteService {
 
     @Transactional
     void updatePagosTramite(Integer tramiteId, Integer pagoId);
+
+    List<Tramite> findByAnio(int anio);
+
+    List<TramiteListadoDTO> findListadoByAnio(int anio);
 }

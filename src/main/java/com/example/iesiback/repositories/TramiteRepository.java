@@ -1,5 +1,6 @@
 package com.example.iesiback.repositories;
 
+import com.example.iesiback.dto.TramiteListadoDTO;
 import com.example.iesiback.entities.Tramite;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -8,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,4 +108,43 @@ public interface TramiteRepository extends JpaRepository<Tramite, Integer> {
     @Query(value = "UPDATE pago SET tramite_id = :tramiteId WHERE id = :pagoId", nativeQuery = true)
     int linkearPagoTramite(@Param("tramiteId") Integer tramiteId, @Param("pagoId") Integer pagoId);
 
+    List<Tramite> findByTramiteFechaBetweenOrderByTramiteFechaDescNumeroTipoDesc(
+            LocalDateTime desde, LocalDateTime hasta);
+
+//    @Query("""
+//    SELECT new com.example.iesiback.dto.TramiteListadoDTO(
+//        t.id, t.tramiteEstado, t.tramiteDni, t.tramiteApellidoNombre,
+//        t.tramiteTipo, t.tramiteAsunto, t.tramiteProblema, t.tramiteFecha,
+//        t.tramiteDestino, t.codigoSeguimiento, t.numeroTipo, t.tramitePrioridad,
+//        t.gestorDni, t.tramiteArea,
+//        (SELECT CONCAT(COALESCE(pu.personalApellido, ''), ' ', COALESCE(pu.personalNombre, ''))
+//         FROM Pases p
+//         LEFT JOIN p.paraUsuario pu
+//         WHERE p.tramite = t
+//           AND p.id = (SELECT MAX(p2.id) FROM Pases p2 WHERE p2.tramite = t))
+//    )
+//    FROM Tramite t
+//    WHERE t.tramiteFecha BETWEEN :desde AND :hasta
+//    ORDER BY t.tramiteFecha DESC, t.numeroTipo DESC
+//""")
+//    List<TramiteListadoDTO> findListadoByAnio(LocalDateTime desde, LocalDateTime hasta);
+
+    @Query("""
+    SELECT new com.example.iesiback.dto.TramiteListadoDTO(
+        t.id, t.tramiteEstado, t.tramiteDni, t.tramiteApellidoNombre,
+        t.tramiteTipo, t.tramiteAsunto, t.tramiteProblema, t.tramiteFecha,
+        t.tramiteDestino, t.codigoSeguimiento, t.numeroTipo, t.tramitePrioridad,
+        t.gestorDni, t.tramiteArea,
+        (SELECT CONCAT(COALESCE(pu.personalApellido, ''), ' ', COALESCE(pu.personalNombre, ''))
+         FROM Pases p
+         LEFT JOIN p.paraUsuario pu
+         WHERE p.tramite = t
+           AND p.id = (SELECT MAX(p2.id) FROM Pases p2 WHERE p2.tramite = t)),
+        (SELECT MAX(p3.fecha) FROM Pases p3 WHERE p3.tramite = t)
+    )
+    FROM Tramite t
+    WHERE t.tramiteFecha BETWEEN :desde AND :hasta
+    ORDER BY t.tramiteFecha DESC, t.numeroTipo DESC
+""")
+    List<TramiteListadoDTO> findListadoByAnio(LocalDateTime desde, LocalDateTime hasta);
 }
