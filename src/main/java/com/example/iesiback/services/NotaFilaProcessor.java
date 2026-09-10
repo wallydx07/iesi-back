@@ -118,7 +118,7 @@ public class NotaFilaProcessor {
 
         NotaMateriaDTO promocionExistente = existentes.stream()
                 .filter(n -> Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId())
-                        && "Cursada".equals(n.getNotaCondicion()))
+                        && n.getNotaCondicion() == EstadoCondicion.CURSADA)
                 .findFirst()
                 .orElse(null);
 
@@ -126,8 +126,8 @@ public class NotaFilaProcessor {
             if (promocionExistente == null ||
                     !n.getNotaId().equals(promocionExistente.getNotaId())) {
                 log.info("Eliminando nota previa ID: {} | Condición: {}", n.getNotaId(), n.getNotaCondicion());
-                if ("Examen Regular".equals(n.getNotaCondicion())
-                        || "Examen Libre".equals(n.getNotaCondicion())) {
+                if (n.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR
+                        || n.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE) {
                     log.info("Eliminando exámenes asociados a nota {}", n.getNotaId());
                     examenService.deleteExamenByNotaId(n.getNotaId());
                 }
