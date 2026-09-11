@@ -14,7 +14,7 @@ docker load -i iesi-front.tar
 
 ------------------------Reemplazar contenedores-----------------------
 # 1. Eliminar contenedores de docker-compose y órfanos
-docker-compose down --PERSONALremove-orphans
+docker-compose down --remove-orphans
 # 2. Eliminar cualquier contenedor detenido (no solo de docker-compose)
 docker container prune -f
 # 3. Cargar imágenes nuevas
@@ -33,7 +33,7 @@ docker network inspect app-network
 sudo systemctl restart apache2
 git checkout master
 
-ssh root@147.93.35.10
+ssh root@147.93.35.109
 
 ngrok config edit
 ngrok start --all

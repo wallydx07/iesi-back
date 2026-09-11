@@ -497,116 +497,59 @@ public class PagoServiceImpl implements PagoService {
             return List.of();
         }
         List<ReciboDTO> recibos = pagos.stream().map(pago -> {
-
-
-
-
-
             ReciboDTO dto = new ReciboDTO();
             dto.setAporteId(Long.valueOf(pago.getId()));
-            dto.setAporteMonto(
-                    pago.getMontoTotal() != null
-                            ? pago.getMontoTotal()
-                            : BigDecimal.ZERO
-            );
+            dto.setAporteMonto(pago.getMontoTotal() != null ? pago.getMontoTotal() : BigDecimal.ZERO);
+//            dto.setMetodo(pago.getMetodoPago());
+            dto.setMetodo(convertirMetodoPago(pago.getMetodoPago()));
 
-            dto.setMetodo(pago.getMetodoPago());
             if (pago.getFechaPago() != null) {
-                dto.setAporteFecha(
-                        pago.getFechaPago()
-                                .atZone(zona)
-                                .toLocalDate()
-                );
-                dto.setHora(
-                        pago.getFechaPago()
-                                .atZone(zona)
-                                .toLocalTime()
-                                .toString()
-                );
+                dto.setAporteFecha(pago.getFechaPago().atZone(zona).toLocalDate());
+                dto.setHora(pago.getFechaPago().atZone(zona).toLocalTime().toString());
             }
 
             dto.setUsuario(
                     pago.getResponsable() != null
-                            ? pago.getResponsable()
+                            ? (pago.getResponsable().matches("\\d+")
+                               ? userService.findById(Long.valueOf(pago.getResponsable()))
+                            .map(u -> u.getUserApellido() + " " + u.getUserNombre())
+                            .orElse("SIN_USUARIO")
+                               : pago.getResponsable()) // ya viene como "Alumno" u otro texto
                             : "SIN_USUARIO"
             );
 
-            dto.setEstado(
-                    pago.getEstado()
-            );
+            dto.setEstado(pago.getEstado());
 
-            if (
-                    pago.getTramite() != null
-                            && pago.getTramite().getTramiteDni() != null
-            ) {
-                try {
-                    PersonaDTO personaDTO =
-                            personaService.findPersonaDTOById(
-                                    pago.getTramite()
-                                            .getTramiteDni()
-                            );
-                    if (personaDTO != null) {
-                        dto.setAlumnoApellido(
-                                personaDTO.getPersonaApellido()
-                        );
-                        dto.setAlumnoNombre(
-                                personaDTO.getPersonaNombre()
-                        );
-                        dto.setAlumnoDni(
-                                personaDTO.getPersonaDni() != null
-                                        ? personaDTO.getPersonaDni()
-                                        .toString()
-                                        : ""
-                        );
-                    }
-                } catch (Exception e) {
-                    System.out.println(
-                            "❌ Error al buscar persona: "
-                                    + e.getMessage()
-                    );
-                }
-
-
-//================================================================================
-                //================================================================================
-                //================================================================================
-//                tramiteService
-
-
-                try {
-                    dto.setCurso(obtenerAnioCursada(pago.getTramite().getLegajoId()));
-                    dto.setCarrera(pagoRepository.findCarrera(pago.getTramite().getLegajoId()));
-
-                    System.out.println(dto.getCurso());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-
-                //================================================================================
-                //================================================================================
-                //================================================================================
-
-
-
-            }
             if (pago.getTramite() != null) {
-                dto.setConcepto(
-                        pago.getTramite().getTramiteTipo()
-                );
+                dto.setConcepto(pago.getTramite().getTramiteTipo());
+
+                if (pago.getTramite().getTramiteDni() != null) {
+                    try {
+                        PersonaDTO personaDTO = personaService.findPersonaDTOById(pago.getTramite().getTramiteDni());
+                        if (personaDTO != null) {
+                            dto.setAlumnoApellido(personaDTO.getPersonaApellido());
+                            dto.setAlumnoNombre(personaDTO.getPersonaNombre());
+                            dto.setAlumnoDni(personaDTO.getPersonaDni() != null ? personaDTO.getPersonaDni().toString() : "");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error al buscar persona: " + e.getMessage());
+                    }
+
+                    try {
+                        dto.setCurso(obtenerAnioCursada(pago.getTramite().getLegajoId()));
+                        dto.setCarrera(pagoRepository.findCarrera(pago.getTramite().getLegajoId()));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
-            dto.setAporteNroRecibo(
-                    pago.getExternalReference()
-            );
-            dto.setPagoDetalles(
-                    pagoDetalleService.obtenerPorPago(
-                            pago.getId()
-                    )
-            );
+
+            dto.setAporteNroRecibo(pago.getExternalReference());
+            dto.setPagoDetalles(pagoDetalleService.obtenerPorPago(pago.getId()));
+
             return dto;
-
-
         }).toList();
+
         Map<String, List<ReciboDTO>> agrupado =
                 recibos.stream()
                         .collect(Collectors.groupingBy(
@@ -626,6 +569,29 @@ public class PagoServiceImpl implements PagoService {
                 .toList();
     }
 
+
+    private String convertirMetodoPago(String metodoPago) {
+        if (metodoPago == null) {
+            return "-";
+        }
+
+        return switch (metodoPago.toLowerCase()) {
+            case "efectivo" -> "EFECTIVO";
+            case "transferencia" -> "TRANSFERENCIA";
+            case "mercadopago_qr" -> "QR";
+            case "mercadopago_point" -> "POSNET";
+
+            case "account_money",
+                 "debmaster",
+                 "debvisa",
+                 "naranja",
+                 "pagofacil",
+                 "rapipago",
+                 "visa" -> "LINK";
+
+            default -> metodoPago.toUpperCase();
+        };
+    }
 
 
     public String obtenerAnioCursada(String libretaEstudiantil) throws Exception {

@@ -418,3 +418,72 @@ WHERE a.id_informe = b.id_informe
 
 COMMIT;
 
+
+
+update tramite set tramite_area='Mesa de Entradas'
+where tramite_tipo ='Ingreso de Nota';
+
+update tramite set tramite_area='Mesa de Entradas'
+where tramite_tipo ='Egreso de Nota';
+
+update tramite set tramite_area='Academicos'
+where tramite_tipo ='Certificado Estudiante';
+
+update tramite set tramite_area='Atencion Institucional'
+where tramite_tipo ='Consultas/Reclamos';
+
+update tramite set tramite_area='Ingreso y Admision'
+where tramite_tipo ='Matricula';
+
+update tramite set tramite_area='Gestión del Personal'
+where tramite_tipo ='Certificado Docente';
+
+update tramite set tramite_area='Academicos'
+where tramite_tipo ='Solicitud de Libreta';
+
+update tramite set tramite_area='Academicos'
+where tramite_tipo ='Permiso Examen';
+
+
+
+select*from tramite;
+
+
+UPDATE tramite SET tramite_prioridad = UPPER(TRIM(tramite_prioridad)) WHERE tramite_prioridad IS NOT NULL;
+UPDATE tramite SET tramite_prioridad = 'MEDIA' WHERE tramite_prioridad IS NULL;
+__________________________________________________________________________
+_________________________________________________________________________________
+update tramite set tramite_area='Mesa de Entradas'
+where tramite_tipo ='Ingreso de Nota';
+
+update tramite set tramite_area='Mesa de Entradas'
+where tramite_tipo ='Egreso de Nota';
+
+update tramite set tramite_area='Academicos'
+where tramite_tipo ='Certificado Estudiante';
+
+update tramite set tramite_area='Atencion Institucional'
+where tramite_tipo ='Consultas/Reclamos';
+
+update tramite set tramite_area='Ingreso y Admision'
+where tramite_tipo ='Matricula';
+
+update tramite set tramite_area='Gestión del Personal'
+where tramite_tipo ='Certificado Docente';
+
+update tramite set tramite_area='Academicos'
+where tramite_tipo ='Solicitud de Libreta';
+
+update tramite set tramite_area='Academicos'
+where tramite_tipo ='Permiso Examen';
+
+
+
+select*from tramite;
+
+
+UPDATE tramite SET tramite_prioridad = UPPER(TRIM(tramite_prioridad)) WHERE tramite_prioridad IS NOT NULL;
+UPDATE tramite SET tramite_prioridad = 'MEDIA' WHERE tramite_prioridad IS NULL;
+
+UPDATE tramite SET tramite_prioridad = 'CRITICA' WHERE tramite_prioridad='URGENTE';
+
