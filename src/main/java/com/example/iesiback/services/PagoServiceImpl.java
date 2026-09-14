@@ -502,12 +502,10 @@ public class PagoServiceImpl implements PagoService {
             dto.setAporteMonto(pago.getMontoTotal() != null ? pago.getMontoTotal() : BigDecimal.ZERO);
 //            dto.setMetodo(pago.getMetodoPago());
             dto.setMetodo(convertirMetodoPago(pago.getMetodoPago()));
-
             if (pago.getFechaPago() != null) {
                 dto.setAporteFecha(pago.getFechaPago().atZone(zona).toLocalDate());
                 dto.setHora(pago.getFechaPago().atZone(zona).toLocalTime().toString());
             }
-
             dto.setUsuario(
                     pago.getResponsable() != null
                             ? (pago.getResponsable().matches("\\d+")
@@ -517,12 +515,9 @@ public class PagoServiceImpl implements PagoService {
                                : pago.getResponsable()) // ya viene como "Alumno" u otro texto
                             : "SIN_USUARIO"
             );
-
             dto.setEstado(pago.getEstado());
-
             if (pago.getTramite() != null) {
                 dto.setConcepto(pago.getTramite().getTramiteTipo());
-
                 if (pago.getTramite().getTramiteDni() != null) {
                     try {
                         PersonaDTO personaDTO = personaService.findPersonaDTOById(pago.getTramite().getTramiteDni());
@@ -534,7 +529,6 @@ public class PagoServiceImpl implements PagoService {
                     } catch (Exception e) {
                         System.out.println("Error al buscar persona: " + e.getMessage());
                     }
-
                     try {
                         dto.setCurso(obtenerAnioCursada(pago.getTramite().getLegajoId()));
                         dto.setCarrera(pagoRepository.findCarrera(pago.getTramite().getLegajoId()));
@@ -543,13 +537,10 @@ public class PagoServiceImpl implements PagoService {
                     }
                 }
             }
-
             dto.setAporteNroRecibo(pago.getExternalReference());
             dto.setPagoDetalles(pagoDetalleService.obtenerPorPago(pago.getId()));
-
             return dto;
         }).toList();
-
         Map<String, List<ReciboDTO>> agrupado =
                 recibos.stream()
                         .collect(Collectors.groupingBy(
@@ -557,7 +548,6 @@ public class PagoServiceImpl implements PagoService {
                                         ? r.getUsuario()
                                         : "SIN_USUARIO"
                         ));
-
         return agrupado.entrySet()
                 .stream()
                 .map(entry ->
@@ -580,7 +570,6 @@ public class PagoServiceImpl implements PagoService {
             case "transferencia" -> "TRANSFERENCIA";
             case "mercadopago_qr" -> "QR";
             case "mercadopago_point" -> "POSNET";
-
             case "account_money",
                  "debmaster",
                  "debvisa",
@@ -588,7 +577,6 @@ public class PagoServiceImpl implements PagoService {
                  "pagofacil",
                  "rapipago",
                  "visa" -> "LINK";
-
             default -> metodoPago.toUpperCase();
         };
     }
