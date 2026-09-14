@@ -31,6 +31,15 @@ public class NotaMateriaDTO {
     private String notaStatus;          // "Aceptada" / "Provisoria" / "-"
     private List<String> notaIsFecha;   // correlativas con fecha incoherente
 
+    private String notaDocente;
+
+    public String getNotaDocente() {
+        return notaDocente;
+    }
+
+    public void setNotaDocente(String notaDocente) {
+        this.notaDocente = notaDocente;
+    }
 
     public NotaMateriaDTO() {
     }
@@ -40,7 +49,7 @@ public class NotaMateriaDTO {
                           EstadoCondicion notaCondicion, EstadoNota notaEstado, String notaLibro,
                           String notaFolio, LocalDate notaFecha, String notaObservaciones,
                           String notaUsuario, String materiaId, String materiaNivel,
-                          Integer cursadaId, Boolean isfirma, Integer materiaCarreraId) {
+                          Integer cursadaId, Boolean isfirma, Integer materiaCarreraId, String notaDocente) {
         this.notaId = notaId;
         this.materiaOrden = materiaOrden;
         this.materiaNombre = materiaNombre;
@@ -58,6 +67,7 @@ public class NotaMateriaDTO {
         this.cursadaId = cursadaId;
         this.isfirma = isfirma;
         this.materiaCarreraId = materiaCarreraId;
+        this.notaDocente=notaDocente;
     }
 
     public Long getNotaId() {

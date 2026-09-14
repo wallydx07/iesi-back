@@ -19,34 +19,67 @@ public interface NotaRepository extends JpaRepository<Nota, Long> {
  //es UNION ALL
 //CAST(n.notaCalificacionNotaNumero AS string),
 
+//    @Query("""
+//SELECT new com.example.iesiback.dto.NotaMateriaDTO(
+//    n.notaId,
+//    m.materiaOrden,
+//    m.materiaNombre,
+//CAST(n.notaCalificacionNotaNumero AS string),
+//    n.notaCalificacionNotaLetra,
+//    n.notaCondicion,
+//    n.notaEstado,
+//    n.notaLibroNota,
+//    n.notaFolioNota,
+//    n.notaFechaNota,
+//    n.notaObservaciones,
+//    n.notaUsuario,
+//    mc.materia.materiaId,
+//    m.materiaNivel,
+//    c.id,
+//    mc.firma,
+//    mc.id
+//)
+//FROM Nota n
+//JOIN n.cursada c
+//JOIN c.materiaCarrera mc
+//JOIN mc.materia m
+//WHERE c.legajo.legajoId = :legajoId
+//ORDER BY m.materiaOrden ASC, n.notaFechaNota ASC
+//""")
+//    List<NotaMateriaDTO> findNotasPorLegajo(@Param("legajoId") String legajoId);
+
+
     @Query("""
-SELECT new com.example.iesiback.dto.NotaMateriaDTO(
-    n.notaId,
-    m.materiaOrden,
-    m.materiaNombre,
-CAST(n.notaCalificacionNotaNumero AS string),
-    n.notaCalificacionNotaLetra,
-    n.notaCondicion,
-    n.notaEstado,
-    n.notaLibroNota,
-    n.notaFolioNota,
-    n.notaFechaNota,
-    n.notaObservaciones,
-    n.notaUsuario,
-    mc.materia.materiaId,
-    m.materiaNivel,
-    c.id,
-    mc.firma,
-    mc.id
-)
-FROM Nota n
-JOIN n.cursada c
-JOIN c.materiaCarrera mc
-JOIN mc.materia m
-WHERE c.legajo.legajoId = :legajoId
-ORDER BY m.materiaOrden ASC, n.notaFechaNota ASC
+    SELECT new com.example.iesiback.dto.NotaMateriaDTO(
+        n.notaId,
+        m.materiaOrden,
+        m.materiaNombre,
+        CAST(n.notaCalificacionNotaNumero AS string),
+        n.notaCalificacionNotaLetra,
+        n.notaCondicion,
+        n.notaEstado,
+        n.notaLibroNota,
+        n.notaFolioNota,
+        n.notaFechaNota,
+        n.notaObservaciones,
+        n.notaUsuario,
+        mc.materia.materiaId,
+        m.materiaNivel,
+        c.id,
+        mc.firma,
+        mc.id,
+        CONCAT(docente.personaApellido, ', ', docente.personaNombre)
+    )
+    FROM Nota n
+    JOIN n.cursada c
+    JOIN c.materiaCarrera mc
+    JOIN mc.materia m
+    LEFT JOIN Persona docente ON docente.personaDni = mc.fmcDocente
+    WHERE c.legajo.legajoId = :legajoId
+    ORDER BY m.materiaOrden ASC, n.notaFechaNota ASC
 """)
     List<NotaMateriaDTO> findNotasPorLegajo(@Param("legajoId") String legajoId);
+
 
 // @Query(value = """
 //    SELECT
@@ -432,12 +465,42 @@ JOIN mc.carrera c
     List<EquivalenciaDTO> listarEquivalenciasDetalladas();
 
 
-   @Query("""
+//   @Query("""
+//    SELECT new com.example.iesiback.dto.NotaMateriaDTO(
+//        n.notaId,
+//        m.materiaOrden,
+//        m.materiaNombre,
+//CAST(n.notaCalificacionNotaNumero AS string),
+//        n.notaCalificacionNotaLetra,
+//        n.notaCondicion,
+//        n.notaEstado,
+//        n.notaLibroNota,
+//        n.notaFolioNota,
+//        n.notaFechaNota,
+//        n.notaObservaciones,
+//        n.notaUsuario,
+//        mc.materia.materiaId,
+//        m.materiaNivel,
+//        c.materiaCarrera.id,
+//        mc.firma,
+//        mc.id
+//    )
+//    FROM Nota n
+//    JOIN n.cursada c
+//    JOIN c.materiaCarrera mc
+//    JOIN mc.materia m
+//    WHERE c.legajo.legajoId = :legajoId
+//    ORDER BY n.notaFechaNota DESC
+//""")
+//   List<NotaMateriaDTO> findUltimaNotaPorLegajo(@Param("legajoId") String legajoId);
+
+
+    @Query("""
     SELECT new com.example.iesiback.dto.NotaMateriaDTO(
         n.notaId,
         m.materiaOrden,
         m.materiaNombre,
-CAST(n.notaCalificacionNotaNumero AS string),
+        CAST(n.notaCalificacionNotaNumero AS string),
         n.notaCalificacionNotaLetra,
         n.notaCondicion,
         n.notaEstado,
@@ -450,16 +513,18 @@ CAST(n.notaCalificacionNotaNumero AS string),
         m.materiaNivel,
         c.materiaCarrera.id,
         mc.firma,
-        mc.id
+        mc.id,
+        CONCAT(docente.personaApellido, ', ', docente.personaNombre)
     )
     FROM Nota n
     JOIN n.cursada c
     JOIN c.materiaCarrera mc
     JOIN mc.materia m
+    LEFT JOIN Persona docente ON docente.personaDni = mc.fmcDocente
     WHERE c.legajo.legajoId = :legajoId
     ORDER BY n.notaFechaNota DESC
 """)
-   List<NotaMateriaDTO> findUltimaNotaPorLegajo(@Param("legajoId") String legajoId);
+    List<NotaMateriaDTO> findUltimaNotaPorLegajo(@Param("legajoId") String legajoId);
 
 
     @Query("SELECT n.cursada FROM Nota n WHERE n.notaId = :notaId")
@@ -613,12 +678,41 @@ CAST(n.notaCalificacionNotaNumero AS string),
     List<AlumnoCursadaMateriaNotaDTO> findAlumnosPorCarreraNombre(@Param("carreraNombre") String carreraNombre);
 
 
+//    @Query("""
+//    SELECT new com.example.iesiback.dto.NotaMateriaDTO(
+//        n.notaId,
+//        m.materiaOrden,
+//        m.materiaNombre,
+//CAST(n.notaCalificacionNotaNumero AS string),
+//        n.notaCalificacionNotaLetra,
+//        n.notaCondicion,
+//        n.notaEstado,
+//        n.notaLibroNota,
+//        n.notaFolioNota,
+//        n.notaFechaNota,
+//        n.notaObservaciones,
+//        n.notaUsuario,
+//        mc.materia.materiaId,
+//        m.materiaNivel,
+//        mc.id,
+//        mc.firma,
+//        mc.id
+//    )
+//    FROM Nota n
+//    JOIN n.cursada c
+//    JOIN c.materiaCarrera mc
+//    JOIN mc.materia m
+//    WHERE c.legajo.legajoId = :legajoId AND n.notaEstado = 'APROBADO'
+//    ORDER BY n.notaFechaNota DESC
+//""")
+//    List<NotaMateriaDTO> findBylegajoId(@Param("legajoId") String legajoId);
+
     @Query("""
     SELECT new com.example.iesiback.dto.NotaMateriaDTO(
         n.notaId,
         m.materiaOrden,
         m.materiaNombre,
-CAST(n.notaCalificacionNotaNumero AS string),
+        CAST(n.notaCalificacionNotaNumero AS string),
         n.notaCalificacionNotaLetra,
         n.notaCondicion,
         n.notaEstado,
@@ -631,13 +725,15 @@ CAST(n.notaCalificacionNotaNumero AS string),
         m.materiaNivel,
         mc.id,
         mc.firma,
-        mc.id
+        mc.id,
+        CONCAT(docente.personaApellido, ', ', docente.personaNombre)
     )
     FROM Nota n
     JOIN n.cursada c
     JOIN c.materiaCarrera mc
     JOIN mc.materia m
-    WHERE c.legajo.legajoId = :legajoId AND n.notaEstado = 'Aprobado'
+    LEFT JOIN Persona docente ON docente.personaDni = mc.fmcDocente
+    WHERE c.legajo.legajoId = :legajoId AND n.notaEstado = 'APROBADO'
     ORDER BY n.notaFechaNota DESC
 """)
     List<NotaMateriaDTO> findBylegajoId(@Param("legajoId") String legajoId);
