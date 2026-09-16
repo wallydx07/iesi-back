@@ -167,7 +167,8 @@ SELECT
     c.trabajosPracticos AS trabajosPracticos,
     c.asistencia AS asistencia,
     c.coloquio AS coloquio,
-    c.trabajoInstitucional AS trabajoInstitucional
+    c.trabajoInstitucional AS trabajoInstitucional,
+    n.editable AS editable
 FROM Nota n
 JOIN n.cursada c
 JOIN c.legajo l

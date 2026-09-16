@@ -29,6 +29,8 @@ public interface NotaCursadaDTO {
     Double getAsistencia();
     Double getColoquio();
     Double getTrabajoInstitucional();
+
+    Boolean getEditable();
 }
 
 

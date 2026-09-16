@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.example.iesiback.dto.NotaImportDTO;
+import com.example.iesiback.exception.NotaNoEditableException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -379,6 +380,14 @@ public class NotaFilaProcessor {
     }
 
     private void actualizarNota(Nota nota, NotaImportDTO fila) {
+        // La importación masiva actualiza notas ya existentes en varios flujos
+        // (promoción, final regular/libre, equivalencia). Antes de pisar los
+        // campos, respetamos el mismo bloqueo que en la edición manual: si la
+        // nota fue marcada como no editable (editable=false), se rechaza.
+        if (Boolean.FALSE.equals(nota.getEditable())) {
+            throw new NotaNoEditableException(nota.getNotaId());
+        }
+
         nota.setNotaFechaNota(fila.getFecha());
         nota.setNotaLibroNota(fila.getLibro());
         nota.setNotaFolioNota(fila.getFolio());

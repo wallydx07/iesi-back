@@ -31,7 +31,15 @@ public class NotaCursadaConEstadoDTO {
     private Double asistencia;
     private Double coloquio;
     private Double trabajoInstitucional;
+    private Boolean editable;
 
+    public Boolean getEditable() {
+        return editable;
+    }
+
+    public void setEditable(Boolean editable) {
+        this.editable = editable;
+    }
 
     // Constructor que mapea desde la projection + estado
     public NotaCursadaConEstadoDTO(NotaCursadaDTO dto, String estadoCorrelativa) {
@@ -57,6 +65,7 @@ public class NotaCursadaConEstadoDTO {
         this.asistencia = dto.getAsistencia();
         this.coloquio = dto.getColoquio();
         this.trabajoInstitucional = dto.getTrabajoInstitucional();
+        this.editable=dto.getEditable();
     }
 
     public Long getNotaId() {

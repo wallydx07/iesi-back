@@ -4,6 +4,7 @@ import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Cursada;
 import com.example.iesiback.entities.Nota;
 import com.example.iesiback.enums.EstadoCondicion;
+import com.example.iesiback.exception.NotaNoEditableException;
 import com.example.iesiback.services.CorrelativaService;
 import com.example.iesiback.services.NotaService;
 import com.example.iesiback.services.UserService;
@@ -64,9 +65,7 @@ public class NotaController {
 
     @GetMapping("/obtenerTodasNotasPorMateria")
     public ResponseEntity<?> obtenerTodasNotasPorMateria(
-            @RequestParam String carreraId,
-            @RequestParam String materiaId,
-            @RequestParam String division,
+            @RequestParam String carreraId, @RequestParam String materiaId, @RequestParam String division,
             @RequestParam(required = false) Boolean cursadaInscripto) {
         try {
             List<NotaCursadaConEstadoDTO> notas = notaService.findNotasByCarreraAndMateria(
@@ -80,8 +79,6 @@ public class NotaController {
         }
     }
 
-
-
     @GetMapping("/obtenerNotasNoAprobadasPorLegajo")
     public ResponseEntity<List<NotaMateriaDTO>> obtenerNotasNoAprobadasPorLegajo(
             @RequestParam String legajoId
@@ -90,11 +87,9 @@ public class NotaController {
         return ResponseEntity.ok(examenes);
     }
 
-
     @GetMapping("/obtenerTodasNotasPorExamen")
     public ResponseEntity<List<NotaExamenDTO>> obtenerTodasNotasPorExamen(
-            @RequestParam Long  cursadaExamenId,
-            @RequestParam(required = false) Boolean examenInscripto
+            @RequestParam Long  cursadaExamenId, @RequestParam(required = false) Boolean examenInscripto
     ) {
         List<NotaExamenDTO> examenes = notaService.findExamenesByCursadaExamenIdMateriaCarrera(cursadaExamenId, examenInscripto);
         return ResponseEntity.ok(examenes);
@@ -110,17 +105,13 @@ public class NotaController {
 //            nota.setNotaFechaNota(fechaFormateada);
 //        }
 //        nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
-
         if (userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre().equals("ROLE_ADMIN")) {
             System.out.println("ES administrador");
             //     nota.setNotaUsuario(userService.getAuthenticatedUser().get().getRoles().get(0).equals("ROLE_ADMIN"));
         } else {
             System.out.println("no es administrador");
             nota.setNotaUsuario(userService.getAuthenticatedUser().get().getUserApellido());
-
         }
-
-
         nota.setCursada(nuevaNotaAux.getCursada());
         Nota nuevaNota = notaService.guardarNota(nota);
         return ResponseEntity.ok(nuevaNota);
@@ -137,6 +128,9 @@ public class NotaController {
             System.out.println("Respuesta API: " + msg);
 
             return ResponseEntity.ok(msg);
+        } catch (NotaNoEditableException e) {
+            // La dejamos propagar para que la maneje el GlobalExceptionHandler (409)
+            throw e;
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
 
@@ -147,12 +141,14 @@ public class NotaController {
         }
     }
 
-
     @DeleteMapping("/{id}")
     public ResponseEntity<String> eliminarNota(@PathVariable Long id) {
         try {
             notaService.eliminarNota(id);
             return ResponseEntity.ok("Nota y Cursada eliminadas correctamente.");
+        } catch (NotaNoEditableException e) {
+            // La dejamos propagar para que la maneje el GlobalExceptionHandler (409)
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -170,22 +166,18 @@ public class NotaController {
         if (cursada == null) {
             return ResponseEntity.notFound().build();
         }
-
         CorrelativaService.Veredicto veredicto = correlativaService.evaluar(
                 cursada.getLegajo().getLegajoId(),
                 cursada.getMateriaCarrera().getMateria().getMateriaOrden(),
                 EstadoCondicion.CURSADA
         );
-
         cursada.setStatus(veredicto.toLegacy().getStatus());
         return ResponseEntity.ok(cursada);
     }
 
     @PostMapping("/evaluar/{legajoId}/{materiaOrden}/{condicion}")
     public ResponseEntity<EvaluacionCorrelativaResponse> evaluarMateriaIndividual(
-            @PathVariable String legajoId,
-            @PathVariable Integer materiaOrden,
-            @PathVariable EstadoCondicion condicion) {
+            @PathVariable String legajoId, @PathVariable Integer materiaOrden, @PathVariable EstadoCondicion condicion) {
 
         EvaluacionCorrelativaResponse response = correlativaService
                 .evaluar(legajoId, materiaOrden, condicion)
@@ -196,8 +188,7 @@ public class NotaController {
 
     @PostMapping("/evaluarCorrelativaNotaId/{notaId}/{condicion}")
     public ResponseEntity<EvaluacionCorrelativaResponse> evaluarCorrelativaNotaId(
-            @PathVariable Long notaId,
-            @PathVariable EstadoCondicion condicion) {
+            @PathVariable Long notaId, @PathVariable EstadoCondicion condicion) {
 
         EvaluacionCorrelativaResponse response = correlativaService
                 .evaluarPorNota(notaId, condicion)
@@ -208,10 +199,8 @@ public class NotaController {
 
     @PutMapping("/permitir-edicion")
     public ResponseEntity<String> permitirEdicionMateria(
-            @RequestParam String carreraId,
-            @RequestParam String materiaId,
-            @RequestParam boolean editable,
-            @RequestParam String division
+            @RequestParam String carreraId, @RequestParam String materiaId,
+            @RequestParam boolean editable, @RequestParam String division
 
     ) {
         try {
@@ -232,11 +221,6 @@ public class NotaController {
     public List<AlumnoCursadaMateriaNotaDTO> getAlumnosPorCarreraNombre(@PathVariable String carreraNombre) {
         return notaService.getAlumnosPorCarreraNombre(carreraNombre);
     }
-
-//    @PostMapping("/notas/importar")
-//    public void importarNotas(@RequestBody List<NotaImportDTO> notas) {
-//        notaService.importarNotas(notas);
-//    }
 
 
     @GetMapping("/reinscripciones")
@@ -265,4 +249,3 @@ public class NotaController {
 
 
 }
-

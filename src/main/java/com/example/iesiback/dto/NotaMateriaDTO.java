@@ -27,10 +27,8 @@ public class NotaMateriaDTO {
     private Integer cursadaId;
     private Boolean isfirma;
     private Integer materiaCarreraId;
-
-    private String notaStatus;          // "Aceptada" / "Provisoria" / "-"
-    private List<String> notaIsFecha;   // correlativas con fecha incoherente
-
+    private String notaStatus;
+    private List<String> notaIsFecha;
     private String notaDocente;
 
     public String getNotaDocente() {

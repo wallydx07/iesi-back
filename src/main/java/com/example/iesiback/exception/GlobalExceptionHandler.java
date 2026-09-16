@@ -13,6 +13,28 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+
+    // Maneja notas cuyo estado "editable" impide la operación (409 Conflict)
+    @ExceptionHandler(NotaNoEditableException.class)
+    public ResponseEntity<ApiError> handleNotaNoEditable(
+            NotaNoEditableException ex,
+            HttpServletRequest request) {
+
+        log.warn(
+                "Nota no editable - {} {} - {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getMessage()
+        );
+
+        ApiError errorDetails = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Nota No Editable",
+                ex.getMessage()
+        );
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
+    }
     // Maneja errores de negocio personalizados
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiError> handleBusinessException(
