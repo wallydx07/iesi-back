@@ -328,7 +328,7 @@ public class CorrelativaService {
 //        String listaRaw = resolverLista(notaOrigen, condicion);
 
         if (esVacio(listaRaw)) {
-            log.debug("Sin correlativas para condicion={}", condicion);
+//            log.debug("Sin correlativas para condicion={}", condicion);
             return veredictoVacio(TipoVeredicto.SIN_CORRELATIVAS);
         }
 

@@ -2,6 +2,7 @@ package com.example.iesiback.auth;
 
 import java.util.Arrays;
 
+import com.example.iesiback.config.TenantFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,9 @@ import com.example.iesiback.auth.filter.JwtValidationFilter;
 public class SpringSecurityConfig {
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
+
+    @Autowired
+    private TenantFilter tenantFilter;
 
     @Bean
     AuthenticationManager authenticationManager() throws Exception {
@@ -67,7 +71,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/tramite/seguimiento/**").permitAll() //-----------
                         .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll() //-----------
-                        .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll() //-----------
+//                        .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST,"/api/pagos/iniciar").permitAll() //-----------
                         .requestMatchers(HttpMethod.GET, "/api/pagos/*").permitAll()
                         .requestMatchers(
@@ -86,6 +90,7 @@ public class SpringSecurityConfig {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .addFilter(new JwtValidationFilter(authenticationManager()))
+                .addFilterAfter(tenantFilter, JwtValidationFilter.class)   // 👈 nuevo
                 .csrf(config -> config.disable())
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
@@ -96,12 +101,17 @@ public class SpringSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE", "PATCH"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+//        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Tenant")); // 👈 agregado
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
+
+
+
 
     @Bean
     FilterRegistrationBean<CorsFilter> corsFilter() {

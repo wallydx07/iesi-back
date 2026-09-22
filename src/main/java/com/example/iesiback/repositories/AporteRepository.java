@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -84,5 +85,23 @@ public interface AporteRepository extends JpaRepository<Aporte, Integer> {
     ORDER BY aporte_fecha DESC
     """, nativeQuery = true)
     List<Aporte> buscarUnificadoPorLegajo(@Param("legajoId") String legajoId);
+
+
+    @Query(value = """
+    SELECT COALESCE(SUM(monto), 0) FROM (
+        SELECT aporte_monto AS monto
+        FROM aporte
+        WHERE aporte_legajo_id = :legajoId
+          AND EXTRACT(YEAR FROM aporte_fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+        UNION ALL
+        SELECT pago.monto_total AS monto
+        FROM pago
+        INNER JOIN tramite ON pago.tramite_id = tramite.tramite_id
+        WHERE tramite.legajo_id = :legajoId
+          AND tramite.tramite_tipo = 'Matricula'
+          AND EXTRACT(YEAR FROM pago.fecha_pago) = EXTRACT(YEAR FROM CURRENT_DATE)
+    ) AS pagos_unificados
+    """, nativeQuery = true)
+    BigDecimal totalAportesAnioActual(@Param("legajoId") String legajoId);
 
 }

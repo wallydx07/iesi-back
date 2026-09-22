@@ -1,5 +1,6 @@
 package com.example.iesiback.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class AlumnoLegajoInscripcionCarreraDTO {
@@ -24,6 +25,8 @@ public class AlumnoLegajoInscripcionCarreraDTO {
     String legajoComision;
 
     String curso;
+
+    BigDecimal pago;
 
     public AlumnoLegajoInscripcionCarreraDTO(
             String legajoId,
@@ -64,6 +67,14 @@ public class AlumnoLegajoInscripcionCarreraDTO {
         this.domicilioAlumnoCelular = domicilioAlumnoCelular;
         this.legajoComision = legajoComision;
 
+    }
+
+    public BigDecimal getPago() {
+        return pago;
+    }
+
+    public void setPago(BigDecimal pago) {
+        this.pago = pago;
     }
 
     public String getLegajoComision() {

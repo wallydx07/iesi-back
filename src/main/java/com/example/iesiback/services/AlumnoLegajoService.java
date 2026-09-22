@@ -23,9 +23,12 @@ public class AlumnoLegajoService {
     final public MateriaCarreraService materiaCarreraService;
     final public CorrelativaService correlativaService;
 
-    public AlumnoLegajoService(MateriaCarreraService materiaCarreraService, CorrelativaService correlativaService) {
+    final public AporteService aporteService;
+
+    public AlumnoLegajoService(MateriaCarreraService materiaCarreraService, CorrelativaService correlativaService, AporteService aporteService) {
         this.materiaCarreraService = materiaCarreraService;
         this.correlativaService = correlativaService;
+        this.aporteService = aporteService;
     }
 
 
@@ -197,6 +200,7 @@ public class AlumnoLegajoService {
         Map<String, String> cursoPorLegajo = materiaCarreraService.cursoPorMateriasActualBatch(legajoIds);
         for (AlumnoLegajoInscripcionCarreraDTO alumno : alumnos) {
             alumno.setCurso(cursoPorLegajo.getOrDefault(alumno.getLegajoId(), "Sin Datos"));
+            alumno.setPago(aporteService.obtenerTotalAportesAnioActual(alumno.getLegajoId()));
         }
 
         return alumnos;

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -232,6 +233,12 @@ public class AporteServiceImpl implements AporteService {
 
         return aportes;
     }
+
+    @Override
+    public BigDecimal obtenerTotalAportesAnioActual(String legajoId) {
+        return aporteRepository.totalAportesAnioActual(legajoId);
+    }
+
 
     public static <T> Predicate<T> distinctByKeys(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();

@@ -5,6 +5,7 @@ import com.example.iesiback.entities.Aporte;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -22,4 +23,6 @@ public interface AporteService {
      void deleteById(Integer id);
 
      List<Aporte> obtenerAportesYearFiltrado(String legajoId);
+
+     BigDecimal obtenerTotalAportesAnioActual(String legajoId);
 }

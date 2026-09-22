@@ -79,3 +79,62 @@ UPDATE constancia_precios SET icono = 'science' WHERE id = 8;
 UPDATE constancia_precios SET icono = 'analytics' WHERE id = 9;
 UPDATE constancia_precios SET descuento = 0;
 
+===========================================================================================
+-- ============================================================
+-- SCRIPT: Recrear esquema "oficial" desde cero
+-- Borra todo lo que exista y lo vuelve a crear limpio.
+-- ============================================================
+
+-- 1. Borrar todo lo anterior (si existe), en orden por dependencias
+DROP TABLE IF EXISTS oficial.examen CASCADE;
+DROP TABLE IF EXISTS oficial.equivalencia CASCADE;
+DROP TABLE IF EXISTS oficial.nota CASCADE;
+DROP TABLE IF EXISTS oficial.cursada CASCADE;
+DROP TABLE IF EXISTS oficial.permiso CASCADE;
+DROP SCHEMA IF EXISTS oficial CASCADE;
+
+-- 2. Crear el esquema
+CREATE SCHEMA oficial;
+
+-- 3. Crear las tablas copiando estructura de public (columnas, defaults, constraints, índices)
+CREATE TABLE oficial.permiso      (LIKE public.permiso      INCLUDING ALL);
+CREATE TABLE oficial.cursada      (LIKE public.cursada      INCLUDING ALL);
+CREATE TABLE oficial.nota         (LIKE public.nota         INCLUDING ALL);
+CREATE TABLE oficial.examen       (LIKE public.examen       INCLUDING ALL);
+CREATE TABLE oficial.equivalencia (LIKE public.equivalencia INCLUDING ALL);
+
+-- 4. FKs internas al esquema oficial
+ALTER TABLE oficial.nota
+  ADD CONSTRAINT fk_nota_cursada FOREIGN KEY (nota_cursada_id) REFERENCES oficial.cursada(cursada_id);
+
+ALTER TABLE oficial.examen
+  ADD CONSTRAINT fk_examen_nota            FOREIGN KEY (nota_id)            REFERENCES oficial.nota(nota_id),
+  ADD CONSTRAINT fk_examen_permiso         FOREIGN KEY (permiso_id)         REFERENCES oficial.permiso(permiso_id),
+  ADD CONSTRAINT fk_examen_cursada_examen  FOREIGN KEY (cursada_examen_id)  REFERENCES public.cursada_examen(cursada_examen_id);
+
+ALTER TABLE oficial.equivalencia
+  ADD CONSTRAINT fk_equivalencia_nota FOREIGN KEY (nota_id) REFERENCES oficial.nota(nota_id);
+
+-- 5. FKs de oficial.cursada hacia las tablas maestras que siguen en public
+ALTER TABLE oficial.cursada
+  ADD CONSTRAINT fk_cursada_materia_carrera FOREIGN KEY (cursada_materia_carrera_id) REFERENCES public.materia_carrera(id);
+  -- + FK a legajo/alumno si corresponde, ej:
+  -- ADD CONSTRAINT fk_cursada_legajo FOREIGN KEY (cursada_legajo_id) REFERENCES public.legajo(legajo_id);
+
+-- 6. Resetear los contadores de las columnas IDENTITY a 1
+--    (CREATE TABLE ... LIKE ... INCLUDING ALL crea secuencias nuevas e independientes
+--     de las de public, así que esto es solo por si quedó algo de prueba)
+ALTER TABLE oficial.permiso      ALTER COLUMN permiso_id      RESTART WITH 1;
+ALTER TABLE oficial.cursada      ALTER COLUMN cursada_id      RESTART WITH 1;
+ALTER TABLE oficial.nota         ALTER COLUMN nota_id         RESTART WITH 1;
+ALTER TABLE oficial.examen       ALTER COLUMN examen_id       RESTART WITH 1;
+ALTER TABLE oficial.equivalencia ALTER COLUMN equivalencia_id RESTART WITH 1;
+
+-- ============================================================
+-- Verificación rápida: debería devolver 0 filas en las 5 tablas
+-- ============================================================
+SELECT 'permiso' AS tabla, COUNT(*) FROM oficial.permiso
+UNION ALL SELECT 'cursada', COUNT(*) FROM oficial.cursada
+UNION ALL SELECT 'nota', COUNT(*) FROM oficial.nota
+UNION ALL SELECT 'examen', COUNT(*) FROM oficial.examen
+UNION ALL SELECT 'equivalencia', COUNT(*) FROM oficial.equivalencia;
