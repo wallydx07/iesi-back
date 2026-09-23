@@ -79,7 +79,7 @@ UPDATE constancia_precios SET icono = 'science' WHERE id = 8;
 UPDATE constancia_precios SET icono = 'analytics' WHERE id = 9;
 UPDATE constancia_precios SET descuento = 0;
 
-===========================================================================================
+--=============================================================
 -- ============================================================
 -- SCRIPT: Recrear esquema "oficial" desde cero
 -- Borra todo lo que exista y lo vuelve a crear limpio.
