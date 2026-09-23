@@ -72,4 +72,7 @@ public interface CertificadoService {
     PDDocument generarReciboPago(Integer pagoId);
 
     PDDocument generarRendicionTurno(LocalDate fecha);
+
+    PDDocument generaAsistenciaJornadaInstitucional(String dni, String autoridades, String carreraSol,
+                                                    String fechaSeleccionada, String accion, String materia);
 }

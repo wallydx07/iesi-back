@@ -8,11 +8,9 @@ import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.enums.PrioridadTramite;
 import com.example.iesiback.repositories.HtmlService;
 import com.example.iesiback.repositories.MateriaCarreraRepository;
-import com.example.iesiback.utils.PdfFonts;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.lowagie.text.pdf.BaseFont;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.apache.pdfbox.io.IOUtils;
@@ -58,7 +56,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
-import static com.example.iesiback.services.LegajoServiceImpl.log;
 @Service
 public class CertificadoServiceImpl implements CertificadoService {
     private final PersonaService alumnoService;
@@ -9998,6 +9995,197 @@ public PDDocument generarReciboPago(Integer pagoId) {
         };
     }
 
+
+    @Override
+    public PDDocument generaAsistenciaJornadaInstitucional(String dni, String autoridades, String carreraSol,
+                                                           String fechaSeleccionada, String accion, String materia) {
+        PDImageXObject Iesc1;
+        Persona persona = this.alumnoService.findAlumnoById(dni);
+        PDDocument Documento = new PDDocument();
+        try {
+            InputStream iesc1I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+            if (iesc1I == null) {
+                throw new IllegalStateException("No se encontró static/imagenes/esc2.png");
+            }
+            byte[] ba = IOUtils.toByteArray(iesc1I);
+            Iesc1 = PDImageXObject.createFromByteArray(Documento, ba, "esc1.png");
+
+            PDPage Pagina = new PDPage(PDRectangle.A4);
+            Documento.addPage(Pagina);
+            PDPageContentStream contenido = new PDPageContentStream(Documento, Pagina);
+
+            PDType1Font font = PDType1Font.HELVETICA; // Definimos la fuente
+            int fontSize = 8; // Tamaño de la fuente
+            contenido.setFont(font, fontSize);
+
+            // Ancho de la página
+            float pageWidth = PDRectangle.A4.getWidth();
+
+            // Texto para cada línea del encabezado
+            String[] lines = {
+                    "INSTITUTO DE EDUCACION SUPERIOR INTERCULTURAL",
+                    "“CAMPINTA GUAZU GLORIA PEREZ”",
+                    "Incorporado a la Enseñanza Oficial-Resol. Nº 2936-E-15",
+                    "Bahia Blanca Nº 235 Bº Kennedy – Tel.N°(0388)-6256119)",
+                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. De Jujuy - República Argentina",
+                    "________________________________________________________________________________________________________________________"
+            };
+
+            int n = -10;
+            contenido.beginText();
+            float iStart = 820;
+            contenido.newLineAtOffset(0, iStart);
+            for (String line : lines) {
+                float textWidth = font.getStringWidth(line) / 1000 * fontSize;
+                float xStart = (pageWidth - textWidth) / 2;
+                contenido.newLineAtOffset(xStart, 0);
+                contenido.showText(line);
+                contenido.newLineAtOffset(-xStart, n);
+            }
+            contenido.endText();
+            contenido.close();
+
+            PDPageContentStream PDesc1 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDesc1.drawImage(Iesc1, 30, 770, 65, 60); // imagen en x,y con tamaño dado
+            PDesc1.close();
+
+            PDPageContentStream regular = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            // Título de la constancia
+            regular.beginText();
+            regular.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            regular.newLineAtOffset(160, 720);
+            regular.showText("CONSTANCIA DE ASISTENCIA A JORNADA INSTITUCIONAL");
+            regular.newLineAtOffset(0, 0);
+            regular.showText("___________________________________________________");
+            regular.endText();
+
+            int letra = 12;
+
+            // Justificar texto
+            PDType1Font normal = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+
+            String genero = persona.getPersonaGenero();
+            String genero1;
+            String genero2;
+            if ("Masculino".equals(genero)) {
+                genero1 = "el SR";
+                genero2 = "el interesado";
+            } else {
+                genero1 = "la Sra";
+                genero2 = "la interesada";
+            }
+
+            regular.beginText();
+            regular.setFont(normal, letra);
+            regular.newLineAtOffset(50, 680);
+
+            // ---------- Línea 1 ----------
+            String t1 = "-----Por la presente, la Rectora del ";
+            String t2 = "Instituto de Educación Superior Intercultural CAMPINTA ";
+            regular.showText(t1);
+            regular.newLineAtOffset(tamaño(t1, letra, normal), 0);
+            regular.setFont(negrita, letra);
+            regular.showText(t2);
+            float longitud = tamaño(t1 + t2, letra, PDType1Font.HELVETICA) + 20; // longitud permitida para justificar
+            regular.newLineAtOffset(-tamaño(t1, letra, normal), -20);
+
+            // ---------- Línea 2 ----------
+            String t3 = "GUAZU GLORIA PEREZ ";
+            String t4 = "Prof. Cristina Noemi Martínez, deja ";
+            String t41 = "CONSTANCIA ";
+            String t5 = "que " + genero1;
+            float cs2 = charspacing(longitud,
+                    tamaño(t4, letra, normal) + tamaño(t3, letra, negrita) + tamaño(t41, letra, negrita) + tamaño(t5, letra, normal),
+                    t3 + t4 + t5 + t41);
+            regular.setCharacterSpacing(cs2);
+            regular.showText(t3);
+            regular.setFont(normal, letra);
+            regular.newLineAtOffset(tamaño(t3, letra, negrita) + t3.length() * cs2, 0);
+            regular.showText(t4);
+            regular.newLineAtOffset(tamaño(t4, letra, normal) + t4.length() * cs2, 0);
+            regular.showText(t41);
+            regular.newLineAtOffset(tamaño(t41, letra, normal) + t41.length() * cs2, 0);
+            regular.showText(t5);
+            regular.newLineAtOffset(-tamaño(t3, letra, negrita) - tamaño(t41, letra, negrita) - tamaño(t4, letra, normal)
+                    - t3.length() * cs2 - t4.length() * cs2 - t41.length() * cs2, -20);
+
+            // ---------- Línea 3 ----------
+            String nombre = persona.getPersonaNombre();
+            String apellido = persona.getPersonaApellido();
+            String alumno_dni = String.valueOf(persona.getPersonaDni());
+            String t6 = apellido + " " + nombre + " D.N.I: " + alumno_dni + " ";
+            String t7 = ", Docente de esta Institucion";
+            float cs3 = charspacing(longitud, tamaño(t6, letra, negrita) + tamaño(t7, letra, normal), t6 + t7);
+            regular.setFont(negrita, letra);
+            regular.setCharacterSpacing(cs3);
+            regular.showText(t6);
+            regular.newLineAtOffset(tamaño(t6, letra, negrita) + t6.length() * cs3, 0);
+            regular.setFont(normal, letra);
+            regular.showText(t7);
+            regular.newLineAtOffset(-(tamaño(t6, letra, negrita) + t6.length() * cs3), -20);
+
+            // ---------- Línea 4 ----------
+            SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
+            Date fecha = parser.parse(fechaSeleccionada);
+            SimpleDateFormat formatoFecha = new SimpleDateFormat("dd-MM-yyyy");
+            String fechaFormateada = formatoFecha.format(fecha);
+
+            String t11 = accion + " el dia: " + fechaFormateada + " a la JORNADA INSTITUCIONAL";
+            String t13 = "";
+            t13 = rellenar(t11 + t13, t13, letra, longitud);
+            float cs4 = charspacing(longitud, tamaño(t11, letra, normal) + tamaño(t13, letra, normal), t11 + t13);
+            regular.setCharacterSpacing(cs4);
+            regular.showText(t11);
+            regular.newLineAtOffset(tamaño(t11, letra, normal) + t11.length() * cs4, 0);
+            regular.showText(t13);
+            regular.newLineAtOffset(-(tamaño(t11, letra, normal) + t11.length() * cs4), -20);
+
+            // ---------- Línea 5 ----------
+            String t14 = "-----Se expide la presente CONSTANCIA a solicitud de " + genero2 + "  y al solo efecto de ser";
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t14, letra, normal), t14));
+            regular.showText(t14);
+
+            // ---------- Línea 6: autoridades ----------
+            String t15 = "presentada ante las Autoridades del ";
+            String t16 = autoridades;
+            if ("que lo requieran".equals(t16)) {
+                t15 = "presentada ante las Autoridades ";
+            }
+            t16 = rellenar(t15 + t16, t16, letra, longitud);
+            float cs7 = charspacing(longitud, tamaño(t15, letra, normal) + tamaño(t16, letra, normal), t15 + t16);
+            regular.setCharacterSpacing(cs7);
+            regular.newLineAtOffset(0, -20);
+            regular.setFont(normal, letra);
+            regular.showText(t15);
+            regular.newLineAtOffset(tamaño(t15, letra, normal) + t15.length() * cs7, 0);
+            regular.showText(t16);
+
+            // ---------- Línea 7: lugar y fecha ----------
+            String t17 = "-----SAN SALVADOR DE JUJUY, " + fecha() + "-------------";
+            regular.newLineAtOffset(-(tamaño(t15, letra, normal) + t15.length() * cs7), -20);
+            regular.setCharacterSpacing(charspacing(longitud, tamaño(t17, letra, normal), t17));
+            regular.showText(t17);
+            regular.endText();
+            regular.close();
+
+            // ---------- Recuadro ----------
+            float margin = 30;
+            float yStartNewPage = Pagina.getMediaBox().getHeight() - (4 * margin);
+            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+            boolean drawContent = true;
+            float yStart = yStartNewPage + 30;
+            float bottomMargin = 70;
+            BaseTable table = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, Documento, Pagina, true, drawContent);
+            Row<PDPage> headerRow = table.createRow(300);
+            headerRow.createCell(100, " ");
+            table.draw();
+
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException("Error generando constancia de jornada institucional", e);
+        }
+        return Documento;
+    }
 }
 
 

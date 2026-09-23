@@ -109,23 +109,49 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
 
 
 
+//    @Query("""
+//    SELECT new com.example.iesiback.dto.AsistenciaResumenDTO(
+//        m.materiaNombre,
+//        COUNT(a.id),
+//        SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END),
+//        CAST(ROUND(SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END) * 100.0 / COUNT(a.id)) AS int),m.materiaId
+//    )
+//    FROM AsistenciaAlumno a
+//    JOIN a.idInforme i
+//    JOIN i.materiaCarrera mc
+//    JOIN mc.materia m
+//    JOIN mc.id cursada c
+//    WHERE a.legajoId = :legajoId
+//      AND FUNCTION('date_part', 'year', i.fecha) = :anioActual
+//    GROUP BY m.materiaNombre, m.materiaOrden, m.materiaId
+//    ORDER BY m.materiaOrden
+//""")
+//    List<AsistenciaResumenDTO> obtenerResumenAsistencia(@Param("legajoId") String legajoId, @Param("anioActual") int anioActual);
+
     @Query("""
     SELECT new com.example.iesiback.dto.AsistenciaResumenDTO(
         m.materiaNombre,
         COUNT(a.id),
         SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END),
-        CAST(ROUND(SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END) * 100.0 / COUNT(a.id)) AS int),m.materiaId
+        CAST(ROUND(SUM(CASE WHEN a.estado = true THEN 1 ELSE 0 END) * 100.0 / COUNT(a.id), 0) AS Integer),
+        m.materiaId
     )
     FROM AsistenciaAlumno a
     JOIN a.idInforme i
     JOIN i.materiaCarrera mc
     JOIN mc.materia m
     WHERE a.legajoId = :legajoId
-      AND FUNCTION('date_part', 'year', i.fecha) = :anioActual
+      AND YEAR(i.fecha) = :anioActual
+      AND EXISTS (
+          SELECT 1 FROM Cursada c
+          WHERE c.materiaCarrera = mc
+            AND c.legajo.legajoId = a.legajoId
+      )
     GROUP BY m.materiaNombre, m.materiaOrden, m.materiaId
     ORDER BY m.materiaOrden
 """)
-    List<AsistenciaResumenDTO> obtenerResumenAsistencia(@Param("legajoId") String legajoId, @Param("anioActual") int anioActual);
+    List<AsistenciaResumenDTO> obtenerResumenAsistencia(@Param("legajoId") String legajoId,
+                                                        @Param("anioActual") int anioActual);
 
 
 }

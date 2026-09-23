@@ -805,8 +805,31 @@ public class CertificadoController {
         }
     }
 
+    @GetMapping("/generaAsistenciaJornadaInstitucional")
+    public ResponseEntity<ByteArrayResource> generaAsistenciaJornadaInstitucional(
+            @RequestParam String dni,
+            @RequestParam String autoridades,
+            @RequestParam String carrera,
+            @RequestParam String fecha,
+            @RequestParam String accion,
+            @RequestParam String materia
+    ) {
+        try {
+            PDDocument document = certificadoService.generaAsistenciaJornadaInstitucional(dni,autoridades,carrera,fecha, accion,materia);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
+            byte[] pdfBytes = baos.toByteArray();
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
 
-
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; generaCertificadoAsistencia.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 
 }
