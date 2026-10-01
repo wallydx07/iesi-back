@@ -78,17 +78,20 @@ public class CarreraController {
 
     @GetMapping("/ordenadas/por-usuario/")
     public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario(
-            @RequestParam Integer cicloLectivo) {
+            @RequestParam(required = false) Integer cicloLectivo) {
+
+        var usuario = userService.getAuthenticatedUser().orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String userRol = String.valueOf(usuario.getRoles().get(0).getRoleNombre());
+        Long userId = Long.valueOf(usuario.getUsername());
+
+        // Sin ciclo lectivo = vista histórica (alumnos pasivos): incluye carreras cerradas
+        boolean historico = cicloLectivo == null;
 
         List<Carrera> carreras;
-
-        String userRol = String.valueOf(
-                userService.getAuthenticatedUser().get().getRoles().get(0).getRoleNombre()
-        );
-
-        Long userId = Long.valueOf(
-                userService.getAuthenticatedUser().get().getUsername()
-        );
 
         if ("ROLE_ADMIN".equalsIgnoreCase(userRol)
                 || "ROLE_TITULACION".equalsIgnoreCase(userRol)) {
@@ -98,7 +101,9 @@ public class CarreraController {
         } else if ("ROLE_PERSONAL".equalsIgnoreCase(userRol)
                 || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
 
-            carreras = carreraService.findVigentesOrderedByYearAndName();
+            carreras = historico
+                    ? carreraService.obtenerCarrerasOrdenadas()
+                    : carreraService.findVigentesOrderedByYearAndName();
 
         } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
 
@@ -109,29 +114,23 @@ public class CarreraController {
             carreras = materiaCarreraService.obtenerCarrerasPorDocente(userId);
 
         } else {
-
-            System.out.println("NO AUTORIZADO!!!!!");
-
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // Filtrar carreras vigentes para el ciclo lectivo solicitado
         List<Carrera> carrerasFiltradas = carreras.stream()
                 .filter(c -> c.getCarreraNombre() != null)
-                .filter(c -> !"ASISTENCIA PERSONAL"
-                        .equalsIgnoreCase(c.getCarreraNombre().trim()))
-                .filter(c -> c.getCarreraYear() != null)
-                .filter(c -> {
-                    int anioInicio = c.getCarreraYear();
-                    return cicloLectivo >= anioInicio
-                            && cicloLectivo < anioInicio + 3;
-                })
+                .filter(c -> !"ASISTENCIA PERSONAL".equalsIgnoreCase(c.getCarreraNombre().trim()))
+                .filter(c -> historico || perteneceAlCiclo(c, cicloLectivo))
                 .toList();
 
         return ResponseEntity.ok(carrerasFiltradas);
     }
 
-
+    private boolean perteneceAlCiclo(Carrera c, int cicloLectivo) {
+        if (c.getCarreraYear() == null) return false;
+        int anioInicio = c.getCarreraYear();
+        return cicloLectivo >= anioInicio && cicloLectivo < anioInicio + 3;
+    }
 
     @GetMapping("/inscripcion")
     public ResponseEntity<List<Carrera>> obtenerCarrerasInscripcion(@RequestParam String alumnoDni) {
