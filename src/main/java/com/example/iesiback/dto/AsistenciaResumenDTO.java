@@ -5,15 +5,29 @@ public class AsistenciaResumenDTO {
     private String materiaId;
     private String materia;
     private Long totalSesiones;
-    private Long presentes;
+    private Double presentes;
     private Integer porcentaje;
 
-    public AsistenciaResumenDTO(String materia, Long totalSesiones, Long presentes, Integer porcentaje, String materiaId) {
+    private Long cantPresentes;
+    private Long cantAusentes;
+    private Long cantTardanzas;
+    private Long cantRetiros;
+    private Long cantJustificados;
+
+    public AsistenciaResumenDTO(String materia, Long totalSesiones, Double presentes,
+                                Integer porcentaje, String materiaId,
+                                Long cantPresentes, Long cantAusentes, Long cantTardanzas,
+                                Long cantRetiros, Long cantJustificados) {
         this.materia = materia;
         this.totalSesiones = totalSesiones;
         this.presentes = presentes;
         this.porcentaje = porcentaje;
         this.materiaId = materiaId;
+        this.cantPresentes = cantPresentes;
+        this.cantAusentes = cantAusentes;
+        this.cantTardanzas = cantTardanzas;
+        this.cantRetiros = cantRetiros;
+        this.cantJustificados = cantJustificados;
     }
 
     public String getMateriaId() {
@@ -40,11 +54,11 @@ public class AsistenciaResumenDTO {
         this.totalSesiones = totalSesiones;
     }
 
-    public Long getPresentes() {
+    public Double getPresentes() {
         return presentes;
     }
 
-    public void setPresentes(Long presentes) {
+    public void setPresentes(Double presentes) {
         this.presentes = presentes;
     }
 
@@ -55,5 +69,44 @@ public class AsistenciaResumenDTO {
     public void setPorcentaje(Integer porcentaje) {
         this.porcentaje = porcentaje;
     }
-// Getters y setters
+
+    public Long getCantPresentes() {
+        return cantPresentes;
+    }
+
+    public void setCantPresentes(Long cantPresentes) {
+        this.cantPresentes = cantPresentes;
+    }
+
+    public Long getCantAusentes() {
+        return cantAusentes;
+    }
+
+    public void setCantAusentes(Long cantAusentes) {
+        this.cantAusentes = cantAusentes;
+    }
+
+    public Long getCantTardanzas() {
+        return cantTardanzas;
+    }
+
+    public void setCantTardanzas(Long cantTardanzas) {
+        this.cantTardanzas = cantTardanzas;
+    }
+
+    public Long getCantRetiros() {
+        return cantRetiros;
+    }
+
+    public void setCantRetiros(Long cantRetiros) {
+        this.cantRetiros = cantRetiros;
+    }
+
+    public Long getCantJustificados() {
+        return cantJustificados;
+    }
+
+    public void setCantJustificados(Long cantJustificados) {
+        this.cantJustificados = cantJustificados;
+    }
 }

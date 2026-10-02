@@ -75,4 +75,7 @@ public interface CertificadoService {
 
     PDDocument generaAsistenciaJornadaInstitucional(String dni, String autoridades, String carreraSol,
                                                     String fechaSeleccionada, String accion, String materia);
+
+    // ===================== Método principal =====================
+    PDDocument generaFichaAsistencias(String libreta);
 }

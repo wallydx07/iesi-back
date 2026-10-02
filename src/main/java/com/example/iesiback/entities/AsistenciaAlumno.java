@@ -27,11 +27,11 @@ public class AsistenciaAlumno {
     @Column(name = "legajo_id", length = 50)
     private String legajoId;
 
-    @Column(name = "estado")
-    private Boolean estado;
+//    @Column(name = "estado")
+//    private Boolean estado;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "estado", length = 20)
-//    private EstadoAsistencia estado;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", length = 20)
+    private EstadoAsistencia estado;
 
 }

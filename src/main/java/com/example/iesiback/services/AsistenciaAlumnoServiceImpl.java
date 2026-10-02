@@ -1,17 +1,19 @@
 package com.example.iesiback.services;
-import com.example.iesiback.dto.AlumnoAsistenciaDTO;
-import com.example.iesiback.dto.AsistenciaAlumnoDTO;
-import com.example.iesiback.dto.AsistenciaResumenDTO;
-import com.example.iesiback.dto.InformeAsistenciaDTO;
+import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.AsistenciaAlumno;
 import com.example.iesiback.entities.InformeAsistenciaAlumno;
+import com.example.iesiback.enums.EstadoAsistencia;
 import com.example.iesiback.repositories.AsistenciaAlumnoRepository;
 import com.example.iesiback.repositories.InformeAsistenciaAlumnoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
@@ -49,15 +51,15 @@ public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
 
     @Override
     public List<AlumnoAsistenciaDTO> obtenerAsistenciasConDetalle(Integer idInforme) {
-        return repository.obtenerAsistenciasConDetalle(idInforme)
-                .stream()
-                .peek(dto -> {
-                    if (dto.getEstado() == null) {
-                        dto.setEstado(false);
-                    }
-                })
-                .toList();
+        List<AlumnoAsistenciaDTO> lista = repository.obtenerAsistenciasConDetalle(idInforme);
+        lista.forEach(dto -> {
+            if (dto.getEstado() == null) {
+                dto.setEstado(EstadoAsistencia.AUSENTE);
+            }
+        });
+        return lista;
     }
+
 //    @Override
 //    public void guardarTodas(List<AsistenciaAlumno> asistencias) {
 //        repository.saveAll(asistencias);
@@ -96,6 +98,30 @@ public class AsistenciaAlumnoServiceImpl implements AsistenciaAlumnoService {
     @Override
     public List<AsistenciaResumenDTO> obtenerResumenAsistencia(String legajoId, int anioActual) {
         return repository.obtenerResumenAsistencia(legajoId, anioActual);
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<AsistenciaAlumnoDetalleDTO> obtenerDetalleAsistencia(String legajoId, int anio) {
+        return repository.obtenerDetalleAsistencia(legajoId, anio)
+                .stream()
+                .map(d -> d.estado() != null
+                        ? d
+                        : new AsistenciaAlumnoDetalleDTO(d.materiaId(), d.materiaNombre(), d.fecha(), EstadoAsistencia.AUSENTE))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Map<String, List<AsistenciaAlumnoDetalleDTO>> obtenerDetallePorMateria(String legajoId, int anio) {
+        return obtenerDetalleAsistencia(legajoId, anio)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        AsistenciaAlumnoDetalleDTO::materiaId,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
     }
 }
 

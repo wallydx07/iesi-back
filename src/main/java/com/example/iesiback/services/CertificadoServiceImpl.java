@@ -3,6 +3,7 @@ import be.quodlibet.boxable.*;
 import be.quodlibet.boxable.line.LineStyle;
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.*;
+import com.example.iesiback.enums.EstadoAsistencia;
 import com.example.iesiback.enums.EstadoCondicion;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.enums.PrioridadTramite;
@@ -11,6 +12,7 @@ import com.example.iesiback.repositories.MateriaCarreraRepository;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.lowagie.text.pdf.BaseFont;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.apache.pdfbox.io.IOUtils;
@@ -25,17 +27,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.apache.pdfbox.util.Matrix;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -48,7 +49,6 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -78,6 +78,8 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final PermisoService permisoService;
     private final ExamenService examenService;
     private final CorrelativaService correlativaService;
+    private final AsistenciaAlumnoService asistenciaAlumnoService;
+
 
     private final PersonalHorariosService personalHorariosService;
 private final EmailService emailService;
@@ -89,7 +91,7 @@ private final EmailService emailService;
                                   MateriaCarreraRepository materiaCarreraRepository, DocumentoService documentoService,
                                   LegajoService legajoService,
                                   AlumnoLegajoService alumnoLegajoService,
-                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, CorrelativaService correlativaService, PersonalHorariosService personalHorariosService, EmailService emailService) {
+                                  PersonalService personalService, AsistenciaPersonalService asistenciaPersonalService, HtmlService htmlService, AporteService aporteService, UserService userService, ObservacionesService observacionesService, TramiteService tramiteService, PagoService pagoService, PasesService paseService, TurnoService turnoService, PermisoService permisoService, ExamenService examenService, CorrelativaService correlativaService, AsistenciaAlumno asistenciaAlumno, AsistenciaAlumnoService asistenciaAlumnoService, PersonalHorariosService personalHorariosService, EmailService emailService) {
         this.alumnoService = alumnoService;
         this.carreraService = carreraService;
         this.notaService = notaService;
@@ -110,6 +112,7 @@ private final EmailService emailService;
         this.permisoService = permisoService;
         this.examenService = examenService;
         this.correlativaService = correlativaService;
+        this.asistenciaAlumnoService = asistenciaAlumnoService;
         this.personalHorariosService = personalHorariosService;
         this.emailService = emailService;
     }
@@ -10186,6 +10189,479 @@ public PDDocument generarReciboPago(Integer pagoId) {
         }
         return Documento;
     }
+
+
+// ===================== Imports adicionales =====================
+// import be.quodlibet.boxable.*;
+// import be.quodlibet.boxable.Cell;
+// import be.quodlibet.boxable.Row;
+// import com.example.iesiback.dto.AsistenciaDetalleDTO;
+// import com.example.iesiback.dto.AsistenciaResumenDTO;
+// import com.example.iesiback.enums.EstadoAsistencia;
+// import org.apache.pdfbox.pdmodel.*;
+// import org.apache.pdfbox.pdmodel.common.PDRectangle;
+// import org.apache.pdfbox.pdmodel.font.PDFont;
+// import org.apache.pdfbox.pdmodel.font.PDType1Font;
+// import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+// import java.awt.Color;
+// import java.io.*;
+// import java.time.*;
+// import java.time.format.DateTimeFormatter;
+// import java.util.*;
+// import java.util.stream.Collectors;
+
+    // ===================== Configuración de la ficha =====================
+    private static final int UMBRAL_REGULAR = 75;   // mismos valores que en el frontend
+    private static final int UMBRAL_PROMO = 80;
+    private static final int MIN_CLASES_CONFIABLE = 4;
+
+    private static final PDType1Font F_NORMAL = PDType1Font.HELVETICA;
+    private static final PDType1Font F_NEGRITA = PDType1Font.HELVETICA_BOLD;
+    private static final float MARGEN = 40;
+    private static final float MARGEN_INF = 50;
+    private static final Locale ES_AR = new Locale("es", "AR");
+    private static final DateTimeFormatter FMT_DDMM = DateTimeFormatter.ofPattern("dd/MM");
+    private static final DateTimeFormatter FMT_LARGA = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", ES_AR);
+
+    private static final Color GRIS_CAB = new Color(233, 236, 239);
+    private static final Color GRIS_ETIQ = new Color(248, 249, 250);
+    private static final Color VERDE = new Color(209, 231, 221);
+    private static final Color AMARILLO = new Color(255, 243, 205);
+    private static final Color ROJO = new Color(248, 215, 218);
+
+    private record EstiloEstado(String sigla, String nombre, String computa, Color fondo, Color texto) {}
+    private record Situacion(String texto, Color fondo) {}
+
+    private static final Map<EstadoAsistencia, EstiloEstado> ESTILOS = new EnumMap<>(EstadoAsistencia.class);
+    static {
+        ESTILOS.put(EstadoAsistencia.PRESENTE,        new EstiloEstado("P", "Presente",        "1",   VERDE,                     new Color(15, 81, 50)));
+        ESTILOS.put(EstadoAsistencia.TARDANZA,        new EstiloEstado("T", "Tardanza",        "½",   AMARILLO,                  new Color(102, 77, 3)));
+        ESTILOS.put(EstadoAsistencia.RETIRO_TEMPRANO, new EstiloEstado("R", "Retiro temprano", "½",   new Color(207, 244, 252),  new Color(5, 81, 96)));
+        ESTILOS.put(EstadoAsistencia.AUSENTE,         new EstiloEstado("A", "Ausente",         "0",   ROJO,                      new Color(132, 32, 41)));
+        ESTILOS.put(EstadoAsistencia.JUSTIFICADO,     new EstiloEstado("J", "Justificado",     "0",   new Color(226, 227, 229),  new Color(65, 70, 75)));
+    }
+
+    /** Posición de escritura actual: página y coordenada Y. */
+    private static final class Cursor {
+        PDPage pagina;
+        float y;
+        Cursor(PDPage pagina, float y) { this.pagina = pagina; this.y = y; }
+    }
+
+    // ===================== Método principal =====================
+    @Override
+    public PDDocument generaFichaAsistencias(String libreta) {
+        PDDocument doc = new PDDocument();
+        try {
+            Legajo legajo = legajoService.findById(libreta)
+                    .orElseThrow(() -> new RuntimeException("No se encontró el legajo con ID: " + libreta));
+            Persona persona = legajo.getLegajoPersonaDni();
+            String carrera = permisoService.obtenerCarreraPorLibreta(libreta);
+            int dni = permisoService.obtenerDniPorLibreta(libreta);
+            int anio = Year.now().getValue();
+            String emision = LocalDate.now().format(FMT_LARGA);
+
+            List<AsistenciaResumenDTO> resumen = AsistenciaAlumnoService.obtenerResumenAsistencia(libreta, anio);
+            Map<String, List<AsistenciaAlumnoDetalleDTO>> detalle = AsistenciaAlumnoService
+                    .obtenerDetalleAsistencia(libreta, anio).stream()
+                    .collect(Collectors.groupingBy(AsistenciaAlumnoDetalleDTO::materiaId, LinkedHashMap::new, Collectors.toList()));
+
+            PDPage primera = new PDPage(PDRectangle.A4);
+            doc.addPage(primera);
+            Cursor c = new Cursor(primera, primera.getMediaBox().getHeight() - MARGEN);
+            float anchoUtil = primera.getMediaBox().getWidth() - 2 * MARGEN;
+
+            encabezado(doc, c, cargarLogo(doc), anio);
+            datosAlumno(doc, c, persona, dni, libreta, carrera, anchoUtil);
+
+            if (resumen.isEmpty()) {
+                c.y -= 10;
+                linea(doc, c, "No hay asistencias registradas para el año " + anio + ".", F_NORMAL, 10, MARGEN);
+            } else {
+                tablaResumen(doc, c, resumen, anchoUtil);
+                detalleFechas(doc, c, resumen, detalle, anchoUtil);
+            }
+
+            guia(doc, c, anchoUtil, emision);
+            pieDePagina(doc, libreta, emision);
+            return doc;
+
+        } catch (IOException e) {
+            cerrarSilencioso(doc);
+            throw new UncheckedIOException("No se pudo generar la ficha de asistencias", e);
+        } catch (RuntimeException e) {
+            cerrarSilencioso(doc);
+            throw e;
+        }
+    }
+
+    // ===================== Secciones =====================
+    private void encabezado(PDDocument doc, Cursor c, PDImageXObject logo, int anio) throws IOException {
+        float ancho = c.pagina.getMediaBox().getWidth();
+        float y = c.y;
+        try (PDPageContentStream cs = stream(doc, c.pagina)) {
+            if (logo != null) {
+                cs.drawImage(logo, MARGEN, y - 48, 45, 45);
+            }
+            String[] lineas = {
+                    "INSTITUTO DE EDUCACIÓN SUPERIOR INTERCULTURAL",
+                    "“CAMPINTA GUAZÚ GLORIA PÉREZ”",
+                    "Incorporado a la Enseñanza Oficial – Resol. Nº 2936-E-15",
+                    "Bahía Blanca Nº 235, Bº Kennedy – Tel N° (0388) 6256119",
+                    "(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. de Jujuy – República Argentina"
+            };
+            y -= 8;
+            for (int i = 0; i < lineas.length; i++) {
+                centrado(cs, lineas[i], i < 2 ? F_NEGRITA : F_NORMAL, 8, ancho, y);
+                y -= 10;
+            }
+            cs.setLineWidth(0.6f);
+            cs.moveTo(MARGEN, y);
+            cs.lineTo(ancho - MARGEN, y);
+            cs.stroke();
+
+            y -= 22;
+            centrado(cs, "FICHA DE ASISTENCIAS", F_NEGRITA, 14, ancho, y);
+            y -= 14;
+            centrado(cs, "Año lectivo " + anio, F_NORMAL, 9, ancho, y);
+        }
+        c.y = y - 16;
+    }
+
+    private void datosAlumno(PDDocument doc, Cursor c, Persona p, int dni, String libreta,
+                             String carrera, float anchoUtil) throws IOException {
+        BaseTable t = tabla(doc, c, anchoUtil);
+
+        Row<PDPage> r1 = t.createRow(16);
+        etiqueta(r1, 15, "Estudiante");
+        celda(r1, 45, p.getPersonaApellido() + ", " + p.getPersonaNombre(), HorizontalAlignment.LEFT).setFont(F_NEGRITA);
+        etiqueta(r1, 15, "DNI");
+        celda(r1, 25, String.valueOf(dni), HorizontalAlignment.LEFT);
+
+        Row<PDPage> r2 = t.createRow(16);
+        etiqueta(r2, 15, "Carrera");
+        celda(r2, 45, carrera, HorizontalAlignment.LEFT);
+        etiqueta(r2, 15, "Libreta");
+        celda(r2, 25, libreta, HorizontalAlignment.LEFT);
+
+        cerrarTabla(t, c);
+        c.y -= 14;
+    }
+
+    private void tablaResumen(PDDocument doc, Cursor c, List<AsistenciaResumenDTO> resumen,
+                              float anchoUtil) throws IOException {
+        titulo(doc, c, "Resumen por unidad curricular");
+
+        long promo = resumen.stream().filter(r -> pct(r) >= UMBRAL_PROMO && n(r.getTotalSesiones()) > 0).count();
+        long regular = resumen.stream().filter(r -> pct(r) >= UMBRAL_REGULAR && pct(r) < UMBRAL_PROMO).count();
+        long libre = resumen.stream().filter(r -> n(r.getTotalSesiones()) > 0 && pct(r) < UMBRAL_REGULAR).count();
+        linea(doc, c, "Promociona: " + promo + "     Regular: " + regular + "     Libre: " + libre,
+                F_NORMAL, 9, MARGEN);
+        c.y -= 4;
+
+        float[] w = {28, 7, 5, 5, 5, 5, 5, 8, 7, 11, 14}; // suma 100
+        String[] cab = {"Unidad curricular", "Clases", "P", "T", "R", "A", "J", "Computa", "%", "Situación", "Margen"};
+
+        BaseTable t = tabla(doc, c, anchoUtil);
+        Row<PDPage> h = t.createRow(18);
+        for (int i = 0; i < cab.length; i++) {
+            Cell<PDPage> ce = celda(h, w[i], cab[i], i == 0 ? HorizontalAlignment.LEFT : HorizontalAlignment.CENTER);
+            ce.setFont(F_NEGRITA);
+            ce.setFillColor(GRIS_CAB);
+        }
+        t.addHeaderRow(h);
+
+        long totClases = 0, totP = 0, totT = 0, totR = 0, totA = 0, totJ = 0;
+        double totComputa = 0;
+
+        for (AsistenciaResumenDTO r : resumen) {
+            Situacion s = situacion(r);
+            Row<PDPage> fila = t.createRow(16);
+            celda(fila, w[0], r.getMateria(), HorizontalAlignment.LEFT);
+            celda(fila, w[1], String.valueOf(n(r.getTotalSesiones())), HorizontalAlignment.CENTER);
+            celda(fila, w[2], String.valueOf(n(r.getCantPresentes())), HorizontalAlignment.CENTER);
+            celda(fila, w[3], String.valueOf(n(r.getCantTardanzas())), HorizontalAlignment.CENTER);
+            celda(fila, w[4], String.valueOf(n(r.getCantRetiros())), HorizontalAlignment.CENTER);
+            celda(fila, w[5], String.valueOf(n(r.getCantAusentes())), HorizontalAlignment.CENTER);
+            celda(fila, w[6], String.valueOf(n(r.getCantJustificados())), HorizontalAlignment.CENTER);
+            celda(fila, w[7], fmt(d(r.getPresentes())), HorizontalAlignment.CENTER);
+            celda(fila, w[8], n(r.getTotalSesiones()) > 0 ? Math.round(pct(r)) + "%" : "-", HorizontalAlignment.CENTER)
+                    .setFont(F_NEGRITA);
+            Cell<PDPage> cs = celda(fila, w[9], s.texto(), HorizontalAlignment.CENTER);
+            if (s.fondo() != null) cs.setFillColor(s.fondo());
+            celda(fila, w[10], margen(r), HorizontalAlignment.CENTER);
+
+            totClases += n(r.getTotalSesiones());
+            totP += n(r.getCantPresentes());
+            totT += n(r.getCantTardanzas());
+            totR += n(r.getCantRetiros());
+            totA += n(r.getCantAusentes());
+            totJ += n(r.getCantJustificados());
+            totComputa += d(r.getPresentes());
+        }
+
+        Row<PDPage> tot = t.createRow(16);
+        String[] valores = {
+                "Total", String.valueOf(totClases), String.valueOf(totP), String.valueOf(totT),
+                String.valueOf(totR), String.valueOf(totA), String.valueOf(totJ), fmt(totComputa),
+                totClases > 0 ? Math.round(totComputa * 100 / totClases) + "%" : "-", "", ""
+        };
+        for (int i = 0; i < valores.length; i++) {
+            Cell<PDPage> ce = celda(tot, w[i], valores[i], i == 0 ? HorizontalAlignment.LEFT : HorizontalAlignment.CENTER);
+            ce.setFont(F_NEGRITA);
+            ce.setFillColor(GRIS_ETIQ);
+        }
+
+        cerrarTabla(t, c);
+        c.y -= 16;
+    }
+
+    private void detalleFechas(PDDocument doc, Cursor c, List<AsistenciaResumenDTO> resumen,
+                               Map<String, List<AsistenciaAlumnoDetalleDTO>> detalle, float anchoUtil) throws IOException {
+        titulo(doc, c, "Detalle de clases por unidad curricular");
+        final int porFila = 10;
+        final float anchoCelda = 100f / porFila;
+
+        for (AsistenciaResumenDTO r : resumen) {
+            List<AsistenciaAlumnoDetalleDTO> clases = detalle.getOrDefault(r.getMateriaId(), List.of());
+            if (clases.isEmpty()) continue;
+
+            reservar(doc, c, 60); // que el título de la materia no quede solo al pie de la página
+            BaseTable t = tabla(doc, c, anchoUtil);
+
+            Row<PDPage> cab = t.createRow(16);
+            String info = r.getMateria() + "   ·   " + n(r.getTotalSesiones()) + " clases   ·   "
+                    + Math.round(pct(r)) + "%   ·   " + situacion(r).texto();
+            Cell<PDPage> hc = celda(cab, 100, info, HorizontalAlignment.LEFT);
+            hc.setFont(F_NEGRITA);
+            hc.setFillColor(GRIS_CAB);
+
+            for (int i = 0; i < clases.size(); i += porFila) {
+                Row<PDPage> fila = t.createRow(24);
+                for (int j = 0; j < porFila; j++) {
+                    if (i + j < clases.size()) {
+                        AsistenciaAlumnoDetalleDTO dto = clases.get(i + j);
+                        EstiloEstado e = ESTILOS.get(dto.estado() != null ? dto.estado() : EstadoAsistencia.AUSENTE);
+                        // Si fecha es java.util.Date: new SimpleDateFormat("dd/MM").format(dto.fecha())
+                        String texto = dto.fecha().format(FMT_DDMM) + "<br><b>" + e.sigla() + "</b>";
+                        Cell<PDPage> ce = celda(fila, anchoCelda, texto, HorizontalAlignment.CENTER);
+                        ce.setFillColor(e.fondo());
+                        ce.setTextColor(e.texto());
+                    } else {
+                        celda(fila, anchoCelda, "", HorizontalAlignment.CENTER);
+                    }
+                }
+            }
+            cerrarTabla(t, c);
+            c.y -= 10;
+        }
+    }
+
+    private void guia(PDDocument doc, Cursor c, float anchoUtil, String emision) throws IOException {
+        reservar(doc, c, 120);
+        titulo(doc, c, "Cómo leer esta ficha");
+
+        // Referencias de colores
+        BaseTable t = tabla(doc, c, anchoUtil);
+        Row<PDPage> fila = t.createRow(18);
+        for (EstiloEstado e : ESTILOS.values()) {
+            Cell<PDPage> ce = celda(fila, 20, "<b>" + e.sigla() + "</b>  " + e.nombre() + " (computa " + e.computa() + ")",
+                    HorizontalAlignment.CENTER);
+            ce.setFillColor(e.fondo());
+            ce.setTextColor(e.texto());
+        }
+        cerrarTabla(t, c);
+        c.y -= 8;
+
+        String[] items = {
+                "Cada clase registrada tiene un estado. Presente suma una asistencia completa; Tardanza y Retiro temprano "
+                        + "suman media asistencia; Ausente no suma. Justificado indica que la falta tiene justificación, "
+                        + "pero no suma asistencia.",
+                "Porcentaje de asistencia = asistencias computadas / clases dictadas x 100. La columna \"Computa\" "
+                        + "muestra las asistencias ya ponderadas.",
+                "Situación según asistencia: Promociona con " + UMBRAL_PROMO + "% o más; Regular entre " + UMBRAL_REGULAR
+                        + "% y " + (UMBRAL_PROMO - 1) + "% (rinde examen final); Libre con menos de " + UMBRAL_REGULAR
+                        + "%. La condición final depende además de los requisitos académicos de cada unidad curricular.",
+                "Margen: \"Puede faltar N\" indica cuántas clases más podés faltar sin quedar por debajo del "
+                        + UMBRAL_REGULAR + "%, calculado sobre las clases dictadas hasta hoy. \"Asistir N seguidas\" "
+                        + "indica cuántas clases consecutivas necesitás para recuperar la regularidad. El margen cambia "
+                        + "a medida que se dictan nuevas clases.",
+                "Con menos de " + MIN_CLASES_CONFIABLE + " clases registradas el porcentaje puede variar mucho; "
+                        + "tomalo como referencia provisoria.",
+                "Si encontrás un error en tu registro, consultalo con el docente de la unidad curricular o con Secretaría.",
+                "Documento informativo emitido el " + emision + ". No reemplaza constancias oficiales."
+        };
+        for (String item : items) {
+            vineta(doc, c, item, anchoUtil);
+            c.y -= 3;
+        }
+    }
+
+    private void pieDePagina(PDDocument doc, String libreta, String emision) throws IOException {
+        int total = doc.getNumberOfPages();
+        for (int i = 0; i < total; i++) {
+            PDPage p = doc.getPage(i);
+            float ancho = p.getMediaBox().getWidth();
+            try (PDPageContentStream cs = stream(doc, p)) {
+                cs.setNonStrokingColor(new Color(120, 120, 120));
+                texto(cs, "Ficha de asistencias · Libreta " + libreta + " · Emitida el " + emision,
+                        F_NORMAL, 7, MARGEN, 25);
+                String pag = "Página " + (i + 1) + " de " + total;
+                texto(cs, pag, F_NORMAL, 7, ancho - MARGEN - ancho(pag, F_NORMAL, 7), 25);
+            }
+        }
+    }
+
+    // ===================== Cálculos =====================
+    private double pct(AsistenciaResumenDTO r) {
+        long total = n(r.getTotalSesiones());
+        return total == 0 ? 0 : d(r.getPresentes()) * 100 / total;
+    }
+
+    private Situacion situacion(AsistenciaResumenDTO r) {
+        if (n(r.getTotalSesiones()) == 0) return new Situacion("Sin datos", null);
+        double p = pct(r);
+        String extra = n(r.getTotalSesiones()) < MIN_CLASES_CONFIABLE ? "*" : "";
+        if (p >= UMBRAL_PROMO) return new Situacion("Promociona" + extra, VERDE);
+        if (p >= UMBRAL_REGULAR) return new Situacion("Regular" + extra, AMARILLO);
+        return new Situacion("Libre" + extra, ROJO);
+    }
+
+    /** Margen respecto de la regularidad, calculado sobre las clases dictadas hasta hoy. */
+    private String margen(AsistenciaResumenDTO r) {
+        long total = n(r.getTotalSesiones());
+        if (total == 0) return "-";
+        double presentes = d(r.getPresentes());
+        double u = UMBRAL_REGULAR / 100.0;
+
+        if (presentes / total >= u) {
+            int puede = (int) Math.floor(presentes / u - total + 1e-9);
+            return puede <= 0 ? "Sin margen" : "Puede faltar " + puede;
+        }
+        int necesita = (int) Math.ceil((u * total - presentes) / (1 - u) - 1e-9);
+        return "Asistir " + necesita + " seguidas";
+    }
+
+    // ===================== Helpers de dibujo =====================
+    private PDPageContentStream stream(PDDocument doc, PDPage p) throws IOException {
+        return new PDPageContentStream(doc, p, PDPageContentStream.AppendMode.APPEND, true, true);
+    }
+
+    private BaseTable tabla(PDDocument doc, Cursor c, float anchoUtil) throws IOException {
+        float alto = c.pagina.getMediaBox().getHeight();
+        return new BaseTable(c.y, alto - MARGEN, MARGEN_INF, anchoUtil, MARGEN, doc, c.pagina, true, true);
+    }
+
+    private void cerrarTabla(BaseTable t, Cursor c) throws IOException {
+        c.y = t.draw();
+        c.pagina = t.getCurrentPage();
+    }
+
+    private Cell<PDPage> celda(Row<PDPage> row, float ancho, String texto, HorizontalAlignment align) {
+        Cell<PDPage> c = row.createCell(ancho, texto == null ? "" : texto);
+        c.setAlign(align);
+        c.setValign(VerticalAlignment.MIDDLE);
+        c.setFont(F_NORMAL);
+        c.setFontSize(8);
+        return c;
+    }
+
+    private void etiqueta(Row<PDPage> row, float ancho, String texto) {
+        Cell<PDPage> c = celda(row, ancho, texto, HorizontalAlignment.LEFT);
+        c.setFont(F_NEGRITA);
+        c.setFillColor(GRIS_ETIQ);
+    }
+
+    private void titulo(PDDocument doc, Cursor c, String texto) throws IOException {
+        reservar(doc, c, 40);
+        linea(doc, c, texto, F_NEGRITA, 11, MARGEN);
+        c.y -= 4;
+    }
+
+    private void linea(PDDocument doc, Cursor c, String txt, PDFont font, float size, float x) throws IOException {
+        reservar(doc, c, size + 4);
+        try (PDPageContentStream cs = stream(doc, c.pagina)) {
+            texto(cs, txt, font, size, x, c.y - size);
+        }
+        c.y -= size + 4;
+    }
+
+    private void vineta(PDDocument doc, Cursor c, String txt, float anchoUtil) throws IOException {
+        List<String> lineas = partir(txt, F_NORMAL, 8.5f, anchoUtil - 12);
+        for (int i = 0; i < lineas.size(); i++) {
+            reservar(doc, c, 12);
+            try (PDPageContentStream cs = stream(doc, c.pagina)) {
+                if (i == 0) texto(cs, "•", F_NORMAL, 8.5f, MARGEN, c.y - 8.5f);
+                texto(cs, lineas.get(i), F_NORMAL, 8.5f, MARGEN + 12, c.y - 8.5f);
+            }
+            c.y -= 11;
+        }
+    }
+
+    private void texto(PDPageContentStream cs, String txt, PDFont font, float size, float x, float y) throws IOException {
+        cs.beginText();
+        cs.setFont(font, size);
+        cs.newLineAtOffset(x, y);
+        cs.showText(txt);
+        cs.endText();
+    }
+
+    private void centrado(PDPageContentStream cs, String txt, PDFont font, float size, float anchoPagina, float y)
+            throws IOException {
+        texto(cs, txt, font, size, (anchoPagina - ancho(txt, font, size)) / 2, y);
+    }
+
+    private float ancho(String txt, PDFont font, float size) throws IOException {
+        return font.getStringWidth(txt) / 1000 * size;
+    }
+
+    private List<String> partir(String txt, PDFont font, float size, float anchoMax) throws IOException {
+        List<String> lineas = new ArrayList<>();
+        StringBuilder actual = new StringBuilder();
+        for (String palabra : txt.split(" ")) {
+            String prueba = actual.isEmpty() ? palabra : actual + " " + palabra;
+            if (!actual.isEmpty() && ancho(prueba, font, size) > anchoMax) {
+                lineas.add(actual.toString());
+                actual = new StringBuilder(palabra);
+            } else {
+                actual = new StringBuilder(prueba);
+            }
+        }
+        if (!actual.isEmpty()) lineas.add(actual.toString());
+        return lineas;
+    }
+
+    private void reservar(PDDocument doc, Cursor c, float alto) {
+        if (c.y - alto < MARGEN_INF) {
+            PDPage nueva = new PDPage(PDRectangle.A4);
+            doc.addPage(nueva);
+            c.pagina = nueva;
+            c.y = nueva.getMediaBox().getHeight() - MARGEN;
+        }
+    }
+
+    private PDImageXObject cargarLogo(PDDocument doc) {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png")) {
+            if (is == null) return null;
+            return PDImageXObject.createFromByteArray(doc, is.readAllBytes(), "esc2.png");
+        } catch (IOException e) {
+            return null; // la ficha sale igual, sin logo
+        }
+    }
+
+    private void cerrarSilencioso(PDDocument doc) {
+        try { doc.close(); } catch (IOException ignored) { }
+    }
+
+    private static long n(Long v) { return v == null ? 0 : v; }
+    private static double d(Double v) { return v == null ? 0 : v; }
+
+    private static String fmt(double v) {
+        return v == Math.floor(v) ? String.valueOf((long) v) : String.format(ES_AR, "%.1f", v);
+    }
+
+
+
 }
 
 

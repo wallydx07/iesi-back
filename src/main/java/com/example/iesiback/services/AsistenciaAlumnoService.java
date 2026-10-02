@@ -1,12 +1,11 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.AlumnoAsistenciaDTO;
-import com.example.iesiback.dto.AsistenciaAlumnoDTO;
-import com.example.iesiback.dto.AsistenciaResumenDTO;
-import com.example.iesiback.dto.InformeAsistenciaDTO;
+import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.AsistenciaAlumno;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface AsistenciaAlumnoService {
@@ -19,4 +18,10 @@ public interface AsistenciaAlumnoService {
     List<AsistenciaAlumnoDTO> obtenerAsistencias(String materiaCarreraId);
     List<InformeAsistenciaDTO> obtenerFechasAsistencia(String materiaCarreraId);
     List<AsistenciaResumenDTO> obtenerResumenAsistencia(String legajoId, int anioActual);
+
+    @Transactional(readOnly = true)
+    List<AsistenciaAlumnoDetalleDTO> obtenerDetalleAsistencia(String legajoId, int anio);
+
+    @Transactional(readOnly = true)
+    Map<String, List<AsistenciaAlumnoDetalleDTO>> obtenerDetallePorMateria(String legajoId, int anio);
 }

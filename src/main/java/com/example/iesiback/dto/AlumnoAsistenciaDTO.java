@@ -1,15 +1,17 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.enums.EstadoAsistencia;
+
 public class AlumnoAsistenciaDTO {
     private Integer idAsistencia;
     private Integer idInforme;
     private String legajoId;
-    private Boolean estado;
+    private EstadoAsistencia estado;
     private Long personaDni;
     private String personaApellido;
     private String personaNombre;
 
-    public AlumnoAsistenciaDTO(Integer idAsistencia, Integer idInforme, String legajoId, Boolean estado,Long personaDni,String personaApellido,String personaNombre) {
+    public AlumnoAsistenciaDTO(Integer idAsistencia, Integer idInforme, String legajoId, EstadoAsistencia estado,Long personaDni,String personaApellido,String personaNombre) {
         this.idAsistencia = idAsistencia;
         this.idInforme = idInforme;
         this.legajoId = legajoId;
@@ -44,11 +46,11 @@ public class AlumnoAsistenciaDTO {
         this.legajoId = legajoId;
     }
 
-    public Boolean getEstado() {
+    public EstadoAsistencia getEstado() {
         return estado;
     }
 
-    public void setEstado(Boolean estado) {
+    public void setEstado(EstadoAsistencia estado) {
         this.estado = estado;
     }
 
