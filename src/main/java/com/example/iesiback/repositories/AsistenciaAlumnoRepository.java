@@ -98,7 +98,7 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
     @Query("""
     SELECT new com.example.iesiback.dto.AsistenciaResumenDTO(
         m.materiaNombre,
-        COUNT(a.id),
+        COUNT(a.id) - SUM(CASE WHEN a.estado = com.example.iesiback.enums.EstadoAsistencia.JUSTIFICADO THEN 1 ELSE 0 END),
         CAST(SUM(CASE
             WHEN a.estado = com.example.iesiback.enums.EstadoAsistencia.PRESENTE THEN 1.0
             WHEN a.estado IN (
@@ -114,7 +114,9 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
                 com.example.iesiback.enums.EstadoAsistencia.RETIRO_TEMPRANO
             ) THEN 0.5
             ELSE 0.0
-        END) * 100.0 / COUNT(a.id), 0) AS Integer),
+        END) * 100.0 / NULLIF(
+            COUNT(a.id) - SUM(CASE WHEN a.estado = com.example.iesiback.enums.EstadoAsistencia.JUSTIFICADO THEN 1 ELSE 0 END)
+        , 0), 0) AS Integer),
         m.materiaId,
         SUM(CASE WHEN a.estado = com.example.iesiback.enums.EstadoAsistencia.PRESENTE        THEN 1 ELSE 0 END),
         SUM(CASE WHEN a.estado = com.example.iesiback.enums.EstadoAsistencia.AUSENTE         THEN 1 ELSE 0 END),
@@ -138,7 +140,6 @@ public interface AsistenciaAlumnoRepository extends JpaRepository<AsistenciaAlum
 """)
     List<AsistenciaResumenDTO> obtenerResumenAsistencia(@Param("legajoId") String legajoId,
                                                         @Param("anioActual") int anioActual);
-
     @Query("""
     SELECT new com.example.iesiback.dto.AsistenciaAlumnoDetalleDTO(
         m.materiaId,

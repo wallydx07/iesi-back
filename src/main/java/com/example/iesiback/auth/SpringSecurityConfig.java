@@ -78,6 +78,7 @@ public class SpringSecurityConfig {
                                 "/api/pagos/webhook",
                                 "/api/pagos/presencial/webhook"
                         ).permitAll()
+                        .requestMatchers("/public/**").permitAll()
                         // 🔥 Necesario para SockJS
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/ws").permitAll()

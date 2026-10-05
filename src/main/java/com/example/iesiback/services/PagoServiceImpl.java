@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -335,24 +336,52 @@ public class PagoServiceImpl implements PagoService {
             LocalDate fechaPago
     ) {
 
-        ZoneId zona = ZoneId.systemDefault();
+        // 1. Fijar la zona horaria explícita para evitar desfases si el servidor corre en UTC
+        ZoneId zona = ZoneId.of("America/Argentina/Jujuy");
 
-        Instant inicio =
-                fechaPago.atStartOfDay(zona).toInstant();
+        // Inicio del día local: 00:00:00.000 (ej: 2026-10-02T03:00:00Z)
+        Instant inicio = fechaPago.atStartOfDay(zona).toInstant();
 
-        Instant fin =
-                fechaPago.plusDays(1)
-                        .atStartOfDay(zona)
-                        .toInstant();
+        // Fin del día local: 23:59:59.999999999 (ej: 2026-10-03T02:59:59.999999999Z)
+        Instant fin = fechaPago.atTime(LocalTime.MAX).atZone(zona).toInstant();
 
-        User user=this.userService.getAuthenticatedUser().get();
+        User user = this.userService.getAuthenticatedUser()
+                .orElseThrow(() -> new IllegalStateException("Usuario no autenticado"));
+
+        String usernameClean = user.getUsername() != null ? user.getUsername().trim() : "";
 
         boolean esDirectivo = user.getRoles().stream()
                 .anyMatch(r -> r.getRoleNombre().equals("ROLE_DIRECTIVO"));
 
+        System.out.println("=== VARIABLES BÚSQUEDA ===");
+        System.out.println("esDirectivo: " + esDirectivo);
+        System.out.println("inicio (UTC): " + inicio);
+        System.out.println("fin (UTC): " + fin);
+        System.out.println("username: '" + usernameClean + "'");
+        System.out.println("==========================");
+
         List<Pago> pagos = esDirectivo
                 ? pagoRepository.findByFechaPagoBetween(inicio, fin)
-                : pagoRepository.findByFechaPagoBetweenAndResponsable(inicio, fin, (user.getUsername()));
+                : pagoRepository.findByFechaPagoBetweenAndResponsable(inicio, fin, usernameClean);
+
+        System.out.println("Resultados obtenidos (pagos.size): " + pagos.size());
+
+        // --- IMPRESIÓN DETALLADA DE PAGOS RECUPERADOS ---
+        if (!pagos.isEmpty()) {
+            System.out.println("--- DETALLE DE PAGOS RECUPERADOS ---");
+            pagos.forEach(p -> {
+                System.out.printf("ID: %d | FechaPago: %s | Monto: %s | Responsable: '%s' | Estado: %s%n",
+                        p.getId(),
+                        p.getFechaPago(),
+                        p.getMontoTotal(),
+                        p.getResponsable(),
+                        p.getEstado()
+                );
+            });
+            System.out.println("------------------------------------");
+        } else {
+            System.out.println("No se encontraron pagos en el rango de fechas para la consulta.");
+        }
 
         if (pagos.isEmpty()) {
             return Optional.empty();
@@ -365,82 +394,44 @@ public class PagoServiceImpl implements PagoService {
         int totalOperaciones = pagos.size();
 
         int totalValidados = (int) pagos.stream()
-                .filter(p ->
-                        p.getEstado() == EstadoPago.APROBADO
-                )
+                .filter(p -> p.getEstado() == EstadoPago.APROBADO)
                 .count();
 
         int totalPendientes = (int) pagos.stream()
-                .filter(p ->
-                        p.getEstado() == EstadoPago.PENDIENTE
-                )
+                .filter(p -> p.getEstado() == EstadoPago.PENDIENTE)
                 .count();
 
         List<ReciboDTO> recibos = pagos.stream().map(p -> {
-
             ReciboDTO r = new ReciboDTO();
 
             r.setAporteId(p.getId().longValue());
             r.setAporteMonto(p.getMontoTotal());
             r.setConcepto(p.getTipoPago());
 
-            if (
-                    p.getTramite() != null
-                            && p.getTramite().getTramiteDni() != null
-            ) {
-
-                PersonaDTO personaDTO =
-                        personaService.findPersonaDTOById(
-                                p.getTramite().getTramiteDni()
-                        );
-
-                r.setAlumnoApellido(
-                        personaDTO.getPersonaApellido()
+            if (p.getTramite() != null && p.getTramite().getTramiteDni() != null) {
+                PersonaDTO personaDTO = personaService.findPersonaDTOById(
+                        p.getTramite().getTramiteDni()
                 );
 
-                r.setAlumnoNombre(
-                        personaDTO.getPersonaNombre()
-                );
-
-                r.setAlumnoDni(
-                        personaDTO.getPersonaDni().toString()
-                );
+                r.setAlumnoApellido(personaDTO.getPersonaApellido());
+                r.setAlumnoNombre(personaDTO.getPersonaNombre());
+                r.setAlumnoDni(personaDTO.getPersonaDni().toString());
             }
 
-            r.setPagoDetalles(
-                    pagoDetalleService.obtenerPorPago(
-                            p.getId()
-                    )
-            );
+            r.setPagoDetalles(pagoDetalleService.obtenerPorPago(p.getId()));
+            r.setEstado(p.getEstado());
+            r.setMetodo(p.getMetodoPago());
 
-//            r.setValidado(
-//                    p.getEstado() == EstadoPago.APROBADO
-//            );
-
-            r.setEstado(
-                    p.getEstado()
-            );
-
-
-
-            r.setMetodo(
-                    p.getMetodoPago()
-            );
-
-            r.setTramiteId(
-                    p.getTramite().getId()
-            );
+            if (p.getTramite() != null) {
+                r.setTramiteId(p.getTramite().getId());
+            }
 
             return r;
-
         }).toList();
 
         Map<String, BigDecimal> agrupado = pagos.stream()
                 .collect(Collectors.groupingBy(
-                        p -> p.getTipoPago() != null
-                                ? p.getTipoPago()
-                                : "OTROS",
-
+                        p -> p.getTipoPago() != null ? p.getTipoPago() : "OTROS",
                         Collectors.reducing(
                                 BigDecimal.ZERO,
                                 Pago::getMontoTotal,
@@ -448,24 +439,15 @@ public class PagoServiceImpl implements PagoService {
                         )
                 ));
 
-        List<ConceptoDTO> porConcepto =
-                agrupado.entrySet()
-                        .stream()
-                        .map(e -> {
+        List<ConceptoDTO> porConcepto = agrupado.entrySet().stream()
+                .map(e -> {
+                    ConceptoDTO c = new ConceptoDTO();
+                    c.setNombre(e.getKey());
+                    c.setTotal(e.getValue());
+                    return c;
+                }).toList();
 
-                            ConceptoDTO c =
-                                    new ConceptoDTO();
-
-                            c.setNombre(e.getKey());
-                            c.setTotal(e.getValue());
-
-                            return c;
-
-                        }).toList();
-
-        ResumenRecaudacionDTO resumen =
-                new ResumenRecaudacionDTO();
-
+        ResumenRecaudacionDTO resumen = new ResumenRecaudacionDTO();
         resumen.setTotalRecaudado(totalRecaudado);
         resumen.setTotalOperaciones(totalOperaciones);
         resumen.setTotalValidados(totalValidados);
@@ -475,8 +457,6 @@ public class PagoServiceImpl implements PagoService {
 
         return Optional.of(resumen);
     }
-
-
 
 
     @Override
