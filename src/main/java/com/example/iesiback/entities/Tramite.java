@@ -109,19 +109,23 @@ public class Tramite {
     @Column(name = "tramite_subtipo", length = 100)
     private String tramiteSubTipo;
 
-
     @Column(name = "tramite_asunto", columnDefinition = "TEXT")
     private String tramiteAsunto;
 
     @Column(name = "tramite_Referencia")
     private Integer tramiteReferencia;
 
+    @Size(max = 100)
+    @Column(name = "tramite_area", length = 100)
+    private String tramiteArea;
+
     @OneToMany(mappedBy = "tramite")
     private List<Pago> pagos;
 
-//    @OneToMany(mappedBy = "tramite", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonManagedReference
-//    private List<Pago> pagos;
+    // Permiso generado por este trámite (lado inverso: no crea columna en tramite)
+    @OneToOne(mappedBy = "tramite", fetch = FetchType.LAZY)
+//    @JsonIgnore
+    private Permiso permiso;
 
     @JsonIgnore
     public String getTramiteFechaFormateada() {
@@ -129,233 +133,5 @@ public class Tramite {
         DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return "Fecha: " + tramiteFecha.format(f) +
                 "   Hora: " + tramiteFecha.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
-
     }
-
-    @Size(max = 100)
-    @Column(name = "tramite_area", length = 100)
-    private String tramiteArea;
-
-    public String getTramiteArea() {
-        return tramiteArea;
-    }
-
-    public void setTramiteArea(String tramiteArea) {
-        this.tramiteArea = tramiteArea;
-    }
-
-    public List<Pago> getPagos() {
-        return pagos;
-    }
-
-    public void setPagos(List<Pago> pagos) {
-        this.pagos = pagos;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Long getTramiteDni() {
-        return tramiteDni;
-    }
-
-    public void setTramiteDni(Long tramiteDni) {
-        this.tramiteDni = tramiteDni;
-    }
-
-    public String getTramiteEstado() {
-        return tramiteEstado;
-    }
-
-    public void setTramiteEstado(String tramiteEstado) {
-        this.tramiteEstado = tramiteEstado;
-    }
-
-    public String getTramiteApellidoNombre() {
-        return tramiteApellidoNombre;
-    }
-
-    public void setTramiteApellidoNombre(String tramiteApellidoNombre) {
-        this.tramiteApellidoNombre = tramiteApellidoNombre;
-    }
-
-    public String getTramiteCorreo() {
-        return tramiteCorreo;
-    }
-
-    public void setTramiteCorreo(String tramiteCorreo) {
-        this.tramiteCorreo = tramiteCorreo;
-    }
-
-    public Long getTramiteCelular() {
-        return tramiteCelular;
-    }
-
-    public void setTramiteCelular(Long tramiteCelular) {
-        this.tramiteCelular = tramiteCelular;
-    }
-
-    public String getTramiteTipo() {
-        return tramiteTipo;
-    }
-
-    public void setTramiteTipo(String tramiteTipo) {
-        this.tramiteTipo = tramiteTipo;
-    }
-
-    public String getTramiteProblema() {
-        return tramiteProblema;
-    }
-
-    public void setTramiteProblema(String tramiteProblema) {
-        this.tramiteProblema = tramiteProblema;
-    }
-
-    public LocalDateTime getTramiteFecha() {
-        return tramiteFecha;
-    }
-
-    public void setTramiteFecha(LocalDateTime tramiteFecha) {
-        this.tramiteFecha = tramiteFecha;
-    }
-
-    public String getTramiteRespuesta() {
-        return tramiteRespuesta;
-    }
-
-    public void setTramiteRespuesta(String tramiteRespuesta) {
-        this.tramiteRespuesta = tramiteRespuesta;
-    }
-
-    public String getTramiteObservaciones() {
-        return tramiteObservaciones;
-    }
-
-    public void setTramiteObservaciones(String tramiteObservaciones) {
-        this.tramiteObservaciones = tramiteObservaciones;
-    }
-
-    public String getTramiteDestino() {
-        return tramiteDestino;
-    }
-
-    public void setTramiteDestino(String tramiteDestino) {
-        this.tramiteDestino = tramiteDestino;
-    }
-
-    public String getTramiteUsuario() {
-        return tramiteUsuario;
-    }
-
-    public void setTramiteUsuario(String tramiteUsuario) {
-        this.tramiteUsuario = tramiteUsuario;
-    }
-
-    public List<Pases> getPases() {
-        return pases;
-    }
-
-    public void setPases(List<Pases> pases) {
-        this.pases = pases;
-    }
-
-    public List<CertificadoEstudiante> getCertificados() {
-        return certificados;
-    }
-
-    public void setCertificados(List<CertificadoEstudiante> certificados) {
-        this.certificados = certificados;
-    }
-
-    public String getCodigoSeguimiento() {
-        return codigoSeguimiento;
-    }
-
-    public void setCodigoSeguimiento(String codigoSeguimiento) {
-        this.codigoSeguimiento = codigoSeguimiento;
-    }
-
-    public Long getNumeroTipo() {
-        return numeroTipo;
-    }
-
-    public void setNumeroTipo(Long numeroTipo) {
-        this.numeroTipo = numeroTipo;
-    }
-
-    public PrioridadTramite getTramitePrioridad() {
-        return tramitePrioridad;
-    }
-
-    public void setTramitePrioridad(PrioridadTramite tramitePrioridad) {
-        this.tramitePrioridad = tramitePrioridad;
-    }
-
-    public String getLegajoId() {
-        return legajoId;
-    }
-
-    public void setLegajoId(String legajoId) {
-        this.legajoId = legajoId;
-    }
-
-    public Long getTramiteFolios() {
-        return tramiteFolios;
-    }
-
-    public void setTramiteFolios(Long tramiteFolios) {
-        this.tramiteFolios = tramiteFolios;
-    }
-
-    public Long getGestorDni() {
-        return gestorDni;
-    }
-
-    public void setGestorDni(Long gestorDni) {
-        this.gestorDni = gestorDni;
-    }
-
-    public String getTramiteCanal() {
-        return tramiteCanal;
-    }
-
-    public void setTramiteCanal(String tramiteCanal) {
-        this.tramiteCanal = tramiteCanal;
-    }
-
-    public String getTramiteSubTipo() {
-        return tramiteSubTipo;
-    }
-
-    public void setTramiteSubTipo(String tramiteSubTipo) {
-        this.tramiteSubTipo = tramiteSubTipo;
-    }
-
-    public String getTramiteAsunto() {
-        return tramiteAsunto;
-    }
-
-    public void setTramiteAsunto(String tramiteAsunto) {
-        this.tramiteAsunto = tramiteAsunto;
-    }
-
-    public Integer getTramiteReferencia() {
-        return tramiteReferencia;
-    }
-
-    public void setTramiteReferencia(Integer tramiteReferencia) {
-        this.tramiteReferencia = tramiteReferencia;
-    }
-
-
-    //    @Transient
-//    public String getLegajoId() {
-//        return legajo != null ? legajo.getLegajoId() : null;
-//    }
-
 }

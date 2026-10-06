@@ -1,59 +1,53 @@
 package com.example.iesiback.controllers;
 
-
+import com.example.iesiback.entities.Permiso;
 import com.example.iesiback.services.PermisoService;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.nio.file.Files;
-@CrossOrigin(origins = "*")  // Permite solicitudes desde cualquier origen
+import java.util.List;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/permisos")
 public class PermisoController {
 
     private final PermisoService permisoService;
-    @Autowired
+
     public PermisoController(PermisoService permisoService) {
         this.permisoService = permisoService;
     }
 
+    @GetMapping("/{id}")
+    public Permiso buscarPorId(@PathVariable Long id) {
+        return permisoService.buscarPorId(id);
+    }
 
+    @GetMapping("/legajo/{legajoId}")
+    public List<Permiso> buscarPorLegajo(@PathVariable String legajoId) {
+        return permisoService.buscarPorLegajo(legajoId);
+    }
 
-//    @PostMapping("/generar")
-//    public ResponseEntity<ByteArrayResource> generarPermiso(
-//            @RequestParam String libreta,
-//            @RequestParam String turno,
-//            @RequestParam String usuarioNombre
-//    ) {
-//        try {
-//            PDDocument documento = permisoService.generaPermiso(libreta, turno, usuarioNombre);
-//            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//            documento.save(outputStream);
-//            documento.close();
-//
-//            byte[] pdfBytes = outputStream.toByteArray();
-//            System.out.println("✅ PDF generado correctamente, tamaño: " + pdfBytes.length + " bytes");
-//
-//            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
-//
-//            return ResponseEntity.ok()
-//                    .contentType(MediaType.APPLICATION_PDF)
-//                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=permiso.pdf")
-//                    .body(resource);
-//
-//        } catch (Exception e) {
-//            System.out.println("❌ Error al generar el PDF:");
-//            e.printStackTrace(); // Imprime el error en la consola
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-//        }
-//    }
+    @GetMapping("/tramite/{tramiteId}")
+    public Permiso buscarPorTramite(@PathVariable Integer tramiteId) {
+        return permisoService.buscarPorTramite(tramiteId);
+    }
 
+    @PostMapping
+    public ResponseEntity<Permiso> crear(@Valid @RequestBody Permiso req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(permisoService.crear(req));
+    }
+
+    @PutMapping("/{id}")
+    public Permiso actualizar(@PathVariable Long id, @Valid @RequestBody Permiso req) {
+        return permisoService.actualizar(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        permisoService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

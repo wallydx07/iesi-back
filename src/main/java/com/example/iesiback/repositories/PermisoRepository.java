@@ -42,4 +42,10 @@ public interface PermisoRepository extends JpaRepository<Permiso, Long> {
     Optional<Permiso> findPermisoByLegajoAndTurnoOrdered(@Param("legajoId") String legajoId,
                                                          @Param("turnoId") String turnoId);
 
+    List<Permiso> findByPermisoLegajoIdOrderByPermisoFechaDesc(String permisoLegajoId);
+
+    Optional<Permiso> findByTramite_Id(Integer tramiteId);
+
+    boolean existsByTramite_Id(Integer tramiteId);
+
 }
