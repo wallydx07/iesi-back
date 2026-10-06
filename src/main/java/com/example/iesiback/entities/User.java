@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.enums.Tenant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -49,10 +50,6 @@ public class User implements IUser {
     private String password;
 
 
-  //  @JsonIdentityInfo(
-  //          generator = ObjectIdGenerators.PropertyGenerator.class,
-  //          property = "roleId"
-  //  )
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "user_role",
@@ -61,6 +58,12 @@ public class User implements IUser {
             uniqueConstraints = { @UniqueConstraint(columnNames = {"username", "role_id"}) }
     )
     private List<Role> roles;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tenant_seleccionado")
+    private Tenant tenantSeleccionado = Tenant.PUBLIC;
+
 
     public User() {
         this.roles = new ArrayList<>();
@@ -130,5 +133,13 @@ public class User implements IUser {
 
     public void setUserStatus(Boolean user_status) {
         this.userStatus = user_status;
+    }
+
+    public Tenant getTenantSeleccionado() {
+        return tenantSeleccionado;
+    }
+
+    public void setTenantSeleccionado(Tenant tenantSeleccionado) {
+        this.tenantSeleccionado = tenantSeleccionado;
     }
 }

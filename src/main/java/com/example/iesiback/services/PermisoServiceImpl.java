@@ -175,4 +175,29 @@ public class PermisoServiceImpl implements PermisoService {
         permisoRepository.delete(permiso);
     }
 
+    @Transactional
+    @Override
+    public Permiso vincularTramite(Long permisoId, Integer tramiteId) {
+        Permiso permiso = buscarPorId(permisoId);
+
+        if (permiso.getTramite() != null) {
+            if (permiso.getTramite().getId().equals(tramiteId)) {
+                return permiso; // ya estaba vinculado a este mismo trámite
+            }
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "El permiso ya está vinculado a otro trámite");
+        }
+
+        if (permisoRepository.existsByTramite_Id(tramiteId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "El trámite ya tiene otro permiso asociado");
+        }
+
+        Tramite tramite = tramiteService.findById(tramiteId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Trámite no encontrado: " + tramiteId));
+
+        permiso.setTramite(tramite);
+        return permisoRepository.save(permiso);
+    }
 }

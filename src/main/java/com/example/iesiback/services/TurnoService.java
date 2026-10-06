@@ -3,6 +3,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.TurnoExamenDTO;
 import com.example.iesiback.entities.Turno;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,4 +23,8 @@ public interface TurnoService {
     TurnoExamenDTO obtenerTurnoMasCercano(LocalDate fecha);
 
   TurnoExamenDTO obtenerTurnoActualbyNotaId(Long notaId);
+
+
+  @Transactional(readOnly = true)
+  Turno turnoDelPermiso(Integer permisoId);
 }

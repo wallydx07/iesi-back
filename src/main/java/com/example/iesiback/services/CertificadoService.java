@@ -78,4 +78,6 @@ public interface CertificadoService {
 
     // ===================== Método principal =====================
     PDDocument generaFichaAsistencias(String libreta);
+
+    PDDocument generarPermisoById(Integer tramiteId);
 }

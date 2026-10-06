@@ -50,4 +50,9 @@ public class PermisoController {
         permisoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/tramite/{tramiteId}")
+    public Permiso vincularTramite(@PathVariable Long id, @PathVariable Integer tramiteId) {
+        return permisoService.vincularTramite(id, tramiteId);
+    }
 }

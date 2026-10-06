@@ -487,3 +487,69 @@ UPDATE tramite SET tramite_prioridad = 'MEDIA' WHERE tramite_prioridad IS NULL;
 
 UPDATE tramite SET tramite_prioridad = 'CRITICA' WHERE tramite_prioridad='URGENTE';
 
+
+
+CREATE OR REPLACE FUNCTION public.insertar_nota_y_cursada(cursada_materia_carrera_id character varying, cursada_legajo_id character varying, status character varying, cursada_inscripto boolean, ano integer)
+ RETURNS void
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+  nueva_nota_id bigint;
+  fecha_nota date;
+BEGIN
+  -- Ajustar la fecha de la nota al 1 de diciembre del año especificado
+  fecha_nota := TO_DATE('01-12-' || ano, 'DD-MM-YYYY');
+
+  -- Insertar en la tabla "nota" y obtener el "nota_id"
+  INSERT INTO nota (nota_id, nota_condicion, nota_estado, nota_fecha_nota)
+  VALUES (DEFAULT, 'Cursando', 'Cursando', fecha_nota)
+  RETURNING nota_id INTO nueva_nota_id;
+
+  -- Insertar en la tabla "cursada" utilizando el "nota_id" capturado
+  INSERT INTO cursada (cursada_id, cursada_materia_carrera_id, cursada_legajo_id, cursada_nota_id, cursada_inscripto, status)
+  VALUES (default, CAST(cursada_materia_carrera_id AS integer), cursada_legajo_id, nueva_nota_id, cursada_inscripto, status);
+END;
+$function$
+;
+
+-- DROP FUNCTION public.insertar_nota_y_equivalencia(varchar, varchar, varchar, varchar, varchar, varchar, varchar, varchar);
+
+CREATE OR REPLACE FUNCTION public.insertar_nota_y_equivalencia(legajo_id character varying, materia_id character varying, institucion_origen character varying, materia_origen character varying, carrera_origen character varying, resolucion character varying, status character varying, usuario character varying)
+ RETURNS void
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+  nueva_nota_id INTEGER;
+BEGIN
+  -- Insertar en la tabla "nota" y obtener el "nota_id"
+  INSERT INTO nota (nota_condicion, nota_estado, nota_fecha_nota)
+  VALUES ('Equivalencia', 'Pendiente', TO_CHAR(CURRENT_DATE, 'DD-MM-YYYY'))
+  RETURNING nota_id INTO nueva_nota_id;
+
+  -- Insertar en la tabla "equivalencia" utilizando el "nota_id" capturado
+  INSERT INTO equivalencia (
+    nota_id,
+    legajo_id,
+    materia_id,
+    institucion_origen,
+    materia_origen,
+    carrera_origen,
+    resolucion,
+    status,
+    fecha,
+    usuario
+  ) VALUES (
+    nueva_nota_id,
+    legajo_id,
+    materia_id,
+    institucion_origen,
+    materia_origen,
+    carrera_origen,
+    resolucion,
+    status,
+    CURRENT_TIMESTAMP,
+    usuario
+  );
+END;
+$function$
+;

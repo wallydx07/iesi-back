@@ -853,4 +853,32 @@ public class CertificadoController {
     }
 
 
+    @PostMapping("/generarPermisoById")
+    public ResponseEntity<ByteArrayResource> generagenerarPermisoByTramite(
+            @RequestParam Integer tramiteId
+    ) {
+        try {
+            PDDocument documento = certificadoService.generarPermisoById(tramiteId);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            documento.save(outputStream);
+            documento.close();
+
+            byte[] pdfBytes = outputStream.toByteArray();
+            System.out.println("✅ PDF generado correctamente, tamaño: " + pdfBytes.length + " bytes");
+
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=permiso.pdf")
+                    .body(resource);
+
+        } catch (Exception e) {
+            System.out.println("❌ Error al generar el PDF:");
+            e.printStackTrace(); // Imprime el error en la consola
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 }

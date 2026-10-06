@@ -46,4 +46,7 @@ public interface PermisoService {
 
     @Transactional
     void eliminar(Long id);
+
+    @Transactional
+    Permiso vincularTramite(Long permisoId, Integer tramiteId);
 }

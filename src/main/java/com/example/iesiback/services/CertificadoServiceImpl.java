@@ -33,7 +33,6 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneId;
@@ -8238,6 +8237,428 @@ public class CertificadoServiceImpl implements CertificadoService {
     private static String fmt(double v) {
         return v == Math.floor(v) ? String.valueOf((long) v) : String.format(ES_AR, "%.1f", v);
     }
+
+    @Override
+    public PDDocument generarPermisoById(Integer tramiteId) {
+        int columnas = 6;
+        int n = -8; // distancia entre lineas
+        int letra = 10; // Tamaño de letras
+        double nuevoProm = 0;
+        int contProm = 0;
+        PDImageXObject Iesc1, Iesc2;
+        PDDocument Documento = new PDDocument();
+        try {
+            Tramite tramite = tramiteService.findById(tramiteId).get();
+            String libreta= tramite.getLegajoId();
+            Legajo legajo = legajoService.findById(tramite.getLegajoId())
+                    .orElseThrow(() -> new RuntimeException("No se encontró el legajo con ID: " + libreta));
+
+
+            Persona persona = legajo.getLegajoPersonaDni();
+            Turno turno=turnoService.turnoDelPermiso(tramite.getPermiso().getId());
+
+            String carrera = permisoService.obtenerCarreraPorLibreta(libreta);
+            Optional<Permiso> permiso = permisoService.findPermisoByLegajoAndTurnoOrdered(libreta, turno.getTurnoId());
+            int dni = permisoService.obtenerDniPorLibreta(libreta);
+            String nombre = permisoService.obtenerNombrePorDni(dni);
+            String apellido = permisoService.obtenerApellidoPorDni(dni);
+            List<InscripcionExamenDTO> inscripcionesActivas = examenService.completarCursadas(libreta, turno.getTurnoId());
+            PDType1Font normal = PDType1Font.HELVETICA;
+            PDType1Font negrita = PDType1Font.HELVETICA_BOLD;
+            PDRectangle a4 = PDRectangle.A4;
+            PDRectangle a4Landscape = new PDRectangle(a4.getHeight(), a4.getWidth());
+            PDPage Pagina = new PDPage(a4Landscape);
+            Documento.addPage(Pagina);
+            PDPageContentStream encabezado = new PDPageContentStream(Documento, Pagina);
+            float margin = 25; //40
+            InputStream iesc2I = getClass().getClassLoader().getResourceAsStream("static/imagenes/esc2.png");
+            if (iesc2I == null) {
+                System.out.println("readFilesInBytes: File does not exist");
+            }
+            byte[] be = IOUtils.toByteArray(iesc2I);
+            Iesc2 = PDImageXObject.createFromByteArray(Documento, be, "static/imagenes/esc2.png");
+            //===================================Texto del encabezado==============================================//
+            int inicio=421;//desde le borde o desde el centro como esta hoja es horizontal
+            encabezado.beginText();
+            encabezado.setFont(PDType1Font.HELVETICA, 8);
+            encabezado.newLineAtOffset(inicio+105, 580);//580
+            encabezado.showText("INSTITUTO DE EDUCACIÓN SUPERIOR INTERCULTURAL");
+            encabezado.newLineAtOffset(40, n);
+            encabezado.showText("“CAMPINTA GUAZÚ GLORIA PÉREZ”");
+            encabezado.newLineAtOffset(-25, n);
+            encabezado.showText("Incorporado a la Enseñanza Oficial – Resol. Nº 2936-E-15");
+            encabezado.newLineAtOffset(-15, n);
+            encabezado.showText("Bahía Blanca Nº 235, Bº Kennedy – Tel N° (0388) 6256119");
+            encabezado.newLineAtOffset(-40, n);
+            encabezado.showText("(C.P. 4600) – SAN SALVADOR DE JUJUY – Prov. de Jujuy – República Argentina");
+            encabezado.newLineAtOffset(-40, -3);
+            encabezado.showText("_____________________________________________________________________________________");
+            encabezado.endText();
+            encabezado.close();
+            PDPageContentStream PDesc2 = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            PDesc2.moveTo(200, 100);
+            PDesc2.drawImage(Iesc2, 15+inicio, 550, 40, 40);
+            PDesc2.close();
+            PDPageContentStream titulo = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            // Texto de constancia
+            n = -11; // distancia entre lineas
+            titulo.beginText();
+            titulo.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            titulo.newLineAtOffset(160+inicio, 530); // titulo/(250,745)
+            titulo.showText("Permiso de Examen");
+            titulo.newLineAtOffset(0, 0);
+            titulo.showText("_________________");
+            titulo.endText();
+            titulo.close();
+            PDPageContentStream pTexto = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            String genero1 = "";
+            String genero = persona.getPersonaGenero();
+            if (genero.equals("Masculino")) {
+                genero1 = "el ";
+            } else {
+                genero1 = "la";
+            }
+            float longitud = 375; // longitud permitida para justificar
+            pTexto.beginText();
+            pTexto.setFont(normal, letra);
+            pTexto.newLineAtOffset(25+inicio, 515);
+            String carrera_nombre = carrera;
+            String t1 =  "Permiso N°:" + permiso.get().getId() + "      Turno:" +turno.getTurnoMes()+"  Llamado: "+turno.getLlamado();
+            String t2 = "Conste que por la presente, " + genero1 + " estudiante: " + persona.getPersonaApellido() + " " + persona.getPersonaNombre() + ",";
+            String t3 = "DNI: " + dni + ", está habilitado para rendir las siguientes Unidades Curriculares:";
+            String t4 = "correspondientes a la carrera: " + carrera_nombre + ".";
+            pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t1, letra, normal), t1));//espacio entre caracteres
+            pTexto.showText(t1);
+            pTexto.newLineAtOffset(0, n);
+            pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t2, letra, normal), t2));//espacio entre caracteres
+            pTexto.showText(t2);
+            pTexto.newLineAtOffset(0, n);
+            pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t3, letra, normal), t3));//espacio entre caracteres
+            pTexto.showText(t3);
+            pTexto.newLineAtOffset(0, n);
+            pTexto.setCharacterSpacing(charspacing(longitud, tamaño(t4, letra, normal), t4));//espacio entre caracteres
+            pTexto.showText(t4);
+            pTexto.setCharacterSpacing(0);
+            pTexto.endText();
+            pTexto.close();
+            PDRectangle mediabox = Pagina.getMediaBox();
+            float width = mediabox.getWidth() - 4 * margin;
+            float X = mediabox.getLowerLeftX() + margin;
+            float Y = mediabox.getUpperRightY() - margin;
+            List<String> lineas = new ArrayList<String>();
+            margin = 60;
+            float yStartNewPage = Pagina.getMediaBox().getHeight() - (2 * margin);
+            float tableWidth = Pagina.getMediaBox().getWidth() - (2 * margin);
+            boolean drawContent = true;
+            float yStart = 480; // yStartNewPage;
+            float bottomMargin = 70;
+            float auxmargin = 25+inicio;
+            float yPosition = 300;
+            BaseTable table = new BaseTable(yStart-5, yStartNewPage, 0, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            Row<PDPage> headerRow = table.createRow(20);
+            Cell<PDPage> cell = headerRow.createCell(5, "N°");
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setTextRotated(false);
+            cell = headerRow.createCell(7, "Condicion");
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell.setTextRotated(false);
+            cell = headerRow.createCell(18, "Unidad curricular");
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell = headerRow.createCell(8, "Fecha");
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell = headerRow.createCell(5, "Hora");
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            cell = headerRow.createCell(9, "Nota");
+            cell.setAlign(HorizontalAlignment.CENTER);
+            cell.setValign(VerticalAlignment.MIDDLE);
+            yStart = yStart - headerRow.getHeight();
+            int indice = 0;
+
+
+
+            for (int row1 = 0; row1 < inscripcionesActivas.size(); row1++) {
+                Boolean isInscripto = (Boolean) inscripcionesActivas.get(row1).getInscripto();
+                if (isInscripto != null && isInscripto) {
+                    indice++;
+                    String materia = (String) inscripcionesActivas.get(row1).getMateriaNombre();
+                    String condicion = (String) inscripcionesActivas.get(row1).getCondicion();
+                    System.out.println("Examen"+materia);
+                    System.out.println("Examen Condicion"+condicion);
+                    if (!condicion.equals("Regular")) {
+                        condicion = "Libre";
+                    }
+                    Row<PDPage> row = table.createRow(20);
+                    Cell<PDPage> cellNumero = row.createCell(5, String.valueOf(indice));
+                    cellNumero.setAlign(HorizontalAlignment.CENTER);
+                    cellNumero.setValign(VerticalAlignment.MIDDLE);
+                    Cell<PDPage> cellCondicion = row.createCell(7, condicion);
+                    cellCondicion.setAlign(HorizontalAlignment.LEFT); // O podés poner CENTER si lo querés centrado
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 3: Unidad Curricular (Materia)
+                    Cell<PDPage> cellMateria = row.createCell(18, materia);
+                    cellMateria.setAlign(HorizontalAlignment.LEFT); // Generalmente los textos largos van alineados a la izquierda
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+                    String turno_id = turno.getTurnoId();
+                    String materia_id = (String) inscripcionesActivas.get(row1).getMateriaId();
+                    String fecha = inscripcionesActivas.get(row1).getFecha();
+                    if (fecha != null && !fecha.isEmpty()) {
+                        SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyy-MM-dd"); // Asumiendo que la fecha viene en formato yyyy-MM-dd
+                        SimpleDateFormat formatoSalida = new SimpleDateFormat("dd/MM/yyyy");
+                        try {
+                            Date fechaDate = formatoEntrada.parse(fecha);
+                            fecha = formatoSalida.format(fechaDate);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    String hora =  inscripcionesActivas.get(row1).getHora();
+                    // Celda 4: Fecha
+                    Cell<PDPage> cellFecha = row.createCell(8, fecha);
+                    cellFecha.setAlign(HorizontalAlignment.CENTER);
+                    cellFecha.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 5: Hora
+                    Cell<PDPage> cellHora = row.createCell(5, hora);
+                    cellHora.setAlign(HorizontalAlignment.CENTER);
+                    cellHora.setValign(VerticalAlignment.MIDDLE);
+
+// Celda 6: Firma (espacio vacío)
+                    Cell<PDPage> cellFirma = row.createCell(9, " ");
+                    cellFirma.setAlign(HorizontalAlignment.CENTER);
+                    cellFirma.setValign(VerticalAlignment.MIDDLE);
+
+                    yStart = yStart - row.getHeight();
+                    // Asignar a strings y hacer algo con ellos (por ejemplo, imprimirlos)
+                    System.out.println("Materia: " + materia + ", Condicion: " + condicion);
+                }
+            }
+
+            System.out.println("indice vale: " + indice);
+            if (indice < 6) {
+                int rowsToAdd = 6 - indice;
+                System.out.println("filas agregar vale: " + rowsToAdd);
+                for (int i = 0; i < rowsToAdd; i++) {
+                    indice++;
+                    Row<PDPage> row = table.createRow(20);
+
+// Celda: Orden
+                    Cell<PDPage> cellOrden = row.createCell(5, String.valueOf(indice));
+                    cellOrden.setAlign(HorizontalAlignment.CENTER);
+                    cellOrden.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Condición
+                    Cell<PDPage> cellCondicion = row.createCell(7, "");
+                    cellCondicion.setAlign(HorizontalAlignment.CENTER);
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Unidad Curricular
+                    Cell<PDPage> cellMateria = row.createCell(18, "");
+                    cellMateria.setAlign(HorizontalAlignment.CENTER);
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Fecha
+                    Cell<PDPage> cellFecha = row.createCell(8, " ");
+                    cellFecha.setAlign(HorizontalAlignment.CENTER);
+                    cellFecha.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Calificación
+                    Cell<PDPage> cellCalificacion = row.createCell(5, " ");
+                    cellCalificacion.setAlign(HorizontalAlignment.CENTER);
+                    cellCalificacion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Firma
+                    Cell<PDPage> cellFirma = row.createCell(9, " ");
+                    cellFirma.setAlign(HorizontalAlignment.CENTER);
+                    cellFirma.setValign(VerticalAlignment.MIDDLE);
+
+
+                    yStart = yStart - row.getHeight();
+                }
+            }
+            yStart = yStart - 40;//Ajuste 20
+            table.draw();
+            PDPageContentStream fin = new PDPageContentStream(Documento, Pagina, PDPageContentStream.AppendMode.APPEND, true);
+            fin.beginText();
+            fin.setFont(normal, letra);
+            fin.newLineAtOffset(inicio+25, yStart);
+            fin.setCharacterSpacing(0);
+            SimpleDateFormat form = new SimpleDateFormat("dd '-' MMMM '-' yyyy", new Locale("ES"));
+            Date fechaDatee = new Date();
+            String fec = form.format(fechaDatee);
+            String p1 = "San Salvador de Jujuy, " + fec;
+            String firma = "    ______________________                                  ________________________";
+            //String firma1 = "               " + userService.getAuthenticatedUser().get().getUserApellido()+"                                                  Firma Alumno";
+            String firma1 = "               Firma del Secretario                                                      Firma Alumno";
+
+            String p2 = "El día del examen, el estudiante deberá presentar: libreta, permiso de examen y D.N.I.";
+            String p6 = "------------------------------------------------------------------------";
+            fin.showText(firma);
+            fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
+            fin.showText(firma1);
+            fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
+            fin.showText(p1);
+            fin.setFont(normal, 8);
+            fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
+            fin.showText(p2);
+            fin.newLineAtOffset(0, -10); // Mover cursor hacia abajo para la siguiente línea
+            fin.setCharacterSpacing(charspacing(longitud, tamaño(p6, letra, normal), p6));//espacio entre caracteres
+            fin.showText(p6);
+            fin.setFont(normal, letra);
+            fin.setCharacterSpacing(0);
+            String titulop = "                        Constancia de Solicitud de permiso de examen";
+            String subtitulo = "                      _________________________________________";
+            String p7 = "Permiso N°:" + permiso.get().getId() + "      Turno:" +turno.getTurnoMes()+"  Llamado: "+turno.getLlamado();
+            String p8 = "Apellido y Nombre " + persona.getPersonaApellido() + " " + persona.getPersonaNombre() + ", DNI:" + dni;
+            fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
+            fin.setFont(negrita, letra);
+            fin.showText(titulop);
+            fin.newLineAtOffset(0, -1); // Mover cursor hacia abajo para la siguiente línea
+            fin.showText(subtitulo);
+            fin.setFont(normal, letra);
+            fin.newLineAtOffset(0, n-5); // Mover cursor hacia abajo para la siguiente línea
+            fin.setCharacterSpacing(charspacing(longitud, tamaño(p7, letra, normal), p7));//espacio entre caracteres
+            fin.showText(p7);
+            fin.newLineAtOffset(0, n); // Mover cursor hacia abajo para la siguiente línea
+            fin.setCharacterSpacing(charspacing(longitud, tamaño(p8, letra, normal), p8));//espacio entre caracteres
+            fin.showText(p8);
+            fin.setCharacterSpacing(0);
+            yStart = yStart - 85;//AJUSTE
+            float delta = 0;
+            BaseTable table1 = new BaseTable(yStart, yStartNewPage, 0, tableWidth, auxmargin, Documento, Pagina, true, drawContent);
+            Row<PDPage> headerRow1 = table1.createRow(20);
+            Cell<PDPage> cell1 = headerRow1.createCell(5, "N°");
+            cell1.setAlign(HorizontalAlignment.CENTER);
+            cell1.setValign(VerticalAlignment.MIDDLE);
+            cell1.setTextRotated(false);
+            cell1 = headerRow1.createCell(8, "Condicion");
+            cell1.setAlign(HorizontalAlignment.CENTER);
+            cell1.setValign(VerticalAlignment.MIDDLE);
+            cell1.setTextRotated(false);
+            cell1 = headerRow1.createCell(27, "Unidad Curricular");
+            cell1.setAlign(HorizontalAlignment.CENTER);
+            cell1.setValign(VerticalAlignment.MIDDLE);
+
+            cell1 = headerRow1.createCell(12, "Fecha Hora");
+            cell1.setAlign(HorizontalAlignment.CENTER);
+            cell1.setValign(VerticalAlignment.MIDDLE);
+            delta = headerRow1.getHeight();
+            indice = 0;
+            for (int row1 = 0; row1 < inscripcionesActivas.size(); row1++) {
+                Boolean isInscripto = (Boolean) inscripcionesActivas.get(row1).getInscripto();
+                if (isInscripto != null && isInscripto) {
+                    indice++;
+                    String materia = (String) inscripcionesActivas.get(row1).getMateriaNombre();
+                    String condicion = (String) inscripcionesActivas.get(row1).getCondicion();
+                    String fecha = inscripcionesActivas.get(row1).getFecha();
+                    if (fecha != null && !fecha.isEmpty()) {
+                        SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyy-MM-dd"); // Asumiendo que la fecha viene en formato yyyy-MM-dd
+                        SimpleDateFormat formatoSalida = new SimpleDateFormat("dd/MM/yyyy");
+                        try {
+                            Date fechaDate = formatoEntrada.parse(fecha);
+                            fecha = formatoSalida.format(fechaDate);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    String hora =  inscripcionesActivas.get(row1).getHora();
+
+
+
+
+                    if (!condicion.equals("Regular")) {
+                        condicion = "Libre";
+                    }
+                    Row<PDPage> row = table1.createRow(20);
+
+// Celda: Orden
+                    Cell<PDPage> cellOrden = row.createCell(5, String.valueOf(indice));
+                    cellOrden.setAlign(HorizontalAlignment.CENTER);
+                    cellOrden.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Condición
+                    Cell<PDPage> cellCondicion = row.createCell(8, condicion);
+                    cellCondicion.setAlign(HorizontalAlignment.CENTER);
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Unidad Curricular (Materia)
+                    Cell<PDPage> cellMateria = row.createCell(27, materia);
+                    cellMateria.setAlign(HorizontalAlignment.CENTER);
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Fecha y Hora
+                    Cell<PDPage> cellFechaHora = row.createCell(12, fecha + " - " + hora);
+                    cellFechaHora.setAlign(HorizontalAlignment.CENTER);
+                    cellFechaHora.setValign(VerticalAlignment.MIDDLE);
+
+                    delta = delta + row.getHeight();
+                }
+            }
+            System.out.println("Indice vale:" + indice);
+            if (indice < 6) {
+                int rowsToAdd = 6 - indice;
+
+                System.out.println("filas a agregar v vale:" + rowsToAdd);
+                for (int i = 0; i < rowsToAdd; i++) {
+                    indice++;
+                    Row<PDPage> row = table1.createRow(20);
+
+// Celda: Orden
+                    Cell<PDPage> cellOrden = row.createCell(5, String.valueOf(indice));
+                    cellOrden.setAlign(HorizontalAlignment.CENTER);
+                    cellOrden.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Condición (vacía)
+                    Cell<PDPage> cellCondicion = row.createCell(8, "");
+                    cellCondicion.setAlign(HorizontalAlignment.CENTER);
+                    cellCondicion.setValign(VerticalAlignment.MIDDLE);
+
+// Celda: Unidad Curricular (vacía)
+                    Cell<PDPage> cellMateria = row.createCell(27, "");
+                    cellMateria.setAlign(HorizontalAlignment.CENTER);
+                    cellMateria.setValign(VerticalAlignment.MIDDLE);
+
+                    Cell<PDPage> cellFec = row.createCell(12, "");
+                    cellFec.setAlign(HorizontalAlignment.CENTER);
+                    cellFec.setValign(VerticalAlignment.MIDDLE);
+
+
+
+
+
+
+                    delta = delta + row.getHeight();
+                }
+            }
+
+            table1.draw();
+            float res = delta - yStart;
+            System.out.println("delta vale vale:" + delta);
+            System.out.println("res yStart vale:" + yStart);
+            System.out.println("res vale:" + res);
+            fin.newLineAtOffset(0, -delta - 15);//-tam+80
+            String j = "Usuario: " + userService.getAuthenticatedUser().get().getUserApellido()+ ", Recibo N°____, Fecha: " + fec + ", Firma Rendido________";
+            fin.setCharacterSpacing(charspacing(longitud, tamaño(j, letra, normal), j));//espacio entre caracteres
+            fin.showText(j);
+            // fin.setCharacterSpacing(0);//espacio entre caracteres
+            fin.endText();
+            fin.close();
+            System.out.println("se divujo la tabla");
+            //  Documento.save(dir + ".pdf");
+            //  Documento.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Documento;
+    }
+
+
 
 
 }

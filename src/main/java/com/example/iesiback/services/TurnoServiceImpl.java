@@ -4,22 +4,28 @@ import com.example.iesiback.dto.TurnoExamenDTO;
 import com.example.iesiback.entities.Turno;
 import com.example.iesiback.repositories.TurnoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
+
+import static com.example.iesiback.services.LegajoServiceImpl.log;
 
 @Service
 public class TurnoServiceImpl implements TurnoService {
 
     private UserService userService;
-
+    private PermisoService permisoService;
 
     @Autowired
     private TurnoRepository turnoRepository;
 
-    public TurnoServiceImpl(UserService userService) {
+    public TurnoServiceImpl(UserService userService, PermisoService permisoService) {
         this.userService = userService;
+        this.permisoService = permisoService;
     }
 
     @Override
@@ -163,7 +169,21 @@ public class TurnoServiceImpl implements TurnoService {
 
 
 
+    @Transactional(readOnly = true)
+    @Override
+    public Turno turnoDelPermiso(Integer permisoId) {
 
+        List<Turno> turnos = turnoRepository.findTurnosByPermisoId(permisoId);
+
+        if (turnos.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "El permiso " + permisoId + " no tiene exámenes asociados");
+        }
+        if (turnos.size() > 1) {
+            log.warn("Permiso {} tiene exámenes en {} turnos distintos", permisoId, turnos.size());
+        }
+        return turnos.get(0);
+    }
 
 
 }

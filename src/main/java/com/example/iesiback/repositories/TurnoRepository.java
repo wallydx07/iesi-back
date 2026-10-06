@@ -58,13 +58,12 @@ public interface TurnoRepository extends JpaRepository<Turno, String> {
     TurnoExamenDTO findTurnobyNotaId(@Param("notaId") Long notaId);
 
 
-
-
-
-
-
-
-
-
+    @Query("""
+           SELECT DISTINCT ce.turno
+           FROM Examen e
+           JOIN e.cursadaExamen ce
+           WHERE e.permiso.id = :permisoId
+           """)
+    List<Turno> findTurnosByPermisoId(@Param("permisoId") Integer permisoId);
 }
 
