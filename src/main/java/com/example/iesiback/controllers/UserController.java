@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
@@ -160,24 +161,44 @@ public class UserController {
     }
 
     @PutMapping("/tenant")
-    public ResponseEntity<?> actualizarTenant(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody String tenant) {
+    public ResponseEntity<?> actualizarTenant(Authentication authentication,
+                                              @RequestBody String body) {
+        try {
+            String username = authentication.getName(); // "35827144"
+            System.out.println(">>> actualizarTenant - usuario: " + username
+                    + " | body: " + body
+                    + " | authorities: " + authentication.getAuthorities());
 
-        User usuario = userService
-                .findById(Long.valueOf(userDetails.getUsername()))
-                .orElseThrow();
+            String tenant = body == null ? "" : body.trim().replace("\"", "").toLowerCase();
 
-        if (!tenant.equals("public") && !tenant.equals("oficial")) {
-            return ResponseEntity.badRequest().body("Tenant inválido");
+            if (!tenant.equals("public") && !tenant.equals("oficial")) {
+                return ResponseEntity.badRequest().body("Tenant inválido: " + tenant);
+            }
+
+            if (tenant.equals("oficial") && !puedeVerOficial(authentication)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Sin permiso para tenant oficial");
+            }
+
+            boolean ok = userService.actualizarTenant(username, Tenant.valueOf(tenant.toUpperCase()));
+            if (!ok) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado: " + username);
+            }
+
+            System.out.println(">>> tenant guardado OK: " + tenant);
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            System.err.println(">>> ERROR tenant: " + e.getClass().getSimpleName() + " -> " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getClass().getSimpleName() + " - " + e.getMessage());
         }
-
-        usuario.setTenantSeleccionado(
-                Tenant.valueOf(tenant.toUpperCase())
-        );
-
-        userService.save(usuario);
-
-        return ResponseEntity.ok().build();
     }
+
+    private boolean puedeVerOficial(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                        || a.getAuthority().equals("ROLE_TITULACION"));
+    }
+
 }

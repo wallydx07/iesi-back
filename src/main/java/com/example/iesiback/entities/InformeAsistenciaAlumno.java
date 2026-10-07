@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "informe_asistencia_alumnos")
+@Table(name = "informe_asistencia_alumnos",schema = "public")
 public class InformeAsistenciaAlumno {
 
     @Id

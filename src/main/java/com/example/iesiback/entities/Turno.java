@@ -10,7 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "turno")
+@Table(name = "turno", schema = "public")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Turno {
     @Id

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "aporte")
+@Table(name = "aporte", schema = "public")
 public class Aporte {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)  // Hibernate maneja la secuencia automáticamente

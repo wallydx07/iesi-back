@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(name = "constancia_precios")
+@Table(name = "constancia_precios", schema = "public")
 public class ConstanciaPrecio {
     @Id
     @ColumnDefault("nextval('constancia_precios_id_seq')")

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "documento_emitido_pdf")
+@Table(name = "documento_emitido_pdf", schema = "public")
 public class DocumentoEmitidoPdf {
 
     @Id

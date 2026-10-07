@@ -9,7 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "carrera")
+@Table(name = "carrera", schema = "public")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})  // Ignora los proxies de Hibernate
 
 public class Carrera {

@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "certificado_estudiante")
+@Table(name = "certificado_estudiante", schema = "public")
 public class CertificadoEstudiante {
 
     @Id

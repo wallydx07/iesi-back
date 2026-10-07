@@ -16,7 +16,7 @@ import com.example.iesiback.models.IUser;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "public")
 // Indica a Jackson que use el campo "username" para identificar la instancia y romper ciclos
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "username")
 public class User implements IUser {

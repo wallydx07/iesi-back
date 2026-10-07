@@ -19,7 +19,7 @@ import java.util.Map;
 @Getter
 @Setter
 @Entity
-@Table(name = "pago", indexes = {
+@Table(name = "pago", schema = "public",indexes = {
         @Index(name = "idx_pago_tramite", columnList = "tramite_id"),
         @Index(name = "idx_pago_estado", columnList = "estado"),
         @Index(name = "idx_pago_fecha", columnList = "fecha_pago")

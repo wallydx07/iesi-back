@@ -46,6 +46,7 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(authz -> authz
+                        .requestMatchers(HttpMethod.PUT, "/api/users/tenant").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/page/{page}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("USER", "ADMIN")
@@ -71,7 +72,6 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/tramite/seguimiento/**").permitAll() //-----------
                         .requestMatchers(HttpMethod.GET, "/api/inscripcion/estado-estudiante").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST, "/api/preinscripcion").permitAll() //-----------
-//                        .requestMatchers(HttpMethod.POST, "/api/examen-horarios/lote").permitAll() //-----------
                         .requestMatchers(HttpMethod.POST,"/api/pagos/iniciar").permitAll() //-----------
                         .requestMatchers(HttpMethod.GET, "/api/pagos/*").permitAll()
                         .requestMatchers(

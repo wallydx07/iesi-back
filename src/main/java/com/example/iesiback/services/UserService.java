@@ -3,6 +3,7 @@ package com.example.iesiback.services;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.iesiback.enums.Tenant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
@@ -10,6 +11,7 @@ import org.springframework.lang.NonNull;
 import com.example.iesiback.entities.User;
 import com.example.iesiback.models.UserRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface UserService {
 
@@ -28,4 +30,7 @@ public interface UserService {
     List<User> getUsuariosPorRoles(List<String> roles);
 
     boolean isAdmin(User user);
+
+    @Transactional
+    boolean actualizarTenant(String username, Tenant tenant);
 }

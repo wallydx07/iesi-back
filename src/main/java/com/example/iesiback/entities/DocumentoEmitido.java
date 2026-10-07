@@ -11,7 +11,7 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "documento_emitido")
+@Table(name = "documento_emitido", schema = "public")
 @Getter @Setter
 public class DocumentoEmitido {
 

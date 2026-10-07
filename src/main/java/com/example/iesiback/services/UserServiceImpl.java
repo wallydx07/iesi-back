@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.example.iesiback.entities.PasswordResetToken;
+import com.example.iesiback.enums.Tenant;
 import com.example.iesiback.repositories.PasswordResetTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -270,4 +271,16 @@ public boolean isAdmin(User user) {
                 .stream()
                 .anyMatch(role -> role.getRoleNombre().equals("ROLE_ADMIN"));
     }
+
+    @Transactional
+    @Override
+    public boolean actualizarTenant(String username, Tenant tenant) {
+        return repository.findByUsername(username)
+                .map(u -> {
+                    u.setTenantSeleccionado(tenant);
+                    return true; // al terminar la transacción, JPA guarda solo este cambio
+                })
+                .orElse(false);
+    }
+
 }

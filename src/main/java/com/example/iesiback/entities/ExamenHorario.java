@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "examen_horarios")
+@Table(name = "examen_horarios",schema = "public")
 public class ExamenHorario {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "examen_horarios_id_gen")

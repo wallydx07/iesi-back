@@ -10,7 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Setter
 @Entity
-@Table(name = "asistencia_alumno")
+@Table(name = "asistencia_alumno", schema = "public")
 public class AsistenciaAlumno {
 
     @Id

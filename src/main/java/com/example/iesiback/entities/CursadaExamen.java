@@ -12,7 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "cursada_examen")
+@Table(name = "cursada_examen", schema = "public")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CursadaExamen {
     @Id

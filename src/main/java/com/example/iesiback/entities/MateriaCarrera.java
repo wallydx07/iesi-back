@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "materia_carrera")
+@Table(name = "materia_carrera", schema = "public")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})  // Ignora los proxies
 public class MateriaCarrera {
     @Id

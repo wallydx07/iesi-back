@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
+@Table(name = "documento", schema = "public")
 public class Documento {
 
     @Id

@@ -8,6 +8,7 @@ import org.hibernate.annotations.ColumnDefault;
 import java.time.Instant;
 
 @Entity
+@Table(name="Preinscripcion", schema = "public")
 public class Preinscripcion {
 
     @Id

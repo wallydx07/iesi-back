@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "tramite")
+@Table(name = "tramite", schema = "public")
 public class Tramite {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tramite_id_gen")

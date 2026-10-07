@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "archivo")
+@Table(name = "archivo", schema = "public")
 public class Archivo {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "archivo_id_gen")

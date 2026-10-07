@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "libro_tema")
+@Table(name = "libro_tema", schema = "public")
 public class LibroTema {
     @Id
     @ColumnDefault("nextval('libro_tema_id_seq')")
