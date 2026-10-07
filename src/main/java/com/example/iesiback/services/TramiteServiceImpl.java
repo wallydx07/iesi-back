@@ -241,4 +241,14 @@ public class TramiteServiceImpl implements TramiteService {
         LocalDateTime hasta = LocalDateTime.of(anio, 12, 31, 23, 59, 59);
         return repository.findListadoByAnio(desde, hasta);
     }
+
+    @Override
+    public Optional<Tramite> lockById(Integer id) {
+        return repository.lockById(id);
+    }
+
+@Override
+public Optional<Tramite> lockByCodigoSeguimiento(String codigo) {
+        return repository.lockByCodigoSeguimiento(codigo);
+    }
 }

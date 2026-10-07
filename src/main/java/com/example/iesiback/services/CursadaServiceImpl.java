@@ -399,4 +399,8 @@ public void eliminarCursada(Integer id) {
 
         return masCercana;
     }
+@Override
+public boolean existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(Long personaDni, Integer materiaCarreraId) {
+        return cursadaRepository.existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(personaDni, materiaCarreraId);
+    }
 }

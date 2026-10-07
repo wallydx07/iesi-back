@@ -2,7 +2,9 @@ package com.example.iesiback.repositories;
 
 import com.example.iesiback.dto.TramiteListadoDTO;
 import com.example.iesiback.entities.Tramite;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -147,4 +149,15 @@ public interface TramiteRepository extends JpaRepository<Tramite, Integer> {
     ORDER BY t.tramiteFecha DESC, t.numeroTipo DESC
 """)
     List<TramiteListadoDTO> findListadoByAnio(LocalDateTime desde, LocalDateTime hasta);
+
+
+
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Tramite t where t.id = :id")
+    Optional<Tramite> lockById(@Param("id") Integer id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Tramite t where t.codigoSeguimiento = :codigo")
+    Optional<Tramite> lockByCodigoSeguimiento(@Param("codigo") String codigo);
 }

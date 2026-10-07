@@ -6,7 +6,9 @@ import com.example.iesiback.entities.Legajo;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.enums.EstadoPago;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -74,4 +76,11 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     """)
     Legajo findLegajo(@Param("libretaEstudiantil") String libretaEstudiantil);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Tramite t where t.id = :id")
+    Optional<Tramite> lockById(@Param("id") Integer id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Tramite t where t.codigoSeguimiento = :codigo")
+    Optional<Tramite> lockByCodigoSeguimiento(@Param("codigo") String codigo);
 }

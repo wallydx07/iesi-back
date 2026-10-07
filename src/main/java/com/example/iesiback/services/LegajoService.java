@@ -28,4 +28,11 @@ public interface LegajoService {
 
     List<Legajo> findLegajosByDNI(String dni);
 
+    Optional<Legajo> buscarPorPersonaYCarrera(Long personaDni, String carreraId);
+
+    @Transactional
+    Legajo obtenerOCrearLegajo(Persona persona, Carrera carrera, String usuario);
+
+    @Transactional
+    Legajo crearLegajoConInscripcion(Persona persona, Carrera carrera, String usuario);
 }

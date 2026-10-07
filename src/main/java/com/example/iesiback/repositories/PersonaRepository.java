@@ -1,7 +1,9 @@
 package com.example.iesiback.repositories;
 import com.example.iesiback.dto.PersonaDTO;
 import com.example.iesiback.entities.Persona;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -125,5 +127,7 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
         int actualizarDni(@Param("actual") Long actual,
                           @Param("nuevo") Long nuevo);
 
-
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Persona p where p.personaDni = :dni")
+    Optional<Persona> lockByDni(@Param("dni") Long dni);
 }

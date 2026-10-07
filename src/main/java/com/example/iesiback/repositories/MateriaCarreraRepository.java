@@ -350,6 +350,27 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
     );
 
     List<MateriaCarrera> findByCarrera_CarreraNombre(String carreraNombre);
+
+
+    @Query("""
+    select mc from MateriaCarrera mc
+    join fetch mc.materia
+    join fetch mc.carrera c
+    join fetch mc.constanciaPrecio
+    where c.carreraId = :carreraId
+      and mc.fechaLimite >= :hoy
+    order by mc.fechaInicio, mc.id
+    """)
+    List<MateriaCarrera> findOfertasAbiertas(@Param("carreraId") String carreraId, @Param("hoy") LocalDate hoy);
+
+    @Query("""
+    select mc from MateriaCarrera mc
+    join fetch mc.materia
+    join fetch mc.carrera
+    left join fetch mc.constanciaPrecio
+    where mc.id = :id
+    """)
+    Optional<MateriaCarrera> findOfertaById(@Param("id") Integer id);
 }
 
 

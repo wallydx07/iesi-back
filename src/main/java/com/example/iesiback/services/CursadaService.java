@@ -39,4 +39,6 @@ public interface CursadaService {
     Cursada obtenerORegistrarCursada(Legajo legajo, Long materiaCarreraId);
     @Transactional
     Cursada buscarOMasCercanaORegistrar( Legajo legajo, MateriaCarrera materiaCarrera);
+
+    boolean existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(Long personaDni, Integer materiaCarreraId);
 }

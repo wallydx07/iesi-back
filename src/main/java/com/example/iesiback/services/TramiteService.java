@@ -38,4 +38,8 @@ public interface TramiteService {
     List<Tramite> findByAnio(int anio);
 
     List<TramiteListadoDTO> findListadoByAnio(int anio);
+
+    Optional<Tramite> lockById(Integer id);
+
+    Optional<Tramite> lockByCodigoSeguimiento(String codigo);
 }

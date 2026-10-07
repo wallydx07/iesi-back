@@ -85,16 +85,6 @@ public class PagoController {
 
     public record IniciarPagoRequest(Integer tramiteId, String concepto, java.math.BigDecimal monto) {}
 
-    // =====================================================
-    // RESUMEN OPERADORES
-    // =====================================================
-//
-//    @GetMapping("/ResumenOperadorDTO/{fecha}")
-//    public ResponseEntity<List<ResumenOperadorDTO>> getResumen(@PathVariable LocalDate fecha) {
-//        User user = userService.getAuthenticatedUser()
-//                .orElseThrow(() -> new BusinessException("Usuario no autenticado"));
-//        return ResponseEntity.ok(pagoService.obtenerResumenPorOperador(fecha, user));
-//    }
 
 
     @GetMapping("/resumen-operador")

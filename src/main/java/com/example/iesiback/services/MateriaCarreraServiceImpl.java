@@ -37,12 +37,6 @@ public class MateriaCarreraServiceImpl implements MateriaCarreraService {
         return materiaCarreraRepository.countMateriasPorNivel(carreraId, nivel) - 1;
     }
 
-//    @Override
-//    public MateriaCarrera obtenerMateriaCarrera(String carreraId, String materiaId) {
-//        return materiaCarreraRepository.findByCarrera_CarreraIdAndMateria_MateriaId(carreraId, materiaId)
-//                .orElseThrow(() -> new RuntimeException("MateriaCarrera no encontrada para carreraId: "
-//                        + carreraId + " y materiaId: " + materiaId));
-//    }
 
 
     @Override
@@ -332,6 +326,16 @@ public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
         }
 
         return resultado;
+    }
+
+    @Override
+    public List<MateriaCarrera>  findOfertasAbiertas(String carreraCapacitacionId, LocalDate hoy) {
+        return materiaCarreraRepository.findOfertasAbiertas(carreraCapacitacionId, hoy) ;
+    }
+
+    @Override
+    public Optional<MateriaCarrera> findOfertasAbiertas(Integer id) {
+        return materiaCarreraRepository.findOfertaById(id) ;
     }
 
 // parsearNivel queda igual, se reutiliza sin cambios

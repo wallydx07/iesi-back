@@ -226,9 +226,10 @@ public class PersonaServiceImpl implements PersonaService {
         entityManager.clear();
     }
 
+    @Override
+    public Optional<Persona> lockByDni(Long tramiteDni) {
+        return personaRepository.lockByDni(tramiteDni);
+    }
 
-//@Override
-//public List<AlumnoExamenDTO> AlumnoExamenDTO(String apellido, String carreraNombre) {
-//        return alumnoRepository.buscarAlumnos(apellido, carreraNombre);
-//    }
+
 }

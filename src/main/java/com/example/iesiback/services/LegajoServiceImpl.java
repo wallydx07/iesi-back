@@ -3,9 +3,14 @@ package com.example.iesiback.services;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.repositories.LegajoRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -24,6 +29,12 @@ public class LegajoServiceImpl implements LegajoService {
     private final UserService userService;
     private final CarreraService carreraService;
     private final InscripcionService inscripcionService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public LegajoServiceImpl(ObjectMapper objectMapper, LegajoRepository legajoRepository , PersonaService personaService, UserService userService, CarreraService carreraService, InscripcionService inscripcionService) {
         this.objectMapper = objectMapper;
@@ -198,5 +209,51 @@ public Legajo findOrCreateLegajo(Persona persona, String carreraId) {
         return legajoRepository.findByLegajoPersonaDni(persona);
     }
 
+    @Override
+    public Optional<Legajo> buscarPorPersonaYCarrera(Long personaDni, String carreraId) {
+        return legajoRepository
+                .findByLegajoPersonaDni_PersonaDniAndInscripcionCarrera_Carrera_CarreraId(personaDni, carreraId);
+    }
 
+    /**
+     * Devuelve el legajo de la persona en esa carrera, o lo crea con su inscripción.
+     * No usa el usuario autenticado: sirve para procesos sin sesión, como el webhook.
+     * La Persona tiene que llegar ya persistida.
+     */
+    @Transactional
+    @Override
+    public Legajo obtenerOCrearLegajo(Persona persona, Carrera carrera, String usuario) {
+        return buscarPorPersonaYCarrera(persona.getPersonaDni(), carrera.getCarreraId())
+                .orElseGet(() -> crearLegajoConInscripcion(persona, carrera, usuario));
+    }
+
+    @Transactional
+    @Override
+    public Legajo crearLegajoConInscripcion(Persona persona, Carrera carrera, String usuario) {
+        String prefijo = carrera.getCarreraId().split("-")[0];
+        bloquearNumeracion(prefijo);
+
+        Legajo legajo = new Legajo();
+        legajo.setLegajoId(generaLegajo(prefijo));
+        legajo.setLegajoPersonaDni(persona);
+        legajo.setLegajoFecha(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
+        legajo.setUsuario(usuario);
+        entityManager.persist(legajo);
+
+        Inscripcion inscripcion = new Inscripcion();
+        inscripcion.setLegajo(legajo);
+        inscripcion.setCarrera(carrera);
+        inscripcionService.crearInscripcion(inscripcion);
+        legajo.setInscripcion(inscripcion);
+
+        log.info("Legajo {} creado para dni={} en carrera {}", legajo.getLegajoId(),
+                persona.getPersonaDni(), carrera.getCarreraId());
+        return legajo;
+    }
+
+    /** Serializa la generación de legajoId por prefijo hasta el fin de la transacción. */
+    private void bloquearNumeracion(String prefijo) {
+        jdbcTemplate.query("SELECT pg_advisory_xact_lock(hashtext(?))",
+                (ResultSetExtractor<Void>) rs -> null, prefijo);
+    }
 }

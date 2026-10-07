@@ -32,6 +32,8 @@ public interface PersonaService {
     @Transactional
     void cambiarDni(Long dniActual, Long dniNuevo);
 
+    Optional<Persona> lockByDni(Long tramiteDni);
+
 
 //    List<AlumnoExamenDTO> AlumnoExamenDTO(String apellido, String carreraNombre);
 

@@ -10,6 +10,7 @@ import com.example.iesiback.entities.MateriaCarrera;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,6 +51,10 @@ public interface MateriaCarreraService {
     LocalDate obtenerFechaVigencia(String carreraId, String ordenStr);
 
     Map<String, String> cursoPorMateriasActualBatch(List<String> legajoIds);
+
+    List<MateriaCarrera>  findOfertasAbiertas(String carreraCapacitacionId, LocalDate hoy);
+
+    Optional<MateriaCarrera> findOfertasAbiertas(Integer id);
 
 //
 //    String cursoPorMateriasActual(String legajoId);

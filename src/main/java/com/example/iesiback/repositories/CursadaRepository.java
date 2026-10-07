@@ -77,6 +77,8 @@ public interface CursadaRepository extends JpaRepository<Cursada, Integer> {
             @Param("legajoId") String legajoId,
             @Param("materiaCarreraId") Long materiaCarreraId);
 
+
+    boolean existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(Long personaDni, Integer materiaCarreraId);
 };
 
 

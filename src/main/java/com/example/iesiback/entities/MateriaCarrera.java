@@ -88,6 +88,20 @@ public class MateriaCarrera {
     @JsonIgnore
     private Set<com.example.iesiback.entities.PersonalHorario> personalHorarios = new LinkedHashSet<>();
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "constancia_precio_id")
+    @JsonIgnore
+    private ConstanciaPrecio constanciaPrecio;
+
+    public ConstanciaPrecio getConstanciaPrecio() {
+        return constanciaPrecio;
+    }
+
+    public void setConstanciaPrecio(ConstanciaPrecio constanciaPrecio) {
+        this.constanciaPrecio = constanciaPrecio;
+    }
+
     public LocalDate getFechaInicio() {
         return fechaInicio;
     }

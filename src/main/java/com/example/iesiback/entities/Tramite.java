@@ -1,5 +1,6 @@
 package com.example.iesiback.entities;
 
+import com.example.iesiback.dto.DatosPreinscripcion;
 import com.example.iesiback.enums.PrioridadTramite;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -8,6 +9,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -127,12 +130,40 @@ public class Tramite {
 //    @JsonIgnore
     private Permiso permiso;
 
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "datos_preinscripcion", columnDefinition = "jsonb")
+    @JsonIgnore
+    private DatosPreinscripcion datosPreinscripcion;
+
+    // Curso (MateriaCarrera) elegido en la preinscripción
+    @Column(name = "oferta_materia_carrera_id")
+    private Long ofertaMateriaCarreraId;
+
+
     @JsonIgnore
     public String getTramiteFechaFormateada() {
         if (tramiteFecha == null) return "";
         DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return "Fecha: " + tramiteFecha.format(f) +
                 "   Hora: " + tramiteFecha.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+
+    public DatosPreinscripcion getDatosPreinscripcion() {
+        return datosPreinscripcion;
+    }
+
+    public void setDatosPreinscripcion(DatosPreinscripcion datosPreinscripcion) {
+        this.datosPreinscripcion = datosPreinscripcion;
+    }
+
+    public Long getOfertaMateriaCarreraId() {
+        return ofertaMateriaCarreraId;
+    }
+
+    public void setOfertaMateriaCarreraId(Long ofertaMateriaCarreraId) {
+        this.ofertaMateriaCarreraId = ofertaMateriaCarreraId;
     }
 
     public Integer getId() {
