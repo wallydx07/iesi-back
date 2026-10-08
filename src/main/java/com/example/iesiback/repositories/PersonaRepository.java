@@ -130,4 +130,6 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Persona p where p.personaDni = :dni")
     Optional<Persona> lockByDni(@Param("dni") Long dni);
+
+    Optional<Persona> findByPersonaDni(Long personaDni);
 }

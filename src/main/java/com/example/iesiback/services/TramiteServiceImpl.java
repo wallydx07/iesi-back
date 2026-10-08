@@ -5,10 +5,12 @@ import com.example.iesiback.dto.TramiteListadoDTO;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.entities.User;
+import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.repositories.PagoRepository;
 import com.example.iesiback.repositories.TramiteRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,10 @@ import java.util.Random;
 
 @Service
 public class TramiteServiceImpl implements TramiteService {
+
+    @Autowired
+    private ApplicationEventPublisher eventos;   // org.springframework.context.ApplicationEventPublisher
+
 
     private final TramiteRepository repository;
     private final UserService userService;
@@ -54,20 +60,28 @@ public class TramiteServiceImpl implements TramiteService {
 
     @Override
     public Tramite save(Tramite atencion) {
-         // Asigna el usuario logueado automáticamente
+        // Asigna el usuario logueado automáticamente
         atencion.setTramiteUsuario(obtenerUser());
-        // Genera el código de seguimiento
-        atencion.setCodigoSeguimiento(generarCodigoSeguimiento());
+
+        // Genera el código de seguimiento solo si no viene asignado
+        // (la preinscripción pública trae su propio código de 16 caracteres)
+        if (atencion.getCodigoSeguimiento() == null || atencion.getCodigoSeguimiento().isBlank()) {
+            atencion.setCodigoSeguimiento(generarCodigoSeguimiento());
+        }
+
         // Obtiene la secuencia según el tipo de atención
         String secuencia = getSecuenciaPorTipo(atencion.getTramiteTipo());
         Long numero = obtenerSiguienteNumero(secuencia);
         atencion.setNumeroTipo(numero);
+
         // 🔎 Control para evitar error de referencia transitoria en Legajo
         if (atencion.getLegajoId() != null && atencion.getLegajoId() == null) {
             System.out.println("Legajo sin ID detectado, se establece en null para evitar error de Hibernate");
             atencion.setLegajoId(null);
         }
-        Tramite devolver=repository.save(atencion);
+
+        Tramite devolver = repository.save(atencion);
+
         System.out.println("__________________________________________________");
         System.out.println("Pagos recibidos");
         if (atencion.getPagos() != null) {
@@ -176,6 +190,8 @@ public class TramiteServiceImpl implements TramiteService {
                 return "seq_permiso_examen";
             case "Solicitud de Libreta":
                 return "seq_solicitud_libreta";
+            case "Inscripción Capacitación":
+                return "seq_inscripcion_capacitacion";
             default:
                 throw new IllegalArgumentException("Tipo de trámite no reconocido: " + tipo);
         }
@@ -226,6 +242,9 @@ public class TramiteServiceImpl implements TramiteService {
     @Override
     public void updatePagosTramite(Integer tramiteId, Integer pagoId) {
         repository.linkearPagoTramite(tramiteId, pagoId);
+        pagoRepository.findById(pagoId)
+                .filter(p -> p.getEstado() == EstadoPago.APROBADO)
+                .ifPresent(p -> eventos.publishEvent(new PagoAprobadoEvent(pagoId)));
     }
 
     @Override

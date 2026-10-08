@@ -371,6 +371,10 @@ public interface MateriaCarreraRepository extends JpaRepository<MateriaCarrera, 
     where mc.id = :id
     """)
     Optional<MateriaCarrera> findOfertaById(@Param("id") Integer id);
+
+
+
+
 }
 
 

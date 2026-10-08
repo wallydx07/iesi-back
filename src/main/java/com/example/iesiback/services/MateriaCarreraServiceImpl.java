@@ -349,4 +349,11 @@ public LocalDate obtenerFechaVigencia(String carreraId, String ordenStr) {
             default -> null;
         };
     }
+
+
+
+@Override
+public Optional<MateriaCarrera> findOfertaById(Long id) {
+        return materiaCarreraRepository.findById(id);
+    }
 }

@@ -12,31 +12,62 @@ import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferencePayerRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.preference.Preference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+/*
+ * CAMBIOS RESPECTO DE LA VERSIÓN ANTERIOR
+ *
+ * 1. crearPreferencia: nueva sobrecarga con URL de retorno, vencimiento y email del pagador.
+ *    La firma vieja (pagoId, tramiteId) se mantiene y delega en la nueva: lo que ya la usa sigue igual.
+ *
+ * 2. procesarWebhook: ELIMINADO. Lo reemplaza MercadoPagoWebhookService (consulta MP fuera de
+ *    transacción → RegistroPagoMpService → FinalizacionInscripcionService). Quitarlo también de
+ *    la interfaz PagoService. No se inyecta MercadoPagoWebhookService acá para evitar una
+ *    dependencia circular: Finalización → TramiteService → PagoService.
+ *
+ * 3. mapearEstadoMercadoPago: ELIMINADO. Ahora es MercadoPagoEstados.mapear(...), compartido
+ *    con el webhook de Checkout Pro.
+ *
+ * 4. procesarWebhookPresencial: usa el ObjectMapper inyectado (antes creaba uno nuevo, que no
+ *    tiene registrado el módulo de fechas de Java 8+) y logger en lugar de System.err.
+ *
+ * 5. MercadoPagoService ya no se inyecta: solo lo usaba procesarWebhook.
+ *
+ * El resto del archivo no cambió.
+ */
 @Service
 public class PagoServiceImpl implements PagoService {
 
-    private final MercadoPagoService mercadoPagoService;
+    private static final Logger log = LoggerFactory.getLogger(PagoServiceImpl.class);
+
     private final UserService userService;
     private final PersonaService personaService;
     private final PagoDetalleService pagoDetalleService;
-    private final ObjectMapper objectMapper; // Spring te inyecta el autoconfigurado
+
     private final PagoPresencialService pagoPresencialService;
+
+    private final ObjectMapper objectMapper; // Spring te inyecta el autoconfigurado
 
     @Value("${app.front-url}")
     private String frontUrl;
@@ -44,27 +75,26 @@ public class PagoServiceImpl implements PagoService {
     @Value("${app.back-url}")
     private String backUrl;
 
-
     @Value("${mercadopago.access-token}")
     private String accessToken;
-
 
     @Autowired
     private PagoRepository pagoRepository;
 
-
+    private final ApplicationEventPublisher eventos;
     public PagoServiceImpl(
-            MercadoPagoService mercadoPagoService,
             UserService userService,
             PersonaService personaService,
-            PagoDetalleService pagoDetalleService, ObjectMapper objectMapper, PagoPresencialService pagoPresencialService
+            PagoDetalleService pagoDetalleService,
+            ObjectMapper objectMapper,
+            PagoPresencialService pagoPresencialService, ApplicationEventPublisher eventos
     ) {
-        this.mercadoPagoService = mercadoPagoService;
         this.userService = userService;
         this.personaService = personaService;
         this.pagoDetalleService = pagoDetalleService;
         this.objectMapper = objectMapper;
         this.pagoPresencialService = pagoPresencialService;
+        this.eventos = eventos;
     }
 
     @Override
@@ -85,7 +115,11 @@ public class PagoServiceImpl implements PagoService {
             pago.setEstado(EstadoPago.PENDIENTE);
         }
 
-        return pagoRepository.save(pago);
+        Pago guardado = pagoRepository.save(pago);
+        if (guardado.getEstado() == EstadoPago.APROBADO) {
+            eventos.publishEvent(new PagoAprobadoEvent(guardado.getId()));
+        }
+        return guardado;
     }
 
     @Override
@@ -113,8 +147,28 @@ public class PagoServiceImpl implements PagoService {
         return pagoRepository.findByOrderId(id);
     }
 
+    // =====================================================================
+    // PREFERENCIAS CHECKOUT PRO
+    // =====================================================================
+
+    /** Firma original: retorno a /pago/resultado, sin vencimiento. La usa /api/pagos/iniciar. */
     @Override
     public Map<String, String> crearPreferencia(ProductoDTO producto, Integer pagoId, Integer tramiteId) {
+        String urlRetorno = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId;
+        return crearPreferencia(producto, pagoId, urlRetorno, null, null);
+    }
+
+    /**
+     * @param urlRetorno   URL del front, ya con "?" y sus parámetros; se le agrega "&resultado=..."
+     * @param vence        fin de la validez de la preferencia (null = no vence)
+     * @param emailPagador para precompletar el checkout (opcional)
+     */
+    @Override
+    public Map<String, String> crearPreferencia(ProductoDTO producto,
+                                                Integer pagoId,
+                                                String urlRetorno,
+                                                OffsetDateTime vence,
+                                                String emailPagador) {
 
         Pago pago = pagoRepository.findById(pagoId)
                 .orElseThrow(() -> new BusinessException("Pago no encontrado: " + pagoId));
@@ -134,32 +188,36 @@ public class PagoServiceImpl implements PagoService {
                             .unitPrice(producto.getPrecio())
                             .build();
 
-            String successUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId + "&resultado=exito";
-            String pendingUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId + "&resultado=pendiente";
-            String failureUrl = frontUrl + "/pago/resultado?pagoId=" + pagoId + "&tramiteId=" + tramiteId + "&resultado=error";
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success(successUrl)
-                    .pending(pendingUrl)
-                    .failure(failureUrl)
+                    .success(urlRetorno + "&resultado=exito")
+                    .pending(urlRetorno + "&resultado=pendiente")
+                    .failure(urlRetorno + "&resultado=error")
                     .build();
 
-            PreferenceRequest preferenceRequest =
+            PreferenceRequest.PreferenceRequestBuilder builder =
                     PreferenceRequest.builder()
                             .items(List.of(itemRequest))
                             .backUrls(backUrls)
                             .autoReturn("approved")
                             .externalReference(pagoId.toString())            // 👈 clave: id de TU tabla
-                            .notificationUrl(backUrl + "/api/pagos/webhook")
-                            .build();
+                            .notificationUrl(backUrl + "/api/pagos/webhook");
+
+            if (vence != null) {
+                builder.expires(true)
+                        .expirationDateTo(vence)
+                        .dateOfExpiration(vence);   // también vence tickets de pago en efectivo
+            }
+            if (emailPagador != null && !emailPagador.isBlank()) {
+                builder.payer(PreferencePayerRequest.builder().email(emailPagador).build());
+            }
 
             PreferenceClient client = new PreferenceClient();
-            Preference preference = client.create(preferenceRequest);
+            Preference preference = client.create(builder.build());
 
-            // 👈 esto es lo que faltaba: persistir la referencia ANTES de redirigir
+            // persistir la referencia ANTES de redirigir
             pago.setPreferenceId(preference.getId());
             pago.setExternalReference(pagoId.toString());
             pagoRepository.save(pago);
-
             Map<String, String> datos = new HashMap<>();
             datos.put("preferenceId", preference.getId());
             datos.put("init_point", preference.getInitPoint());
@@ -173,63 +231,11 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public void procesarWebhook(Map<String, Object> payload) throws Exception {
-
-        Map<String, Object> data = (Map<String, Object>) payload.get("data");
-        Long paymentId = Long.valueOf(data.get("id").toString());
-
-        PaymentDTO payment = mercadoPagoService.consultarPagoPorId(paymentId);
-
-        String preferenceId = payment.getPreference_id();
-        String externalRef = payment.getExternal_reference();
-
-        Pago pago = null;
-
-        if (externalRef != null) {
-            pago = pagoRepository.findById(Integer.valueOf(externalRef)).orElse(null);
-        }
-        if (pago == null && preferenceId != null) {
-            pago = pagoRepository.findByPreferenceId(preferenceId).orElse(null);
-        }
-
-        if (pago == null) {
-            // No deberia pasar si crearPreferencia se llamó bien, pero no inventamos un Pago fantasma
-            System.err.println("⚠️ Webhook recibido sin Pago asociado. paymentId=" + paymentId
-                    + " externalRef=" + externalRef + " preferenceId=" + preferenceId);
-            return;
-        }
-
-        pago.setMpPaymentId(paymentId);
-        pago.setPreferenceId(preferenceId);
-        pago.setExternalReference(externalRef);
-        pago.setEstado(mapearEstadoMercadoPago(payment.getStatus(), payment.getStatus_detail()));
-        pago.setStatusDetail(payment.getStatus_detail());
-        pago.setMetodoPago(payment.getPayment_method_id());
-        pago.setTipoPago(payment.getPayment_type_id());
-        pago.setMontoTotal(payment.getTransaction_amount());
-        pago.setMoneda(payment.getCurrency_id());
-        pago.setFechaPago(payment.getDate_approved());
-        pago.setRawResponse(objectMapper.convertValue(payment, Map.class));
-
-        if (payment.getPayer() != null) {
-            PaymentDTO.Payer payer = payment.getPayer();
-
-            String nombreCompleto = ((payer.getFirst_name() != null ? payer.getFirst_name() : "") + " "
-                    + (payer.getLast_name() != null ? payer.getLast_name() : "")).trim();
-
-            pago.setNombrePagador(nombreCompleto.isEmpty() ? null : nombreCompleto);
-            pago.setDniPagador(payer.getIdentification() != null ? payer.getIdentification().getNumber() : null);
-        }
-
-        pagoRepository.save(pago);
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public void procesarWebhookPresencial(Map<String, Object> payload) throws Exception {
 
         String action = (String) payload.get("action");
-        // 👇 antes solo processed/refunded; ahora también expired y canceled,
-        // así el pago local se cancela aunque el operador cierre la pestaña
+        // processed/refunded/expired/canceled: así el pago local se cancela aunque el operador cierre la pestaña
         if (!"order.processed".equals(action)
                 && !"order.refunded".equals(action)
                 && !"order.expired".equals(action)
@@ -259,15 +265,13 @@ public class PagoServiceImpl implements PagoService {
             pago = pagoRepository.findByOrderId(orderId).orElse(null);
         }
         if (pago == null) {
-            System.err.println("⚠️ Webhook presencial sin Pago asociado. orderId=" + orderId
-                    + " externalRef=" + externalRef);
+            log.warn("Webhook presencial sin Pago asociado. orderId={} externalRef={}", orderId, externalRef);
             return;
         }
 
-        EstadoPago nuevoEstado = mapearEstadoMercadoPago(status, statusDetail); // 👈 el cambio clave
+        EstadoPago nuevoEstado = MercadoPagoEstados.mapear(status, statusDetail);
 
-        // 🛡️ Nunca degradar un APROBADO: un webhook viejo o duplicado no puede
-        // pisarlo con PENDIENTE/CANCELADO. Solo refund/contracargo lo cambian.
+        // Nunca degradar un APROBADO: solo refund/contracargo lo cambian
         if (pago.getEstado() == EstadoPago.APROBADO
                 && nuevoEstado != EstadoPago.REEMBOLSADO
                 && nuevoEstado != EstadoPago.CONTRACARGO) {
@@ -294,42 +298,14 @@ public class PagoServiceImpl implements PagoService {
             pago.setMpPaymentIdStr((String) firstPayment.get("id"));
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        pago.setRawResponse(mapper.convertValue(order, Map.class));
+        pago.setRawResponse(objectMapper.convertValue(order, Map.class));
 
         pagoRepository.save(pago);
     }
 
-    private EstadoPago mapearEstadoMercadoPago(String estadoMp, String statusDetail) {
-
-        if (estadoMp == null) {
-            return EstadoPago.PENDIENTE;
-        }
-
-        return switch (estadoMp.toLowerCase()) {
-            // Checkout Pro / Payments API
-            case "approved" -> EstadoPago.APROBADO;
-            case "rejected" -> EstadoPago.RECHAZADO;
-
-            // Orders API v2 (QR estático / Point)
-            case "processed" -> "accredited".equalsIgnoreCase(statusDetail)
-                    ? EstadoPago.APROBADO
-                    : EstadoPago.PENDIENTE;
-            case "expired" -> EstadoPago.CANCELADO;
-
-            // comunes a ambas APIs
-            case "cancelled", "canceled" -> EstadoPago.CANCELADO;   // 👈 MP usa las dos grafías
-            case "refunded" -> EstadoPago.REEMBOLSADO;
-            case "charged_back" -> EstadoPago.CONTRACARGO;
-            case "pending", "in_process", "created",
-                 "action_required", "processing" -> EstadoPago.PENDIENTE;
-
-            default -> {
-                System.err.println("⚠️ Estado MP desconocido: " + estadoMp + " / " + statusDetail);
-                yield EstadoPago.PENDIENTE;
-            }
-        };
-    }
+    // =====================================================================
+    // RESÚMENES (sin cambios)
+    // =====================================================================
 
     @Override
     public Optional<ResumenRecaudacionDTO> ResumenRecaudacionDTO(
@@ -458,7 +434,6 @@ public class PagoServiceImpl implements PagoService {
         return Optional.of(resumen);
     }
 
-
     @Override
     public List<ResumenOperadorDTO> obtenerResumenPorOperador(
             LocalDate desde, LocalDate hasta, User user
@@ -480,7 +455,6 @@ public class PagoServiceImpl implements PagoService {
             ReciboDTO dto = new ReciboDTO();
             dto.setAporteId(Long.valueOf(pago.getId()));
             dto.setAporteMonto(pago.getMontoTotal() != null ? pago.getMontoTotal() : BigDecimal.ZERO);
-//            dto.setMetodo(pago.getMetodoPago());
             dto.setMetodo(convertirMetodoPago(pago.getMetodoPago()));
             if (pago.getFechaPago() != null) {
                 dto.setAporteFecha(pago.getFechaPago().atZone(zona).toLocalDate());
@@ -539,7 +513,6 @@ public class PagoServiceImpl implements PagoService {
                 .toList();
     }
 
-
     private String convertirMetodoPago(String metodoPago) {
         if (metodoPago == null) {
             return "-";
@@ -561,14 +534,13 @@ public class PagoServiceImpl implements PagoService {
         };
     }
 
-
     public String obtenerAnioCursada(String libretaEstudiantil) throws Exception {
         // Obtener el año actual
         int anioActual = Calendar.getInstance().get(Calendar.YEAR);
 
         // Obtener el año de inicio usando el repositorio
         Integer anioInicio = pagoRepository.findCurso(libretaEstudiantil);
-        Legajo legajo=pagoRepository.findLegajo(libretaEstudiantil);
+        Legajo legajo = pagoRepository.findLegajo(libretaEstudiantil);
 
         if (anioInicio == null) {
             throw new Exception("No se encontró el año de inicio para la libreta: " + libretaEstudiantil);
@@ -590,20 +562,18 @@ public class PagoServiceImpl implements PagoService {
         }
     }
 
+    // =====================================================================
+    // VALIDACIÓN Y CAMBIO DE ESTADO MANUAL (sin cambios; protegidos en SecurityConfig)
+    // =====================================================================
 
     @Override
     public void actualizarEstadoValidacion(Long id) {
 
         Pago pago = pagoRepository.findById(id.intValue())
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Pago no encontrado"
-                        ));
+                .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
 
         if (pago.getEstado() == EstadoPago.APROBADO) {
-            throw new RuntimeException(
-                    "El pago ya fue validado"
-            );
+            throw new RuntimeException("El pago ya fue validado");
         }
 
         pago.setEstado(EstadoPago.APROBADO);
@@ -613,10 +583,7 @@ public class PagoServiceImpl implements PagoService {
         }
 
         User user = userService.getAuthenticatedUser()
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Usuario no autenticado"
-                        ));
+                .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
         pago.setResponsable(user.getUsername());
 
@@ -624,24 +591,16 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public void actualizarEstadoValidacionPorTramite(
-            Integer tramiteId
-    ) {
+    public void actualizarEstadoValidacionPorTramite(Integer tramiteId) {
 
-        List<Pago> pagos =
-                pagoRepository.findAllByTramiteId(tramiteId);
+        List<Pago> pagos = pagoRepository.findAllByTramiteId(tramiteId);
 
         if (pagos.isEmpty()) {
-            throw new RuntimeException(
-                    "No existen pagos para el trámite"
-            );
+            throw new RuntimeException("No existen pagos para el trámite");
         }
 
         User user = userService.getAuthenticatedUser()
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Usuario no autenticado"
-                        ));
+                .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
 
         for (Pago pago : pagos) {
 
@@ -661,19 +620,19 @@ public class PagoServiceImpl implements PagoService {
         pagoRepository.saveAll(pagos);
     }
 
+    @Transactional
     @Override
-    @Transactional // Súper importante para asegurar la consistencia en operaciones de escritura
     public void cambiarEstadoPago(Integer pagoId, EstadoPago nuevoEstado) {
 
-        // 1. Validar autenticación PRIMERO (Usa BusinessException)
+        // 1. Validar autenticación PRIMERO
         User user = userService.getAuthenticatedUser()
                 .orElseThrow(() -> new BusinessException("Usuario no autenticado"));
 
-        // 2. Buscar la entidad (Usa BusinessException)
+        // 2. Buscar la entidad
         Pago pago = pagoRepository.findById(pagoId)
                 .orElseThrow(() -> new BusinessException("Pago no encontrado con el ID: " + pagoId));
 
-        // 3. Validar transición usando el Enum (Usa BusinessException)
+        // 3. Validar transición usando el Enum
         if (!pago.getEstado().puedeTransicionarA(nuevoEstado)) {
             throw new BusinessException("Cambio de estado inválido de " + pago.getEstado() + " a " + nuevoEstado);
         }
@@ -690,14 +649,7 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
-    public List<Pago> findByFechaPagoBetween(
-            Instant desde, Instant hasta
-    ) {
-        List<Pago> pagos = pagoRepository.findByFechaPagoBetween(
-                desde,
-                hasta
-        );
-
-        return pagos;
+    public List<Pago> findByFechaPagoBetween(Instant desde, Instant hasta) {
+        return pagoRepository.findByFechaPagoBetween(desde, hasta);
     }
 }

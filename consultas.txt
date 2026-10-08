@@ -553,3 +553,17 @@ BEGIN
 END;
 $function$
 ;
+
+
+
+
+insert into carrera values('CYDL-2026','En tramite','Capacitacion y Desarrollo Laboral',2026,null);
+
+
+
+CREATE SEQUENCE seq_inscripcion_capacitacion
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;

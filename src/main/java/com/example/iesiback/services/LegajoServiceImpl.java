@@ -72,10 +72,15 @@ public class LegajoServiceImpl implements LegajoService {
 
     @Override
     public String generaLegajo(String prefijo) {
-        System.out.println("---------------------------------------------"+prefijo);
         String maxLegajo = legajoRepository.findMaxLegajoId(prefijo);
-        String numeroStr = maxLegajo.replaceAll("\\D+", ""); // Solo deja los dígitos
-        int numero = Integer.parseInt(numeroStr) + 1; // Incrementa el número
+
+        // Primer legajo con este prefijo (ej.: primera inscripción a Capacitación)
+        if (maxLegajo == null) {
+            return prefijo + 1;
+        }
+
+        String numeroStr = maxLegajo.replaceAll("\\D+", ""); // solo los dígitos
+        int numero = Integer.parseInt(numeroStr) + 1;
         return prefijo + numero;
     }
 
@@ -150,6 +155,7 @@ public Legajo findOrCreateLegajo(Persona persona, String carreraId) {
         Carrera carrera = carreraService.findCarreraById(carreraId);
         // 🧾 Completar legajo
         legajo.setLegajoPersonaDni(persona);
+        legajo.setLegajoEstado("Activo");          // 👈 nuevo
         legajo.setLegajoFecha(
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
         );
@@ -236,6 +242,7 @@ public Legajo findOrCreateLegajo(Persona persona, String carreraId) {
         Legajo legajo = new Legajo();
         legajo.setLegajoId(generaLegajo(prefijo));
         legajo.setLegajoPersonaDni(persona);
+        legajo.setLegajoEstado("Activo");
         legajo.setLegajoFecha(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
         legajo.setUsuario(usuario);
         entityManager.persist(legajo);

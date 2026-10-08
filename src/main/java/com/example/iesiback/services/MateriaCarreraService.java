@@ -56,6 +56,8 @@ public interface MateriaCarreraService {
 
     Optional<MateriaCarrera> findOfertasAbiertas(Integer id);
 
+    Optional<MateriaCarrera> findOfertaById(Long id);
+
 //
 //    String cursoPorMateriasActual(String legajoId);
 }

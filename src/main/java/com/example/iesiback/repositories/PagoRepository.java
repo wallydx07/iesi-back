@@ -77,10 +77,13 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     Legajo findLegajo(@Param("libretaEstudiantil") String libretaEstudiantil);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select t from Tramite t where t.id = :id")
-    Optional<Tramite> lockById(@Param("id") Integer id);
+    @Query("select p from Pago p where p.id = :id")
+    Optional<Pago> lockById(@Param("id") Integer id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from Tramite t where t.codigoSeguimiento = :codigo")
     Optional<Tramite> lockByCodigoSeguimiento(@Param("codigo") String codigo);
+
+    @Query("select t.tramiteTipo from Pago p join p.tramite t where p.id = :id")
+    Optional<String> findTipoTramiteByPagoId(@Param("id") Integer id);
 }

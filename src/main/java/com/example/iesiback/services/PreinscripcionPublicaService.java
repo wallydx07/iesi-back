@@ -5,6 +5,11 @@ import com.example.iesiback.dto.PreinscripcionDtos.*;
 import com.example.iesiback.dto.ProductoDTO;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoPago;
+import com.example.iesiback.repositories.CursadaRepository;
+import com.example.iesiback.repositories.MateriaCarreraRepository;
+import com.example.iesiback.repositories.PagoRepository;
+import com.example.iesiback.repositories.PersonaRepository;
+import com.example.iesiback.repositories.TramiteRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,23 +22,23 @@ import java.time.*;
 import java.util.*;
 
 /**
- * Flujo público de preinscripción a cursos de Capacitación.
+ * Preinscripción a cursos de Capacitación: canal web (público) y canal presencial (ventanilla).
  *
- * Nunca crea ni modifica Persona, Legajo, Inscripcion o Cursada:
- * eso lo hace únicamente FinalizacionInscripcionService después de un pago aprobado.
- *
- * El identificador público del proceso es el código de seguimiento (16 caracteres
- * aleatorios con SecureRandom). El id interno del trámite nunca se expone.
+ * Ninguno de los dos crea ni modifica Persona, Legajo, Inscripcion o Cursada:
+ * eso lo hace únicamente FinalizacionInscripcionService cuando se aprueba el pago,
+ * venga de Checkout Pro o de la caja.
  */
 @Service
 public class PreinscripcionPublicaService {
 
     public static final String TIPO_TRAMITE = "Inscripción Capacitación";
-    public static final String ESTADO_TRAMITE_INICIAL = "Pendiente";
+    /** Mismo estado inicial que el resto de los trámites del sistema. */
+    public static final String ESTADO_TRAMITE_INICIAL = "No Asignado";
 
     /** Ajustar al área que usa la bandeja de trámites (las pestañas se generan por tramiteArea). */
-    private static final String AREA_TRAMITE = "Alumnado";
-    private static final String CANAL_TRAMITE = "Web";
+    private static final String AREA_TRAMITE = "Ingreso y Admision";
+    private static final String CANAL_WEB = "Web";
+    private static final String CANAL_PRESENCIAL = "Presencial";
 
     private static final ZoneId ZONA = ZoneId.of("America/Argentina/Jujuy");
     private static final String ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin 0/O/1/I
@@ -41,9 +46,10 @@ public class PreinscripcionPublicaService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final TramiteService tramiteService;
-    private final PagoService pagoService;
     private final MateriaCarreraService materiaCarreraService;
     private final CursadaService cursadaService;
+    private final PersonaService personaService;
+    private final PagoService pagoService;
 
     @Value("${app.preinscripcion.carrera-id}")
     private String carreraCapacitacionId;
@@ -51,12 +57,14 @@ public class PreinscripcionPublicaService {
     @Value("${app.front-url}")
     private String frontUrl;
 
-    public PreinscripcionPublicaService(TramiteService tramiteService, PagoService pagoService, MateriaCarreraService materiaCarreraService, CursadaService cursadaService) {
+    public PreinscripcionPublicaService(TramiteService tramiteService, MateriaCarreraService materiaCarreraService, CursadaService cursadaService, PersonaService personaService, PagoService pagoService) {
         this.tramiteService = tramiteService;
-        this.pagoService = pagoService;
         this.materiaCarreraService = materiaCarreraService;
         this.cursadaService = cursadaService;
+        this.personaService = personaService;
+        this.pagoService = pagoService;
     }
+
 
     // =====================================================================
     // OFERTAS DISPONIBLES
@@ -71,17 +79,14 @@ public class PreinscripcionPublicaService {
     }
 
     // =====================================================================
-    // CREAR PREINSCRIPCIÓN (solo Tramite: nada académico, nada de Persona)
+    // CANAL WEB: crear preinscripción (solo Tramite)
     // =====================================================================
 
     @Transactional
     public PreinscripcionCreadaResponse crear(PreinscripcionPublicaRequest req) {
         Long dni = Long.valueOf(req.dni());
         MateriaCarrera oferta = ofertaAbierta(req.ofertaId());
-
-        if (cursadaService.existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(dni, oferta.getId())) {
-            throw error(HttpStatus.CONFLICT, "Ya existe una inscripción para este DNI en el curso seleccionado.");
-        }
+        validarNoInscripto(dni, oferta);
 
         DatosPreinscripcion datos = new DatosPreinscripcion(
                 normalizar(req.apellido()),
@@ -90,32 +95,57 @@ public class PreinscripcionPublicaService {
                 req.celular().trim()
         );
 
-        Tramite tramite = new Tramite();
-        tramite.setTramiteTipo(TIPO_TRAMITE);
-        tramite.setTramiteEstado(ESTADO_TRAMITE_INICIAL);
-        tramite.setTramiteArea(AREA_TRAMITE);
-        tramite.setTramiteCanal(CANAL_TRAMITE);
-        tramite.setTramiteFecha(LocalDateTime.now(ZONA));
-        tramite.setTramiteDni(dni);
-        tramite.setTramiteApellidoNombre(truncar(datos.apellido() + ", " + datos.nombre(), 100));
-        tramite.setTramiteCorreo(datos.correo());
-        tramite.setTramiteCelular(celularComoLong(datos.celular()));
-        tramite.setTramiteAsunto("Preinscripción online: " + oferta.getMateria().getMateriaNombre());
-        tramite.setDatosPreinscripcion(datos);
-        tramite.setOfertaMateriaCarreraId(Long.valueOf(oferta.getId()));
-        tramite.setCodigoSeguimiento(generarCodigo()); // TramiteServiceImpl.save lo respeta si ya viene cargado
-
-        Tramite guardado = tramiteService.save(tramite);
+        Tramite guardado = tramiteService.save(nuevoTramite(dni, oferta, datos, CANAL_WEB));
         return new PreinscripcionCreadaResponse(guardado.getCodigoSeguimiento(), guardado.getTramiteEstado());
     }
 
     // =====================================================================
-    // INICIAR PAGO: el monto lo decide el backend (oferta → concepto → precioMp)
+    // CANAL PRESENCIAL: ventanilla (usuario autenticado)
+    // =====================================================================
+
+    /**
+     * Crea el trámite de preinscripción desde ventanilla. Después se cobra en la caja;
+     * cuando ese pago queda APROBADO, el PagoAprobadoListener finaliza la inscripción.
+     *
+     * Si la Persona ya existe se usan SUS datos (no los del formulario) y no se modifica nada.
+     * Si no existe, se exigen apellido, nombre y celular para poder crearla después del pago.
+     */
+    @Transactional
+    public Tramite crearPresencial(PreinscripcionPresencialRequest req) {
+        Long dni = Long.valueOf(req.dni());
+        MateriaCarrera oferta = ofertaAbierta(req.ofertaId());
+        validarNoInscripto(dni, oferta);
+
+        DatosPreinscripcion datos = Optional.ofNullable(personaService.findAlumnoById(dni.toString()))
+                .map(p -> new DatosPreinscripcion(
+                        p.getPersonaApellido(),
+                        p.getPersonaNombre(),
+                        p.getPersonaCorreo(),
+                        p.getPersonaDomicilioCelular()))
+                .orElseGet(() -> datosDePersonaNueva(req));
+        return tramiteService.save(nuevoTramite(dni, oferta, datos, CANAL_PRESENCIAL));
+    }
+
+    private DatosPreinscripcion datosDePersonaNueva(PreinscripcionPresencialRequest req) {
+        if (vacio(req.apellido()) || vacio(req.nombre()) || vacio(req.celular())) {
+            throw error(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "El DNI no está registrado: completá apellido, nombre y celular.");
+        }
+        String correo = vacio(req.correo()) ? null : req.correo().trim().toLowerCase(Locale.ROOT);
+        return new DatosPreinscripcion(
+                normalizar(req.apellido()),
+                normalizar(req.nombre()),
+                correo,
+                req.celular().trim()
+        );
+    }
+
+    // =====================================================================
+    // CANAL WEB: iniciar pago (el monto lo decide el backend)
     // =====================================================================
 
     @Transactional
     public IniciarPagoResponse iniciarPago(String codigo) {
-        // Bloquea el trámite: dos clics simultáneos en "Pagar" no generan dos pagos
         Tramite tramite = tramiteService.lockByCodigoSeguimiento(codigo)
                 .filter(t -> TIPO_TRAMITE.equals(t.getTramiteTipo()))
                 .orElseThrow(this::noEncontrado);
@@ -125,12 +155,8 @@ public class PreinscripcionPublicaService {
             throw error(HttpStatus.CONFLICT, "Este trámite ya no admite pagos.");
         }
 
-        MateriaCarrera oferta = ofertaAbierta((tramite.getOfertaMateriaCarreraId().intValue()));
-
-        if (cursadaService.existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(
-                tramite.getTramiteDni(), oferta.getId())) {
-            throw error(HttpStatus.CONFLICT, "Ya existe una inscripción para este DNI en el curso seleccionado.");
-        }
+        MateriaCarrera oferta = ofertaAbierta(tramite.getOfertaMateriaCarreraId().intValue());
+        validarNoInscripto(tramite.getTramiteDni(), oferta);
 
         List<Pago> pagos = pagoService.findByAtencionId(tramite.getId());
         if (pagos.stream().anyMatch(p -> p.getEstado() == EstadoPago.APROBADO)) {
@@ -141,8 +167,7 @@ public class PreinscripcionPublicaService {
                     "Hay un pago en proceso de acreditación. Esperá su confirmación antes de intentar de nuevo.");
         }
 
-        // Intentos anteriores que nunca llegaron a pagarse: quedan dados de baja.
-        // Si alguien igual paga esa preferencia vieja, el webhook acepta CANCELADO → APROBADO.
+        // Intentos anteriores que nunca llegaron a pagarse quedan dados de baja
         pagos.stream()
                 .filter(p -> p.getEstado() == EstadoPago.PENDIENTE && p.getMpPaymentId() == null)
                 .forEach(p -> {
@@ -178,12 +203,10 @@ public class PreinscripcionPublicaService {
         producto.setDescripcion(oferta.getMateria().getMateriaNombre() + " - Trámite " + codigo);
         producto.setPrecio(monto);
 
-        // La preferencia vence con la inscripción: MP no acepta pagos después de la fecha límite
         OffsetDateTime vence = oferta.getFechaLimite().atTime(LocalTime.of(23, 59, 59))
                 .atZone(ZONA).toOffsetDateTime();
         String urlRetorno = frontUrl + "/preinscripcion/resultado?codigo=" + codigo;
 
-        // Si MP falla, la excepción revierte toda la transacción: no queda un Pago huérfano
         Map<String, String> datos = pagoService.crearPreferencia(
                 producto, pago.getId(), urlRetorno, vence, tramite.getTramiteCorreo());
 
@@ -191,7 +214,7 @@ public class PreinscripcionPublicaService {
     }
 
     // =====================================================================
-    // ESTADO PÚBLICO (sin datos personales)
+    // CANAL WEB: estado público (sin datos personales)
     // =====================================================================
 
     @Transactional(readOnly = true)
@@ -200,7 +223,7 @@ public class PreinscripcionPublicaService {
                 .filter(t -> TIPO_TRAMITE.equals(t.getTramiteTipo()))
                 .orElseThrow(this::noEncontrado);
 
-        List<Pago> pagos = pagoService.findAllByTramiteId(tramite.getId());
+        List<Pago> pagos = pagoService.findByAtencionId(tramite.getId());
         boolean finalizada = FinalizacionInscripcionService.estaFinalizado(tramite);
 
         Optional<MateriaCarrera> oferta = Optional.ofNullable(tramite.getOfertaMateriaCarreraId())
@@ -226,9 +249,36 @@ public class PreinscripcionPublicaService {
     // Auxiliares
     // =====================================================================
 
+    /** Arma el Tramite de preinscripción, igual para ambos canales salvo el canal. */
+    private Tramite nuevoTramite(Long dni, MateriaCarrera oferta, DatosPreinscripcion datos, String canal) {
+        Tramite tramite = new Tramite();
+        tramite.setTramiteTipo(TIPO_TRAMITE);
+        tramite.setTramiteEstado(ESTADO_TRAMITE_INICIAL);
+        tramite.setTramiteArea(AREA_TRAMITE);
+        tramite.setTramiteCanal(canal);
+        tramite.setTramiteFecha(LocalDateTime.now(ZONA));
+        tramite.setTramiteDni(dni);
+        tramite.setTramiteApellidoNombre(truncar(
+                Objects.toString(datos.apellido(), "") + ", " + Objects.toString(datos.nombre(), ""), 100));
+        tramite.setTramiteCorreo(datos.correo());
+        tramite.setTramiteCelular(celularComoLong(datos.celular()));
+        tramite.setTramiteAsunto("Preinscripción " + canal.toLowerCase(Locale.ROOT) + ": "
+                + oferta.getMateria().getMateriaNombre());
+        tramite.setDatosPreinscripcion(datos);
+        tramite.setOfertaMateriaCarreraId(oferta.getId().longValue());
+        tramite.setCodigoSeguimiento(generarCodigo()); // TramiteServiceImpl.save lo respeta si ya viene cargado
+        return tramite;
+    }
+
+    private void validarNoInscripto(Long dni, MateriaCarrera oferta) {
+        if (cursadaService.existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(dni, oferta.getId())) {
+            throw error(HttpStatus.CONFLICT, "Ya existe una inscripción para este DNI en el curso seleccionado.");
+        }
+    }
+
     private MateriaCarrera ofertaAbierta(Integer ofertaId) {
         MateriaCarrera oferta = Optional.ofNullable(ofertaId)
-                .flatMap(materiaCarreraService::findOfertaById)
+                .flatMap(id -> materiaCarreraService.findOfertaById(id.longValue()))
                 .orElseThrow(() -> error(HttpStatus.UNPROCESSABLE_ENTITY, "El curso seleccionado no existe."));
         if (!estaAbierta(oferta)) {
             throw error(HttpStatus.UNPROCESSABLE_ENTITY, "El curso seleccionado no está disponible para inscripción.");
@@ -246,11 +296,9 @@ public class PreinscripcionPublicaService {
 
     private boolean tienePrecioValido(MateriaCarrera oferta) {
         ConstanciaPrecio c = oferta.getConstanciaPrecio();
-        // precio_mp tiene DEFAULT 0 en la base: 0 significa "sin precio cargado"
         return c != null && c.getPrecioMp() != null && c.getPrecioMp().signum() > 0;
     }
 
-    /** Un PENDIENTE con payment asociado es un pago real en curso (ej.: ticket de Rapipago sin pagar aún). */
     private boolean pagoEnProceso(Pago p) {
         return p.getEstado() == EstadoPago.PENDIENTE && p.getMpPaymentId() != null;
     }
@@ -296,6 +344,10 @@ public class PreinscripcionPublicaService {
         return sb.toString();
     }
 
+    private static boolean vacio(String s) {
+        return s == null || s.isBlank();
+    }
+
     private static String normalizar(String s) {
         return s.trim().replaceAll("\\s+", " ");
     }
@@ -306,6 +358,7 @@ public class PreinscripcionPublicaService {
 
     /** tramite_celular es BIGINT: se guardan solo los dígitos. El valor completo queda en el snapshot. */
     private static Long celularComoLong(String celular) {
+        if (celular == null) return null;
         String digitos = celular.replaceAll("\\D", "");
         return (digitos.isEmpty() || digitos.length() > 18) ? null : Long.valueOf(digitos);
     }

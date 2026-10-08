@@ -1,75 +1,48 @@
 package com.example.iesiback.services;
-package com.example.iesiback.services;
-
 import com.example.iesiback.dto.DatosPreinscripcion;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoPago;
-import com.example.iesiback.repositories.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
-/**
- * Transacción 2 del webhook: convierte un trámite de preinscripción PAGADO
- * en una inscripción académica real.
- *
- *   Persona (buscar por DNI; si no existe, crear desde el snapshot del trámite)
- *     → Legajo + Inscripcion a la carrera de la oferta (buscar; si no existe, crear)
- *       → Cursada en la oferta (buscar; si no existe, crear)
- *
- * IDEMPOTENTE: puede ejecutarse N veces para el mismo pago sin duplicar nada.
- *  - El Tramite se bloquea con SELECT ... FOR UPDATE: dos ejecuciones simultáneas se serializan
- *    y la segunda encuentra el trámite ya finalizado.
- *  - La Persona existente también se bloquea: serializa trámites distintos del mismo DNI.
- *  - Cada paso es "buscar o crear".
- *  - Los UNIQUE de la base son la red final (PK persona, PK legajo, cursada legajo+oferta).
- *
- * TRANSACCIONAL: si cualquier paso falla se revierte todo (no queda inscripción a medias)
- * y la excepción sube al webhook, que responde 500 para que Mercado Pago reintente.
- * El Pago ya quedó APROBADO en la transacción anterior, así que el cobro nunca se pierde.
- */
 @Service
-public class FinalizacionInscripcionService {
+public class FinalizacionInscripcionService implements AccionPagoAprobado {
+
 
     private static final Logger log = LoggerFactory.getLogger(FinalizacionInscripcionService.class);
-
     public static final String ESTADO_TRAMITE_FINALIZADO = "Resuelto";
     public static final String USUARIO_SISTEMA = "WEB-MP";
 
+    public FinalizacionInscripcionService(PagoService pagoService, TramiteService tramiteService, PersonaService personaService, MateriaCarreraService materiaCarreraService, LegajoService legajoService, CursadaService cursadaService) {
+        this.pagoService = pagoService;
+        this.tramiteService = tramiteService;
+        this.personaService = personaService;
+        this.materiaCarreraService = materiaCarreraService;
+        this.legajoService = legajoService;
+        this.cursadaService = cursadaService;
+    }
+
     public enum Resultado { FINALIZADA, YA_FINALIZADA, NO_CORRESPONDE, REQUIERE_REVISION }
 
-    private final PagoRepository pagoRepository;
-    private final TramiteRepository tramiteRepository;
-    private final PersonaRepository personaRepository;
-    private final MateriaCarreraRepository materiaCarreraRepository;
-    private final LegajoRepository legajoRepository;
+    private final PagoService pagoService;
+    private final TramiteService tramiteService;
+    private final PersonaService personaService;
+    private final MateriaCarreraService materiaCarreraService;
     private final LegajoService legajoService;
     private final CursadaService cursadaService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public FinalizacionInscripcionService(PagoRepository pagoRepository,
-                                          TramiteRepository tramiteRepository,
-                                          PersonaRepository personaRepository,
-                                          MateriaCarreraRepository materiaCarreraRepository,
-                                          LegajoRepository legajoRepository,
-                                          LegajoService legajoService,
-                                          CursadaService cursadaService) {
-        this.pagoRepository = pagoRepository;
-        this.tramiteRepository = tramiteRepository;
-        this.personaRepository = personaRepository;
-        this.materiaCarreraRepository = materiaCarreraRepository;
-        this.legajoRepository = legajoRepository;
-        this.legajoService = legajoService;
-        this.cursadaService = cursadaService;
-    }
 
     public static boolean estaFinalizado(Tramite tramite) {
         return ESTADO_TRAMITE_FINALIZADO.equals(tramite.getTramiteEstado()) && tramite.getLegajoId() != null;
@@ -78,7 +51,7 @@ public class FinalizacionInscripcionService {
     @Transactional
     public Resultado finalizar(Integer pagoId) {
 
-        Pago pago = pagoRepository.findById(pagoId)
+        Pago pago = pagoService.buscarPorId(pagoId)
                 .orElseThrow(() -> new IllegalStateException("Pago inexistente: " + pagoId));
 
         // Única condición que dispara la inscripción
@@ -86,7 +59,7 @@ public class FinalizacionInscripcionService {
             return Resultado.NO_CORRESPONDE;
         }
 
-        Tramite tramite = tramiteRepository.lockById(pago.getTramite().getId())
+        Tramite tramite = tramiteService.lockById(pago.getTramite().getId())
                 .orElseThrow(() -> new IllegalStateException("Trámite inexistente para el pago " + pagoId));
 
         // Pagos de caja, constancias, etc.: no hay inscripción que finalizar
@@ -116,19 +89,16 @@ public class FinalizacionInscripcionService {
             return Resultado.REQUIERE_REVISION;
         }
 
-        MateriaCarrera oferta = materiaCarreraRepository.findOfertaById(tramite.getOfertaMateriaCarreraId())
+        MateriaCarrera oferta = materiaCarreraService.findById(tramite.getOfertaMateriaCarreraId())
                 .orElseThrow(() -> new IllegalStateException("Oferta inexistente: " + tramite.getOfertaMateriaCarreraId()));
         Carrera carrera = oferta.getCarrera();
 
         // 1) Persona: si existe se usa TAL CUAL (no se modifica ningún dato)
-        Persona persona = personaRepository.lockByDni(tramite.getTramiteDni())
+        Persona persona = personaService.lockByDni(tramite.getTramiteDni())
                 .orElseGet(() -> crearPersona(tramite));
 
         // 2) Legajo + Inscripcion a la carrera de la oferta
-        Legajo legajo = legajoRepository
-                .findByLegajoPersonaDni_PersonaDniAndInscripcionCarrera_Carrera_CarreraId(
-                        persona.getPersonaDni(), carrera.getCarreraId())
-                .orElseGet(() -> legajoService.crearLegajoConInscripcion(persona, carrera, USUARIO_SISTEMA));
+        Legajo legajo = legajoService.obtenerOCrearLegajo(persona, carrera, USUARIO_SISTEMA);
 
         // 3) Cursada en el curso elegido (find-or-create ya existente en CursadaService)
         cursadaService.obtenerORegistrarCursada(legajo, oferta.getId().longValue());
@@ -150,7 +120,8 @@ public class FinalizacionInscripcionService {
      * en null domicilio, CUIL, etc. persist() siempre intenta INSERT: en ese caso falla por PK,
      * se revierte y el reintento del webhook encuentra la Persona existente.
      */
-    private Persona crearPersona(Tramite tramite) {
+
+    public Persona crearPersona(Tramite tramite) {
         DatosPreinscripcion datos = tramite.getDatosPreinscripcion();
         if (datos == null) {
             throw new IllegalStateException("Trámite " + tramite.getId() + " sin datos de preinscripción");
@@ -176,7 +147,7 @@ public class FinalizacionInscripcionService {
     }
 
     private void advertirSiHayDobleCobro(Tramite tramite) {
-        List<Pago> aprobados = pagoRepository.findAllByTramiteId(tramite.getId()).stream()
+        List<Pago> aprobados = pagoService.findByAtencionId(tramite.getId()).stream()
                 .filter(p -> p.getEstado() == EstadoPago.APROBADO)
                 .toList();
         if (aprobados.size() > 1) {
@@ -186,11 +157,23 @@ public class FinalizacionInscripcionService {
         }
     }
 
-    private void agregarObservacion(Tramite tramite, String texto) {
+    public void agregarObservacion(Tramite tramite, String texto) {
         String actual = tramite.getTramiteObservaciones();
         if (actual != null && actual.contains(texto)) {
             return; // los reintentos del webhook no duplican la observación
         }
         tramite.setTramiteObservaciones(actual == null || actual.isBlank() ? texto : actual + "\n" + texto);
+    }
+
+
+
+    public Set<String> tiposDeTramite() {
+        return Set.of(PreinscripcionPublicaService.TIPO_TRAMITE);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void ejecutar(Integer pagoId) {
+        Resultado r = finalizar(pagoId);
+        log.info("Finalización para pago {}: {}", pagoId, r);
     }
 }
