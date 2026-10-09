@@ -2,6 +2,7 @@ package com.example.iesiback.services;
 import com.example.iesiback.dto.DatosPreinscripcion;
 import com.example.iesiback.entities.*;
 import com.example.iesiback.enums.EstadoPago;
+import com.example.iesiback.services.notificaciones.InscripcionFinalizadaEvent;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -14,15 +15,20 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.context.ApplicationEventPublisher;
+
+
+
 @Service
 public class FinalizacionInscripcionService implements AccionPagoAprobado {
 
-
+    private final ApplicationEventPublisher eventos;   // agregalo también al constructor
     private static final Logger log = LoggerFactory.getLogger(FinalizacionInscripcionService.class);
     public static final String ESTADO_TRAMITE_FINALIZADO = "Resuelto";
     public static final String USUARIO_SISTEMA = "WEB-MP";
 
-    public FinalizacionInscripcionService(PagoService pagoService, TramiteService tramiteService, PersonaService personaService, MateriaCarreraService materiaCarreraService, LegajoService legajoService, CursadaService cursadaService) {
+    public FinalizacionInscripcionService(ApplicationEventPublisher eventos, PagoService pagoService, TramiteService tramiteService, PersonaService personaService, MateriaCarreraService materiaCarreraService, LegajoService legajoService, CursadaService cursadaService) {
+        this.eventos = eventos;
         this.pagoService = pagoService;
         this.tramiteService = tramiteService;
         this.personaService = personaService;
@@ -111,8 +117,46 @@ public class FinalizacionInscripcionService implements AccionPagoAprobado {
 
         log.info("Inscripción finalizada: trámite {} → legajo {} → oferta {} (pago {})",
                 tramite.getId(), legajo.getLegajoId(), oferta.getId(), pago.getId());
+
+
+        // 5) Correo de confirmación (se envía después del commit, en segundo plano)
+        String correo = correoDestino(tramite, persona);
+        if (correo != null) {
+            eventos.publishEvent(new InscripcionFinalizadaEvent(
+                    correo,
+                    persona.getPersonaNombre(),
+                    oferta.getMateria().getMateriaNombre(),
+                    oferta.getFechaInicio(),
+                    horarioDe(oferta),
+                    legajo.getLegajoId(),
+                    tramite.getCodigoSeguimiento()));
+        } else {
+            log.info("Trámite {} sin correo: no se envía confirmación", tramite.getId());
+        }
+
         return Resultado.FINALIZADA;
     }
+
+
+    /** Prioriza el correo del trámite (el que la persona escribió ahora); si no hay, el de la Persona. */
+    private String correoDestino(Tramite tramite, Persona persona) {
+        String correo = tramite.getTramiteCorreo();
+        if (correo == null || correo.isBlank()) {
+            correo = persona.getPersonaCorreo();
+        }
+        return (correo != null && correo.contains("@")) ? correo.trim() : null;
+    }
+
+    private String horarioDe(MateriaCarrera oferta) {
+        String horario = String.join(" ",
+                java.util.Objects.toString(oferta.getDia(), ""),
+                oferta.getInicio() != null && oferta.getFin() != null
+                        ? oferta.getInicio() + " a " + oferta.getFin() : "").trim();
+        return horario.isEmpty() ? null : horario;
+    }
+
+
+
 
     /**
      * persist() y no save(): con id asignado (DNI), save() hace merge, y si otra transacción
@@ -120,6 +164,9 @@ public class FinalizacionInscripcionService implements AccionPagoAprobado {
      * en null domicilio, CUIL, etc. persist() siempre intenta INSERT: en ese caso falla por PK,
      * se revierte y el reintento del webhook encuentra la Persona existente.
      */
+
+
+
 
     public Persona crearPersona(Tramite tramite) {
         DatosPreinscripcion datos = tramite.getDatosPreinscripcion();

@@ -39,7 +39,7 @@ ngrok config edit
 ngrok start --all
 ________________________________________________________________________________________
 
-
+ng serve --proxy-config proxy.conf.json
 
 ngrok config add-authtoken 3FnIzAbg8PLVOZA4gld6p936iZv_7TPKZtMJva5vUfJdZi7sr
 ngrok http --url=giver-unearth-pouring.ngrok-free.dev 4200
