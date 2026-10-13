@@ -116,13 +116,24 @@ public class PreinscripcionPublicaService {
         MateriaCarrera oferta = ofertaAbierta(req.ofertaId());
         validarNoInscripto(dni, oferta);
 
-        DatosPreinscripcion datos = Optional.ofNullable(personaService.findAlumnoById(dni.toString()))
+//        DatosPreinscripcion datos = Optional.ofNullable(personaService.findAlumnoById(dni.toString()))
+//                .map(p -> new DatosPreinscripcion(
+//                        p.getPersonaApellido(),
+//                        p.getPersonaNombre(),
+//                        p.getPersonaCorreo(),
+//                        p.getPersonaDomicilioCelular()))
+//                .orElseGet(() -> datosDePersonaNueva(req));
+
+        DatosPreinscripcion datos = personaService.findByPersonaDni(dni)
                 .map(p -> new DatosPreinscripcion(
                         p.getPersonaApellido(),
                         p.getPersonaNombre(),
                         p.getPersonaCorreo(),
                         p.getPersonaDomicilioCelular()))
                 .orElseGet(() -> datosDePersonaNueva(req));
+
+
+
         return tramiteService.save(nuevoTramite(dni, oferta, datos, CANAL_PRESENCIAL));
     }
 

@@ -1,11 +1,7 @@
 package com.example.iesiback.services;
 
-import com.example.iesiback.dto.NotaMateriaDTO;
 import com.example.iesiback.dto.PersonaDTO;
-import com.example.iesiback.dto.PromedioEgresadoDTO;
-import com.example.iesiback.entities.Carrera;
 import com.example.iesiback.entities.Persona;
-import com.example.iesiback.repositories.CarreraRepository;
 import com.example.iesiback.repositories.PersonaRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
@@ -229,6 +225,12 @@ public class PersonaServiceImpl implements PersonaService {
     @Override
     public Optional<Persona> lockByDni(Long tramiteDni) {
         return personaRepository.lockByDni(tramiteDni);
+    }
+
+
+    @Override
+    public Optional<Persona> findByPersonaDni(Long tramiteDni) {
+        return personaRepository.findByPersonaDni(tramiteDni);
     }
 
 

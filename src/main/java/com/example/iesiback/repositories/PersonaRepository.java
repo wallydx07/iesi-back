@@ -132,4 +132,5 @@ public interface PersonaRepository extends JpaRepository<Persona, String> {
     Optional<Persona> lockByDni(@Param("dni") Long dni);
 
     Optional<Persona> findByPersonaDni(Long personaDni);
+
 }

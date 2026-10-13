@@ -2,6 +2,7 @@ package com.example.iesiback.services;
 
 import com.example.iesiback.dto.*;
 import com.example.iesiback.entities.Legajo;
+import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.enums.EstadoPago;
 import com.example.iesiback.entities.Pago;
 import com.example.iesiback.entities.User;
@@ -385,13 +386,7 @@ public class PagoServiceImpl implements PagoService {
             r.setConcepto(p.getTipoPago());
 
             if (p.getTramite() != null && p.getTramite().getTramiteDni() != null) {
-                PersonaDTO personaDTO = personaService.findPersonaDTOById(
-                        p.getTramite().getTramiteDni()
-                );
-
-                r.setAlumnoApellido(personaDTO.getPersonaApellido());
-                r.setAlumnoNombre(personaDTO.getPersonaNombre());
-                r.setAlumnoDni(personaDTO.getPersonaDni().toString());
+                completarDatosAlumno(r, p.getTramite());
             }
 
             r.setPagoDetalles(pagoDetalleService.obtenerPorPago(p.getId()));
@@ -434,23 +429,125 @@ public class PagoServiceImpl implements PagoService {
         return Optional.of(resumen);
     }
 
+    /**
+     * Usa la Persona si existe. Si todavía no existe (preinscripción con pago pendiente),
+     * toma los datos que quedaron en el trámite.
+     */
+    private void completarDatosAlumno(ReciboDTO r, Tramite tramite) {
+        PersonaDTO persona = null;
+        try {
+            persona = personaService.findPersonaDTOById(tramite.getTramiteDni());
+        } catch (Exception e) {
+            // Persona inexistente: se usan los datos del trámite
+        }
+
+        if (persona != null) {
+            r.setAlumnoApellido(persona.getPersonaApellido());
+            r.setAlumnoNombre(persona.getPersonaNombre());
+            r.setAlumnoDni(persona.getPersonaDni() != null ? persona.getPersonaDni().toString() : "");
+            return;
+        }
+
+        // Formato del trámite: "APELLIDO, NOMBRE"
+        String apellidoNombre = tramite.getTramiteApellidoNombre() != null ? tramite.getTramiteApellidoNombre() : "";
+        int coma = apellidoNombre.indexOf(',');
+        r.setAlumnoApellido(coma >= 0 ? apellidoNombre.substring(0, coma).trim() : apellidoNombre.trim());
+        r.setAlumnoNombre(coma >= 0 ? apellidoNombre.substring(coma + 1).trim() : "");
+        r.setAlumnoDni(tramite.getTramiteDni().toString());
+    }
+
+//    @Override
+//    public List<ResumenOperadorDTO> obtenerResumenPorOperador(
+//            LocalDate desde, LocalDate hasta, User user
+//    ) {
+//        ZoneId zona = ZoneId.of("America/Argentina/Buenos_Aires");
+//        Instant inicio = desde.atStartOfDay(zona).toInstant();
+//        Instant fin = hasta.plusDays(1)
+//                .atStartOfDay(zona)
+//                .toInstant();
+//        List<Pago> pagos =
+//                pagoRepository.findByFechaPagoBetween(
+//                        inicio,
+//                        fin
+//                );
+//        if (pagos.isEmpty()) {
+//            return List.of();
+//        }
+//        List<ReciboDTO> recibos = pagos.stream().map(pago -> {
+//            ReciboDTO dto = new ReciboDTO();
+//            dto.setAporteId(Long.valueOf(pago.getId()));
+//            dto.setAporteMonto(pago.getMontoTotal() != null ? pago.getMontoTotal() : BigDecimal.ZERO);
+//            dto.setMetodo(convertirMetodoPago(pago.getMetodoPago()));
+//            if (pago.getFechaPago() != null) {
+//                dto.setAporteFecha(pago.getFechaPago().atZone(zona).toLocalDate());
+//                dto.setHora(pago.getFechaPago().atZone(zona).toLocalTime().toString());
+//            }
+//            dto.setUsuario(
+//                    pago.getResponsable() != null
+//                            ? (pago.getResponsable().matches("\\d+")
+//                               ? userService.findById(Long.valueOf(pago.getResponsable()))
+//                            .map(u -> u.getUserApellido() + " " + u.getUserNombre())
+//                            .orElse("SIN_USUARIO")
+//                               : pago.getResponsable()) // ya viene como "Alumno" u otro texto
+//                            : "SIN_USUARIO"
+//            );
+//            dto.setEstado(pago.getEstado());
+//            if (pago.getTramite() != null) {
+//                dto.setConcepto(pago.getTramite().getTramiteTipo());
+//                if (pago.getTramite().getTramiteDni() != null) {
+//                    try {
+//                        PersonaDTO personaDTO = personaService.findPersonaDTOById(pago.getTramite().getTramiteDni());
+//                        if (personaDTO != null) {
+//                            dto.setAlumnoApellido(personaDTO.getPersonaApellido());
+//                            dto.setAlumnoNombre(personaDTO.getPersonaNombre());
+//                            dto.setAlumnoDni(personaDTO.getPersonaDni() != null ? personaDTO.getPersonaDni().toString() : "");
+//                        }
+//                    } catch (Exception e) {
+//                        System.out.println("Error al buscar persona: " + e.getMessage());
+//                    }
+//                    try {
+//                        dto.setCurso(obtenerAnioCursada(pago.getTramite().getLegajoId()));
+//                        dto.setCarrera(pagoRepository.findCarrera(pago.getTramite().getLegajoId()));
+//                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//            }
+//            dto.setAporteNroRecibo(pago.getExternalReference());
+//            dto.setPagoDetalles(pagoDetalleService.obtenerPorPago(pago.getId()));
+//            return dto;
+//        }).toList();
+//        Map<String, List<ReciboDTO>> agrupado =
+//                recibos.stream()
+//                        .collect(Collectors.groupingBy(
+//                                r -> r.getUsuario() != null
+//                                        ? r.getUsuario()
+//                                        : "SIN_USUARIO"
+//                        ));
+//        return agrupado.entrySet()
+//                .stream()
+//                .map(entry ->
+//                        new ResumenOperadorDTO(
+//                                entry.getKey(),
+//                                entry.getValue()
+//                        )
+//                )
+//                .toList();
+//    }
+
     @Override
     public List<ResumenOperadorDTO> obtenerResumenPorOperador(
             LocalDate desde, LocalDate hasta, User user
     ) {
         ZoneId zona = ZoneId.of("America/Argentina/Buenos_Aires");
         Instant inicio = desde.atStartOfDay(zona).toInstant();
-        Instant fin = hasta.plusDays(1)
-                .atStartOfDay(zona)
-                .toInstant();
-        List<Pago> pagos =
-                pagoRepository.findByFechaPagoBetween(
-                        inicio,
-                        fin
-                );
+        Instant fin = hasta.plusDays(1).atStartOfDay(zona).toInstant();
+
+        List<Pago> pagos = pagoRepository.findByFechaPagoBetween(inicio, fin);
         if (pagos.isEmpty()) {
             return List.of();
         }
+
         List<ReciboDTO> recibos = pagos.stream().map(pago -> {
             ReciboDTO dto = new ReciboDTO();
             dto.setAporteId(Long.valueOf(pago.getId()));
@@ -466,50 +563,44 @@ public class PagoServiceImpl implements PagoService {
                                ? userService.findById(Long.valueOf(pago.getResponsable()))
                             .map(u -> u.getUserApellido() + " " + u.getUserNombre())
                             .orElse("SIN_USUARIO")
-                               : pago.getResponsable()) // ya viene como "Alumno" u otro texto
+                               : pago.getResponsable())
                             : "SIN_USUARIO"
             );
             dto.setEstado(pago.getEstado());
-            if (pago.getTramite() != null) {
-                dto.setConcepto(pago.getTramite().getTramiteTipo());
-                if (pago.getTramite().getTramiteDni() != null) {
+
+            Tramite tramite = pago.getTramite();
+            if (tramite != null) {
+                dto.setConcepto(tramite.getTramiteTipo());
+
+                if (tramite.getTramiteDni() != null) {
+                    // Persona si existe; si no (preinscripción pendiente), datos del trámite
+                    completarDatosAlumno(dto, tramite);
+                }
+
+                // Curso y carrera solo si ya hay legajo
+                String legajoId = tramite.getLegajoId();
+                if (legajoId != null && !legajoId.isBlank()) {
                     try {
-                        PersonaDTO personaDTO = personaService.findPersonaDTOById(pago.getTramite().getTramiteDni());
-                        if (personaDTO != null) {
-                            dto.setAlumnoApellido(personaDTO.getPersonaApellido());
-                            dto.setAlumnoNombre(personaDTO.getPersonaNombre());
-                            dto.setAlumnoDni(personaDTO.getPersonaDni() != null ? personaDTO.getPersonaDni().toString() : "");
-                        }
+                        dto.setCurso(obtenerAnioCursada(legajoId));
+                        dto.setCarrera(pagoRepository.findCarrera(legajoId));
                     } catch (Exception e) {
-                        System.out.println("Error al buscar persona: " + e.getMessage());
-                    }
-                    try {
-                        dto.setCurso(obtenerAnioCursada(pago.getTramite().getLegajoId()));
-                        dto.setCarrera(pagoRepository.findCarrera(pago.getTramite().getLegajoId()));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        log.warn("No se pudo calcular curso/carrera del legajo {}: {}", legajoId, e.getMessage());
                     }
                 }
             }
+
             dto.setAporteNroRecibo(pago.getExternalReference());
             dto.setPagoDetalles(pagoDetalleService.obtenerPorPago(pago.getId()));
             return dto;
         }).toList();
-        Map<String, List<ReciboDTO>> agrupado =
-                recibos.stream()
-                        .collect(Collectors.groupingBy(
-                                r -> r.getUsuario() != null
-                                        ? r.getUsuario()
-                                        : "SIN_USUARIO"
-                        ));
-        return agrupado.entrySet()
-                .stream()
-                .map(entry ->
-                        new ResumenOperadorDTO(
-                                entry.getKey(),
-                                entry.getValue()
-                        )
-                )
+
+        Map<String, List<ReciboDTO>> agrupado = recibos.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getUsuario() != null ? r.getUsuario() : "SIN_USUARIO"
+                ));
+
+        return agrupado.entrySet().stream()
+                .map(entry -> new ResumenOperadorDTO(entry.getKey(), entry.getValue()))
                 .toList();
     }
 
@@ -567,6 +658,42 @@ public class PagoServiceImpl implements PagoService {
     // =====================================================================
 
     @Override
+    public void actualizarEstadoValidacionPorTramite(Integer tramiteId) {
+
+        List<Pago> pagos = pagoRepository.findAllByTramiteId(tramiteId);
+
+        if (pagos.isEmpty()) {
+            throw new RuntimeException("No existen pagos para el trámite");
+        }
+
+        User user = userService.getAuthenticatedUser()
+                .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
+
+        List<Integer> recienAprobados = new ArrayList<>();
+
+        for (Pago pago : pagos) {
+
+            if (pago.getEstado() == EstadoPago.APROBADO) {
+                continue;
+            }
+
+            pago.setEstado(EstadoPago.APROBADO);
+
+            if (pago.getFechaPago() == null) {
+                pago.setFechaPago(Instant.now());
+            }
+
+            pago.setResponsable(user.getUsername());
+            recienAprobados.add(pago.getId());
+        }
+
+        pagoRepository.saveAll(pagos);
+
+        // Avisar por cada pago aprobado en esta operación
+        recienAprobados.forEach(pagoId -> eventos.publishEvent(new PagoAprobadoEvent(pagoId)));
+    }
+
+    @Override
     public void actualizarEstadoValidacion(Long id) {
 
         Pago pago = pagoRepository.findById(id.intValue())
@@ -588,36 +715,9 @@ public class PagoServiceImpl implements PagoService {
         pago.setResponsable(user.getUsername());
 
         pagoRepository.save(pago);
-    }
 
-    @Override
-    public void actualizarEstadoValidacionPorTramite(Integer tramiteId) {
-
-        List<Pago> pagos = pagoRepository.findAllByTramiteId(tramiteId);
-
-        if (pagos.isEmpty()) {
-            throw new RuntimeException("No existen pagos para el trámite");
-        }
-
-        User user = userService.getAuthenticatedUser()
-                .orElseThrow(() -> new RuntimeException("Usuario no autenticado"));
-
-        for (Pago pago : pagos) {
-
-            if (pago.getEstado() == EstadoPago.APROBADO) {
-                continue;
-            }
-
-            pago.setEstado(EstadoPago.APROBADO);
-
-            if (pago.getFechaPago() == null) {
-                pago.setFechaPago(Instant.now());
-            }
-
-            pago.setResponsable(user.getUsername());
-        }
-
-        pagoRepository.saveAll(pagos);
+        // Recién aprobado: se ejecuta la acción del trámite (ej.: finalizar la inscripción)
+        eventos.publishEvent(new PagoAprobadoEvent(pago.getId()));
     }
 
     @Transactional
@@ -637,6 +737,8 @@ public class PagoServiceImpl implements PagoService {
             throw new BusinessException("Cambio de estado inválido de " + pago.getEstado() + " a " + nuevoEstado);
         }
 
+        boolean yaEstabaAprobado = pago.getEstado() == EstadoPago.APROBADO;
+
         // 4. Aplicar cambios
         pago.setEstado(nuevoEstado);
         pago.setResponsable(user.getUsername());
@@ -646,6 +748,12 @@ public class PagoServiceImpl implements PagoService {
         }
 
         pagoRepository.save(pago);
+
+        // 5. Si recién se aprobó, avisar: se ejecuta la acción del trámite
+        //    (ej.: finalizar la inscripción). Corre después del commit.
+        if (nuevoEstado == EstadoPago.APROBADO && !yaEstabaAprobado) {
+            eventos.publishEvent(new PagoAprobadoEvent(pago.getId()));
+        }
     }
 
     @Override

@@ -34,6 +34,8 @@ public interface PersonaService {
 
     Optional<Persona> lockByDni(Long tramiteDni);
 
+    Optional<Persona> findByPersonaDni(Long tramiteDni);
+
 
 //    List<AlumnoExamenDTO> AlumnoExamenDTO(String apellido, String carreraNombre);
 
