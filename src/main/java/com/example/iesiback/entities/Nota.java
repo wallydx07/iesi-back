@@ -30,10 +30,6 @@ public class Nota {
     @Column(name = "nota_calificacion_nota_letra", length = 50)
     private String notaCalificacionNotaLetra;
 
-//    @Size(max = 50)
-//    @Column(name = "nota_fecha_nota", length = 50)
-//    private String notaFechaNota;
-
     @Column(name = "nota_fecha_nota")
     private LocalDate notaFechaNota;
 
@@ -71,12 +67,6 @@ public class Nota {
     @JsonIgnore // ✅ Evita que Jackson serialice esta relación
     private Set<Examen> examen = new LinkedHashSet<>();
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "nota_cursada_id", nullable = false)
-//    @JsonProperty(value = "cursada", access = JsonProperty.Access.WRITE_ONLY)
-//    private Cursada cursada;
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nota_cursada_id", nullable = false)
     @JsonBackReference // ✅ Este lado no se serializa, se ignora para evitar recursión
@@ -85,6 +75,9 @@ public class Nota {
     @ColumnDefault("true")
     @Column(name = "editable")
     private Boolean editable;
+
+    @Column(name = "nota_ausencia_justificada")
+    private Boolean notaAusenciaJustificada; // null cuando no aplica (no está ausente); true/false cuando sí
 
     public Boolean getEditable() {
         return editable;

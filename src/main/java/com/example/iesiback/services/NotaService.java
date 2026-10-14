@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface NotaService {
@@ -82,4 +83,6 @@ public interface NotaService {
     ReporteAcademicoDTO generarReporteAcademico(String legajoId);
 
     List<Nota> updateFechaNotasByMateriaCarreraId(Integer materiaCarreraId, EstadoCondicion estadoCondicion, LocalDate fecha);
+
+    Optional<Nota> findByCursadaIdAndNotaCondicion(Integer cursadaId, EstadoCondicion condicion);
 }

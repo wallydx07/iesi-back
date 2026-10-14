@@ -1261,4 +1261,10 @@ public class NotaServiceImpl implements NotaService {
         return notaRepository.saveAll(notas);
     }
 
+
+    @Override
+    public Optional<Nota> findByCursadaIdAndNotaCondicion(Integer cursadaId, EstadoCondicion condicion) {
+        return notaRepository.findByCursadaIdAndNotaCondicion(cursadaId, condicion);
+    }
+
 }

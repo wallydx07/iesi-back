@@ -16,37 +16,6 @@ import java.util.Optional;
 
 @Repository
 public interface NotaRepository extends JpaRepository<Nota, Long> {
- //es UNION ALL
-//CAST(n.notaCalificacionNotaNumero AS string),
-
-//    @Query("""
-//SELECT new com.example.iesiback.dto.NotaMateriaDTO(
-//    n.notaId,
-//    m.materiaOrden,
-//    m.materiaNombre,
-//CAST(n.notaCalificacionNotaNumero AS string),
-//    n.notaCalificacionNotaLetra,
-//    n.notaCondicion,
-//    n.notaEstado,
-//    n.notaLibroNota,
-//    n.notaFolioNota,
-//    n.notaFechaNota,
-//    n.notaObservaciones,
-//    n.notaUsuario,
-//    mc.materia.materiaId,
-//    m.materiaNivel,
-//    c.id,
-//    mc.firma,
-//    mc.id
-//)
-//FROM Nota n
-//JOIN n.cursada c
-//JOIN c.materiaCarrera mc
-//JOIN mc.materia m
-//WHERE c.legajo.legajoId = :legajoId
-//ORDER BY m.materiaOrden ASC, n.notaFechaNota ASC
-//""")
-//    List<NotaMateriaDTO> findNotasPorLegajo(@Param("legajoId") String legajoId);
 
 
     @Query("""
@@ -788,7 +757,7 @@ JOIN mc.carrera c
 
 
 
-    Optional<Nota> findByCursadaIdAndNotaCondicion(Integer cursadaId, String notaCondicion);
+    Optional<Nota> findByCursadaIdAndNotaCondicion(Integer cursadaId, EstadoCondicion notaCondicion);
 
     @Query("SELECT n FROM Nota n WHERE n.cursada.materiaCarrera.id = :materiaCarreraId AND n.notaCondicion = :estado")
     List<Nota> findByCursadaMateriaCarreraIdAndEstado(

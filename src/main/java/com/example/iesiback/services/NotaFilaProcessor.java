@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -214,7 +215,7 @@ public class NotaFilaProcessor {
         notaExamen.setNotaEstado(EstadoNota.APROBADO);
         actualizarNota(notaExamen, fila);
         notaService.guardarNota(notaExamen);
-
+        cerrarNotaCursada(cursada,EstadoCondicion.EXAMEN_REGULAR);
         log.info("Examen FINAL REGULAR registrado correctamente.");
     }
 
@@ -275,44 +276,86 @@ public class NotaFilaProcessor {
         notaService.guardarNota(notaExamen);
 
         log.info("Examen FINAL LIBRE registrado correctamente.");
+        cerrarNotaCursada(cursada,EstadoCondicion.EXAMEN_LIBRE);
     }
 
-//    private void procesarEquivalencia(Legajo legajo, MateriaCarrera materiaCarrera,
-//                                      NotaImportDTO fila,
-//                                      List<NotaMateriaDTO> existentes) {
-//
-//        log.info("Procesando EQUIVALENCIA para materia {}", materiaCarrera.getId());
-//
-//        NotaMateriaDTO eq = existentes.stream()
-//                .filter(n -> "Equivalencia".equals(n.getNotaCondicion())
-//                        && n.getMateriaCarreraId().equals(materiaCarrera.getId()))
-//                .findFirst()
-//                .orElse(null);
-//
-//        if (eq != null) {
-//            log.info("Equivalencia existente encontrada ID: {}", eq.getNotaId());
-//            Nota nota = notaService.obtenerNotaPorId(eq.getNotaId());
-//            actualizarNota(nota, fila);
-//            notaService.guardarNota(nota);
-//            log.info("Equivalencia actualizada.");
-//        } else {
-//            log.info("No existe equivalencia previa. Creando nueva nota.");
-//            Nota nueva = crearNota(fila, EstadoCondicion.EQUIVALENCIA);
-//            notaService.guardarNota(nueva);
-//
-//            Equivalencia equivalencia = new Equivalencia();
-//            equivalencia.setNota(nueva);
-//            equivalencia.setLegajoId(legajo.getLegajoId());
-//            equivalencia.setMateriaId(materiaCarrera.getMateria().getMateriaId()); // Asegúrate de pasarle el ID correspondiente
-//            equivalencia.setInstitucionOrigen("Pendiente");
-//            equivalencia.setMateriaOrigen("Pendiente");
-//            equivalencia.setCarreraOrigen("Pendiente");
-//            equivalencia.setResolucion("Pendiente");
-//            equivalencia.setStatus("ACEPTADA");
-//       equivalenciaService.crearEquivalenciaNota(equivalencia, nueva);
-//
-//        }
-//    }
+    private void cerrarNotaCursada(Cursada cursada, EstadoCondicion condicion) {
+        if (cursada == null) {
+            return;
+        }
+
+        BigDecimal p1 = cursada.getRecuperatorio1() != null ? cursada.getRecuperatorio1() : cursada.getPrimerParcial();
+        BigDecimal p2 = cursada.getRecuperatorio2() != null ? cursada.getSegundoParcial() != null ? cursada.getSegundoParcial() : null : cursada.getSegundoParcial();
+
+        BigDecimal asistencia = cursada.getAsistencia();
+        BigDecimal trabajosPracticos = cursada.getTrabajosPracticos();
+        BigDecimal coloquio = cursada.getColoquio();
+        BigDecimal trabajoInstitucional = cursada.getTrabajoInstitucional();
+
+        System.out.println("--- DATOS DE LA CURSADA ---");
+        System.out.println("ID Cursada: " + cursada.getId());
+        System.out.println("Inscripto: " + cursada.getCursadaInscripto());
+        System.out.println("Status actual: " + cursada.getStatus());
+        System.out.println("Primer Parcial: " + cursada.getPrimerParcial());
+        System.out.println("Recuperatorio 1: " + cursada.getRecuperatorio1());
+        System.out.println("Primer Parcial Efectivo (P1): " + p1);
+        System.out.println("Segundo Parcial: " + cursada.getSegundoParcial());
+        System.out.println("Recuperatorio 2: " + cursada.getRecuperatorio2());
+        System.out.println("Segundo Parcial Efectivo (P2): " + p2);
+        System.out.println("Trabajos Prácticos: " + trabajosPracticos);
+        System.out.println("Asistencia: " + asistencia);
+        System.out.println("Coloquio: " + coloquio);
+        System.out.println("Trabajo Institucional: " + trabajoInstitucional);
+        System.out.println("ID Materia Carrera: " + cursada.getMateriaCarreraId());
+        System.out.println("ID Materia: " + cursada.getMateriaId());
+        System.out.println("ID Carrera: " + cursada.getCarreraId());
+
+        System.out.println("--- NOTAS ALOJADAS EN LA CURSADA ---");
+        if (cursada.getNotas() != null && !cursada.getNotas().isEmpty()) {
+            int i = 1;
+            for (Nota nota : cursada.getNotas()) {
+                System.out.println("Nota [" + i + "]:");
+                System.out.println("  - ID Nota: " + nota.getNotaId());
+                System.out.println("  - Calificación Número: " + nota.getNotaCalificacionNotaNumero());
+                System.out.println("  - Calificación Letra: " + nota.getNotaCalificacionNotaLetra());
+                System.out.println("  - Fecha Nota: " + nota.getNotaFechaNota());
+                System.out.println("  - Condición: " + nota.getNotaCondicion());
+                System.out.println("  - Estado: " + nota.getNotaEstado());
+                System.out.println("  - Libro: " + nota.getNotaLibroNota());
+                System.out.println("  - Folio: " + nota.getNotaFolioNota());
+                System.out.println("  - Observaciones: " + nota.getNotaObservaciones());
+                System.out.println("  - Usuario: " + nota.getNotaUsuario());
+                System.out.println("  - Editable: " + nota.getEditable());
+                i++;
+            }
+        } else {
+            System.out.println("La cursada no tiene notas alojadas.");
+        }
+
+        Optional<Nota> notaOpt = notaService.findByCursadaIdAndNotaCondicion(cursada.getId(), condicion);
+
+        if (notaOpt.isPresent()) {
+            Nota nota = notaOpt.get();
+            System.out.println("Nota:");
+            System.out.println("  - ID Nota: " + nota.getNotaId());
+            System.out.println("  - Calificación Número: " + nota.getNotaCalificacionNotaNumero());
+            System.out.println("  - Calificación Letra: " + nota.getNotaCalificacionNotaLetra());
+            System.out.println("  - Fecha Nota: " + nota.getNotaFechaNota());
+            System.out.println("  - Condición: " + nota.getNotaCondicion());
+            System.out.println("  - Estado: " + nota.getNotaEstado());
+            System.out.println("  - Libro: " + nota.getNotaLibroNota());
+            System.out.println("  - Folio: " + nota.getNotaFolioNota());
+            System.out.println("  - Observaciones: " + nota.getNotaObservaciones());
+            System.out.println("  - Usuario: " + nota.getNotaUsuario());
+            System.out.println("  - Editable: " + nota.getEditable());
+
+            nota.
+        } else {
+            System.out.println("No se encontró una nota con la condición CURSADA para esta cursada.");
+        }
+
+
+    }
 
 
     private void procesarEquivalencia(Legajo legajo, MateriaCarrera materiaCarrera, NotaImportDTO fila, List<NotaMateriaDTO> existentes) {
@@ -335,10 +378,6 @@ public class NotaFilaProcessor {
             log.info("No existe equivalencia previa. Creando nueva nota.");
 
             Cursada cursada = cursadaService.obtenerORegistrarCursada(legajo, materiaCarrera.getId().longValue());
-//            cursada.getNotas()
-
-
-
             Nota nuevaNota = crearNota(fila, EstadoCondicion.EQUIVALENCIA, EstadoNota.APROBADO,cursada);
             // Si el servicio de equivalencia guarda en cascada, podrías omitir este guardarNota
             nuevaNota = notaService.guardarNota(nuevaNota);
