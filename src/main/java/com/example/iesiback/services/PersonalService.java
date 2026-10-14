@@ -39,4 +39,6 @@ public interface PersonalService {
     List<Personal> buscarPorTextoLibre(String texto);
 
     List<PersonaDTO> findPersonaOrdeando(String tipo);
+
+    List<Personal> getAllWithPersona();
 }

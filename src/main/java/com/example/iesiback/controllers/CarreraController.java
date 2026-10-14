@@ -79,40 +79,28 @@ public class CarreraController {
     @GetMapping("/ordenadas/por-usuario/")
     public ResponseEntity<List<Carrera>> obtenerCarrerasPorUsuario(
             @RequestParam(required = false) Integer cicloLectivo) {
-
         var usuario = userService.getAuthenticatedUser().orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
         String userRol = String.valueOf(usuario.getRoles().get(0).getRoleNombre());
         Long userId = Long.valueOf(usuario.getUsername());
-
-        // Sin ciclo lectivo = vista histórica (alumnos pasivos): incluye carreras cerradas
         boolean historico = cicloLectivo == null;
-
         List<Carrera> carreras;
-
         if ("ROLE_ADMIN".equalsIgnoreCase(userRol)
                 || "ROLE_TITULACION".equalsIgnoreCase(userRol)) {
-
             carreras = carreraService.obtenerCarrerasOrdenadas();
-
         } else if ("ROLE_PERSONAL".equalsIgnoreCase(userRol)
-                || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)) {
-
+                || "ROLE_DIRECTIVO".equalsIgnoreCase(userRol)
+                || "ROLE_SECRETARIO".equalsIgnoreCase(userRol)
+        ) {
             carreras = historico
                     ? carreraService.obtenerCarrerasOrdenadas()
                     : carreraService.findVigentesOrderedByYearAndName();
-
         } else if ("ROLE_TUTOR".equalsIgnoreCase(userRol)) {
-
             carreras = carreraService.obtenerCarrerasPorTutor(userId);
-
         } else if ("ROLE_DOCENTE".equalsIgnoreCase(userRol)) {
-
             carreras = materiaCarreraService.obtenerCarrerasPorDocente(userId);
-
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

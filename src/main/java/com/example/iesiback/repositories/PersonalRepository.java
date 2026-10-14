@@ -92,4 +92,30 @@ ORDER BY p.personaApellido, p.personaNombre
 """)
     List<PersonaDTO> findPersonalOrdenado(@Param("tipo") String tipo);
 
-    }
+
+
+    @Query(value = """
+    SELECT p.personal_dni,
+           per.persona_nombre   AS personal_nombre,
+           per.persona_apellido AS personal_apellido,
+           per.persona_correo   AS personal_correo,
+           per.persona_celular  AS personal_celular,
+           p.personal_tipo,
+           p.personal_rdni,
+           p.personal_rresidencia,
+           p.personal_rplanilla,
+           p.personal_rsanitario,
+           p.personal_rnacimiento,
+           p.declaracion,
+           p.cargo,
+           p.cuil,
+           p.titulo,
+           p.curriculum,
+           p.departamento,
+           p.destino_id
+    FROM public.personal p
+    INNER JOIN public.persona per ON per.persona_dni = p.personal_dni
+    ORDER BY per.persona_apellido, per.persona_nombre
+    """, nativeQuery = true)
+    List<Personal> getAllWithPersona();
+}

@@ -130,4 +130,9 @@ public class PersonalServiceImpl implements PersonalService {
         return personalRepository.findPersonalOrdenado(tipo);
     }
 
+    @Override
+    public List<Personal> getAllWithPersona() {
+        return personalRepository.getAllWithPersona();
+    }
+
 }

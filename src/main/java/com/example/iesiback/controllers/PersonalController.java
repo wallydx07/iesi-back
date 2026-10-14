@@ -26,6 +26,12 @@ public class PersonalController {
         return personalService.findAll();
     }
 
+
+    @GetMapping("/getAllWithPersona")
+    public List<Personal> getAllWithPersona() {
+        return personalService.getAllWithPersona();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Personal> getById(@PathVariable String id) {
         return personalService.findById(id)
