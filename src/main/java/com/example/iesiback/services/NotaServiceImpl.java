@@ -424,6 +424,23 @@ public class NotaServiceImpl implements NotaService {
                     dto.getMateriaOrden(),
                     EstadoCondicion.EXAMEN
             );
+
+
+            if (dto.getNotaEstado() == EstadoNota.AUSENTE) {
+                String sufijo = Boolean.TRUE.equals(dto.getNotaAusenciaJustificada())
+                        ? " (Justificado)"
+                        : " (Injustificado)";
+
+                String letra = dto.getNotaCalificacionNotaLetra() == null ? "AUSENTE" : dto.getNotaCalificacionNotaLetra();
+
+                // Evita duplicar el sufijo si la nota se vuelve a guardar
+                letra = letra.replace(" (Justificado)", "").replace(" (Injustificado)", "");
+
+                dto.setNotaCalificacionNotaLetra(letra + sufijo);
+            }
+
+
+
             String status = veredicto.getTipo().name();
             dto.setStatus(status);
             aux.add(dto);
@@ -446,7 +463,7 @@ public class NotaServiceImpl implements NotaService {
                     r.get("notaCalificacionNotaNumero") != null ? ((Number) r.get("notaCalificacionNotaNumero")).intValue() : null,
                     (String) r.get("notaCalificacionNotaLetra"),
                     (String) r.get("notaCondicion"),
-                    (String) r.get("notaEstado"),
+                    toEstadoNota(r.get("notaEstado")),
                     (String) r.get("notaLibro"),
                     (String) r.get("notaFolio"),
                     r.get("notaFechaNota") != null ? ((java.sql.Date) r.get("notaFechaNota")).toLocalDate() : null,
@@ -454,7 +471,8 @@ public class NotaServiceImpl implements NotaService {
                     (String) r.get("notaUsuario"),
                     ((Number) r.get("permisoId")).longValue(),
                     (String) r.get("status"),
-                    r.get("materiaOrden") != null ? ((Number) r.get("materiaOrden")).intValue() : null
+                    r.get("materiaOrden") != null ? ((Number) r.get("materiaOrden")).intValue() : null,
+                    (Boolean) r.get("notaAusenciaJustificada")
             );
 
             salida.add(dto);
@@ -463,6 +481,11 @@ public class NotaServiceImpl implements NotaService {
         return salida;
     }
 
+    private static EstadoNota toEstadoNota(Object valor) {
+        if (valor == null) return null;
+        if (valor instanceof EstadoNota e) return e;     // si la query ya devuelve el enum (JPQL)
+        return EstadoNota.valueOf(valor.toString().trim()); // si viene como texto (query nativa)
+    }
 
     @Override
     public Nota guardarNota(Nota nota) {
@@ -719,7 +742,7 @@ public class NotaServiceImpl implements NotaService {
                     r[6] != null ? ((Number) r[6]).intValue() : null,
                     (String) r[7],       // calificacion letra
                     (String) r[8],       // nota condicion
-                    (String) r[9],       // nota estado
+                    toEstadoNota(r[9]),       // nota estado
                     (String) r[10],      // libro
                     (String) r[11],      // folio
                     (r[12] != null ? ((java.sql.Date) r[12]).toLocalDate() : null), // fecha
@@ -727,7 +750,9 @@ public class NotaServiceImpl implements NotaService {
                     (String) r[15],      // usuario
                     ((Number) r[1]).longValue(), // permisoId
                     (String) r[14],      // status examen
-                    (Integer) r[16]      // materiaOrden
+                    (Integer) r[16],      // materiaOrden
+                    (Boolean) r[17]
+
             );
             lista.add(dto);
         }

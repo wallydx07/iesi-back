@@ -1,5 +1,7 @@
 package com.example.iesiback.dto;
 
+import com.example.iesiback.enums.EstadoNota;
+
 import java.time.LocalDate;
 
 public class NotaExamenDTO {
@@ -12,7 +14,7 @@ public class NotaExamenDTO {
     private Integer notaCalificacionNotaNumero;
     private String notaCalificacionNotaLetra;
     private String notaCondicion;
-    private String notaEstado;
+    private EstadoNota notaEstado;
     private String notaLibro;
     private String notaFolio;
     private LocalDate notaFechaNota;
@@ -21,8 +23,13 @@ public class NotaExamenDTO {
     private Long permisoId;
     private String status;
     private Integer materiaOrden;
+    private Boolean notaAusenciaJustificada; // null cuando no aplica (no está ausente); true/false cuando sí
 
-    public NotaExamenDTO(String personaDni, String personaNombre, String legajoId, String personaApellido, Long notaId, Integer notaCalificacionNotaNumero, String notaCalificacionNotaLetra, String notaCondicion, String notaEstado, String notaLibro, String notaFolio, LocalDate notaFechaNota, String notaObservaciones, String notaUsuario, Long permisoId, String status, Integer materiaOrden) {
+    public NotaExamenDTO(String personaDni, String personaNombre, String legajoId, String personaApellido, Long notaId,
+                         Integer notaCalificacionNotaNumero, String notaCalificacionNotaLetra, String notaCondicion,
+                         EstadoNota notaEstado, String notaLibro, String notaFolio, LocalDate notaFechaNota,
+                         String notaObservaciones, String notaUsuario, Long permisoId, String status, Integer materiaOrden,
+    Boolean notaAusenciaJustificada) {
         this.personaDni = personaDni;
         this.personaNombre = personaNombre;
         this.legajoId = legajoId;
@@ -40,6 +47,24 @@ public class NotaExamenDTO {
         this.permisoId = permisoId;
         this.status = status;
         this.materiaOrden = materiaOrden;
+        this.notaAusenciaJustificada =notaAusenciaJustificada;
+    }
+
+
+    public EstadoNota getNotaEstado() {
+        return notaEstado;
+    }
+
+    public void setNotaEstado(EstadoNota notaEstado) {
+        this.notaEstado = notaEstado;
+    }
+
+    public Boolean getNotaAusenciaJustificada() {
+        return notaAusenciaJustificada;
+    }
+
+    public void setNotaAusenciaJustificada(Boolean notaAusenciaJustificada) {
+        this.notaAusenciaJustificada = notaAusenciaJustificada;
     }
 
     public void setPersonaDni(String personaDni) {
@@ -72,10 +97,6 @@ public class NotaExamenDTO {
 
     public void setNotaCondicion(String notaCondicion) {
         this.notaCondicion = notaCondicion;
-    }
-
-    public void setNotaEstado(String notaEstado) {
-        this.notaEstado = notaEstado;
     }
 
     public void setNotaLibro(String notaLibro) {
@@ -142,9 +163,6 @@ public class NotaExamenDTO {
         return notaCondicion;
     }
 
-    public String getNotaEstado() {
-        return notaEstado;
-    }
 
     public String getNotaLibro() {
         return notaLibro;

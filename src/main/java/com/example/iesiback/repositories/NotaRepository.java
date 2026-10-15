@@ -306,7 +306,8 @@ ORDER BY p.personaApellido, p.personaNombre
         nota.nota_usuario                    AS notaUsuario,
         permiso.permiso_id                   AS permisoId,
         examen.status                         AS status,
-        materia.materia_orden        AS materiaOrden
+        materia.materia_orden        AS materiaOrden,
+        nota.nota_ausencia_justificada As notaAusenciaJustificada
     FROM nota
     INNER JOIN examen ON nota.nota_id = examen.nota_id
     INNER JOIN permiso ON permiso.permiso_id = examen.permiso_id
@@ -380,7 +381,8 @@ ORDER BY p.personaApellido, p.personaNombre
         nota.nota_observaciones, 
         examen.status,
         nota.nota_usuario,
-        materia.materia_orden
+        materia.materia_orden,
+        nota.nota_ausencia_justificada
     FROM nota
     INNER JOIN examen ON nota.nota_id = examen.nota_id
     INNER JOIN permiso ON permiso.permiso_id = examen.permiso_id

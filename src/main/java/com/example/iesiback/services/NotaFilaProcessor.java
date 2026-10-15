@@ -106,7 +106,7 @@ public class NotaFilaProcessor {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
     // Flujos internos (sin @Transactional propio — heredan REQUIRES_NEW)
     // ─────────────────────────────────────────────────────────────
 
@@ -118,300 +118,253 @@ public class NotaFilaProcessor {
         log.info("Procesando PROMOCION para Legajo {} - Materia {}",
                 legajo.getLegajoId(), materiaCarrera.getId());
 
-        NotaMateriaDTO promocionExistente = existentes.stream()
-                .filter(n -> Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId())
-                        && n.getNotaCondicion() == EstadoCondicion.CURSADA)
+        List<NotaMateriaDTO> deEstaMateria = existentes.stream()
+                .filter(n -> Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
+                .toList();
+
+        NotaMateriaDTO promocionExistente = deEstaMateria.stream()
+                .filter(n -> n.getNotaCondicion() == EstadoCondicion.CURSADA)
                 .findFirst()
                 .orElse(null);
 
-        existentes.forEach(n -> {
-            if (promocionExistente == null ||
-                    !n.getNotaId().equals(promocionExistente.getNotaId())) {
-                log.info("Eliminando nota previa ID: {} | Condición: {}", n.getNotaId(), n.getNotaCondicion());
-                if (n.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR
-                        || n.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE) {
-                    log.info("Eliminando exámenes asociados a nota {}", n.getNotaId());
-                    examenService.deleteExamenByNotaId(n.getNotaId());
-                }
-                notaService.eliminarNota(n.getNotaId());
-            }
-        });
+        eliminarOtrasNotas(deEstaMateria,
+                promocionExistente != null ? promocionExistente.getNotaId() : null);
 
-
+        Nota nota;
         if (promocionExistente != null) {
-            Nota nota = notaService.obtenerNotaPorId(promocionExistente.getNotaId());
-            actualizarNota(nota, fila);
-//            nota.setNotaCondicion("Cursada");
-//            nota.setNotaEstado(estado);
-//            notaService.guardarNota(nota);
-            log.info("Promoción actualizada correctamente.");
+            nota = notaService.obtenerNotaPorId(promocionExistente.getNotaId());
         } else {
             Cursada cursada = cursadaService.obtenerORegistrarCursada(
                     legajo,
                     materiaCarrera.getId().longValue());
             log.info("Cursada obtenida/creada ID: {}", cursada.getId());
-            Nota nota = notaService.findByCursadaId(cursada.getId());
-            actualizarNota(nota, fila);
-//            nota.setNotaCondicion("Cursada");
-//            nota.setNotaEstado("Aprobado");
-//            notaService.guardarNota(nota);
-
-            log.info("Nota base convertida a PROMOCION y marcada como Aprobado.");
+            nota = notaService.findByCursadaIdAndNotaCondicion(cursada.getId(), EstadoCondicion.CURSADA)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "La cursada " + cursada.getId() + " no tiene nota con condición CURSADA"));
         }
+
+        actualizarNota(nota, fila);
+        // Se fuerza DESPUÉS de actualizarNota: si la fila trae otra condición,
+        // la próxima importación no encontraría esta nota y la borraría.
+        nota.setNotaCondicion(EstadoCondicion.CURSADA);
+        notaService.guardarNota(nota);
+
+        log.info("Promoción registrada. Nota ID: {} | Estado: {}", nota.getNotaId(), nota.getNotaEstado());
     }
 
     private void procesarFinalRegular(Legajo legajo,
                                       MateriaCarrera materiaCarrera,
                                       NotaImportDTO fila,
                                       List<NotaMateriaDTO> existentes) {
-
-        log.info("Procesando FINAL REGULAR para Legajo {} - Materia {}",
-                legajo.getLegajoId(), materiaCarrera.getId());
-
-        TurnoExamenDTO turno = turnoService.obtenerTurnoMasCercano(fila.getFecha());
-        log.info("Turno más cercano encontrado: {}", turno.getTurnoId());
-
-        NotaMateriaDTO notaFinal = existentes.stream()
-                .filter(n -> n.getNotaCondicion() != null
-                        && (
-                        n.getNotaCondicion() == EstadoCondicion.EXAMEN
-                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR
-                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE
-                )
-                        && Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
-                .findFirst()
-                .orElse(null);
-
-        if (notaFinal != null) {
-            log.info("Nota FINAL existente encontrada ID: {}", notaFinal.getNotaId());
-            TurnoExamenDTO turnoActual = turnoService.obtenerTurnoActualbyNotaId(notaFinal.getNotaId());
-
-            if (turnoActual != null && turnoActual.getTurnoId().equals(turno.getTurnoId())) {
-                log.info("Mismo turno detectado. Actualizando nota.");
-                Nota nota = notaService.obtenerNotaPorId(notaFinal.getNotaId());
-                nota.setNotaCondicion(EstadoCondicion.EXAMEN_REGULAR);
-                actualizarNota(nota, fila);
-                notaService.guardarNota(nota);
-                return;
-            }
-
-            log.info("Turno distinto. Eliminando nota FINAL anterior ID: {}", notaFinal.getNotaId());
-            notaService.eliminarNotaIndividual(notaFinal.getNotaId());
-        }
-
-        Cursada cursada = cursadaService.buscarOMasCercanaORegistrar(legajo, materiaCarrera);
-        log.info("Cursada encontrada ID: {}", cursada.getId());
-
-        examenService.registrarExamen(
-                legajo.getLegajoId(),
-                turnoService.obtenerTurnoPorId(turno.getTurnoId()),
-                materiaCarrera.getMateria(),
-                EstadoCondicion.EXAMEN_REGULAR,
-                cursada.getId());
-
-        Nota notaExamen = notaService.findExamenPorCursadaYTurnoId(
-                cursada.getId(), Integer.valueOf(turno.getTurnoId()));
-        notaExamen.setNotaCondicion(EstadoCondicion.EXAMEN_REGULAR);
-        notaExamen.setNotaEstado(EstadoNota.APROBADO);
-        actualizarNota(notaExamen, fila);
-        notaService.guardarNota(notaExamen);
-        cerrarNotaCursada(cursada,EstadoCondicion.EXAMEN_REGULAR);
-        log.info("Examen FINAL REGULAR registrado correctamente.");
+        procesarFinal(legajo, materiaCarrera, fila, existentes, EstadoCondicion.EXAMEN_REGULAR);
     }
 
     private void procesarFinalLibre(Legajo legajo,
                                     MateriaCarrera materiaCarrera,
                                     NotaImportDTO fila,
                                     List<NotaMateriaDTO> existentes) {
+        procesarFinal(legajo, materiaCarrera, fila, existentes, EstadoCondicion.EXAMEN_LIBRE);
+    }
 
-        log.info("Procesando FINAL LIBRE para Legajo {} - Materia {}",
-                legajo.getLegajoId(), materiaCarrera.getId());
+    private void procesarFinal(Legajo legajo,
+                               MateriaCarrera materiaCarrera,
+                               NotaImportDTO fila,
+                               List<NotaMateriaDTO> existentes,
+                               EstadoCondicion condicion) {
+
+        log.info("Procesando {} para Legajo {} - Materia {}",
+                condicion, legajo.getLegajoId(), materiaCarrera.getId());
 
         TurnoExamenDTO turno = turnoService.obtenerTurnoMasCercano(fila.getFecha());
+        if (turno == null) {
+            throw new IllegalStateException("No hay turno de examen cercano a la fecha " + fila.getFecha());
+        }
         log.info("Turno más cercano encontrado: {}", turno.getTurnoId());
 
-        NotaMateriaDTO notaFinal = existentes.stream()
-                .filter(n -> n.getNotaCondicion() != null
-                        && (
-                        n.getNotaCondicion() == EstadoCondicion.EXAMEN
-                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_REGULAR
-                                || n.getNotaCondicion() == EstadoCondicion.EXAMEN_LIBRE
-                )
-                        && Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
+        // Solo interesa el examen de ESTE turno. Los exámenes de otros turnos
+        // (p. ej. desaprobados anteriores) son historial y se conservan.
+        NotaMateriaDTO examenMismoTurno = existentes.stream()
+                .filter(n -> Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
+                .filter(n -> esExamen(n.getNotaCondicion()))
+                .filter(n -> esDelTurno(n.getNotaId(), turno))
                 .findFirst()
                 .orElse(null);
 
-        if (notaFinal != null) {
-            log.info("Nota FINAL existente encontrada ID: {}", notaFinal.getNotaId());
-            TurnoExamenDTO turnoActual = turnoService.obtenerTurnoActualbyNotaId(notaFinal.getNotaId());
+        Nota notaExamen;
+        Cursada cursada;
 
-            if (turnoActual != null && turnoActual.getTurnoId().equals(turno.getTurnoId())) {
-                log.info("Mismo turno detectado. Actualizando nota.");
-                Nota nota = notaService.obtenerNotaPorId(notaFinal.getNotaId());
-                nota.setNotaCondicion(EstadoCondicion.EXAMEN_LIBRE);
-                actualizarNota(nota, fila);
-                notaService.guardarNota(nota);
-                return;
+        if (examenMismoTurno != null) {
+            log.info("Examen existente en el mismo turno, ID: {}. Se actualiza.", examenMismoTurno.getNotaId());
+            notaExamen = notaService.obtenerNotaPorId(examenMismoTurno.getNotaId());
+            cursada = notaExamen.getCursada();
+        } else {
+            cursada = cursadaService.buscarOMasCercanaORegistrar(legajo, materiaCarrera);
+            log.info("Cursada encontrada ID: {}", cursada.getId());
+
+            examenService.registrarExamen(
+                    legajo.getLegajoId(),
+                    turnoService.obtenerTurnoPorId(turno.getTurnoId()),
+                    materiaCarrera.getMateria(),
+                    condicion,
+                    cursada.getId());
+
+            notaExamen = notaService.findExamenPorCursadaYTurnoId(
+                    cursada.getId(), Integer.valueOf(turno.getTurnoId()));
+            if (notaExamen == null) {
+                throw new IllegalStateException("No se generó la nota del examen para la cursada "
+                        + cursada.getId() + " en el turno " + turno.getTurnoId());
             }
-
-            log.info("Turno distinto. Eliminando nota FINAL anterior ID: {}", notaFinal.getNotaId());
-            notaService.eliminarNotaIndividual(notaFinal.getNotaId());
         }
 
-        Cursada cursada = cursadaService.buscarOMasCercanaORegistrar(legajo, materiaCarrera);
-        log.info("Cursada encontrada ID: {}", cursada.getId());
-
-        examenService.registrarExamen(
-                legajo.getLegajoId(),
-                turnoService.obtenerTurnoPorId(turno.getTurnoId()),
-                materiaCarrera.getMateria(),
-                EstadoCondicion.EXAMEN_LIBRE,
-                cursada.getId());
-
-        Nota notaExamen = notaService.findExamenPorCursadaYTurnoId(
-                cursada.getId(), Integer.valueOf(turno.getTurnoId()));
-        notaExamen.setNotaCondicion(EstadoCondicion.EXAMEN_LIBRE);
-        notaExamen.setNotaEstado(EstadoNota.APROBADO);
         actualizarNota(notaExamen, fila);
+        // Se fuerza DESPUÉS de actualizarNota para que la fila no la pise.
+        // El estado (aprobado/desaprobado) sí viene de la planilla.
+        notaExamen.setNotaCondicion(condicion);
         notaService.guardarNota(notaExamen);
 
-        log.info("Examen FINAL LIBRE registrado correctamente.");
-        cerrarNotaCursada(cursada,EstadoCondicion.EXAMEN_LIBRE);
+        if (notaExamen.getNotaEstado() == EstadoNota.APROBADO) {
+            cerrarNotaCursada(cursada, condicion);
+        } else {
+            log.info("Examen con estado {}: la cursada no se cierra.", notaExamen.getNotaEstado());
+        }
+
+        log.info("Examen {} registrado correctamente. Nota ID: {}", condicion, notaExamen.getNotaId());
+    }
+
+
+    private void eliminarOtrasNotas(List<NotaMateriaDTO> notas, Long idAConservar) {
+        List<NotaMateriaDTO> aEliminar = notas.stream()
+                .filter(n -> !Objects.equals(n.getNotaId(), idAConservar))
+                .toList();
+
+        aEliminar.forEach(n -> verificarEditable(n.getNotaId()));
+
+        aEliminar.forEach(n -> {
+            if (esExamen(n.getNotaCondicion()) && n.getNotaEstado() == EstadoNota.APROBADO) {
+                log.warn("Se elimina un examen APROBADO (nota {}) al reemplazar la materia", n.getNotaId());
+            }
+            log.info("Eliminando nota previa ID: {} | Condición: {}", n.getNotaId(), n.getNotaCondicion());
+            if (esExamen(n.getNotaCondicion())) {
+                examenService.deleteExamenByNotaId(n.getNotaId());
+            }
+            notaService.eliminarNota(n.getNotaId());
+        });
     }
 
     private void cerrarNotaCursada(Cursada cursada, EstadoCondicion condicion) {
-        if (cursada == null) {
+        Optional<Nota> notaOpt = notaService.findByCursadaIdAndNotaCondicion(
+                cursada.getId(), EstadoCondicion.CURSADA);
+        if (notaOpt.isEmpty()) {
+            log.warn("No se encontró una nota con condición CURSADA para la cursada {}", cursada.getId());
+            return;
+        }
+        Nota nota = notaOpt.get();
+
+        // Misma regla que la edición manual: una nota bloqueada no se toca.
+        // No se lanza excepción porque el examen en sí es válido.
+        if (Boolean.FALSE.equals(nota.getEditable())) {
+            log.warn("Nota de cursada {} bloqueada: no se modifica al cerrar con {}", nota.getNotaId(), condicion);
             return;
         }
 
-        BigDecimal p1 = cursada.getRecuperatorio1() != null ? cursada.getRecuperatorio1() : cursada.getPrimerParcial();
-        BigDecimal p2 = cursada.getRecuperatorio2() != null ? cursada.getSegundoParcial() != null ? cursada.getSegundoParcial() : null : cursada.getSegundoParcial();
+        // Solo se completa la calificación si la cursada no tiene una real
+        boolean sinCalificacion = nota.getNotaCalificacionNotaNumero() == null
+                || nota.getNotaCalificacionNotaNumero() == 0.0;
 
-        BigDecimal asistencia = cursada.getAsistencia();
-        BigDecimal trabajosPracticos = cursada.getTrabajosPracticos();
-        BigDecimal coloquio = cursada.getColoquio();
-        BigDecimal trabajoInstitucional = cursada.getTrabajoInstitucional();
-
-        System.out.println("--- DATOS DE LA CURSADA ---");
-        System.out.println("ID Cursada: " + cursada.getId());
-        System.out.println("Inscripto: " + cursada.getCursadaInscripto());
-        System.out.println("Status actual: " + cursada.getStatus());
-        System.out.println("Primer Parcial: " + cursada.getPrimerParcial());
-        System.out.println("Recuperatorio 1: " + cursada.getRecuperatorio1());
-        System.out.println("Primer Parcial Efectivo (P1): " + p1);
-        System.out.println("Segundo Parcial: " + cursada.getSegundoParcial());
-        System.out.println("Recuperatorio 2: " + cursada.getRecuperatorio2());
-        System.out.println("Segundo Parcial Efectivo (P2): " + p2);
-        System.out.println("Trabajos Prácticos: " + trabajosPracticos);
-        System.out.println("Asistencia: " + asistencia);
-        System.out.println("Coloquio: " + coloquio);
-        System.out.println("Trabajo Institucional: " + trabajoInstitucional);
-        System.out.println("ID Materia Carrera: " + cursada.getMateriaCarreraId());
-        System.out.println("ID Materia: " + cursada.getMateriaId());
-        System.out.println("ID Carrera: " + cursada.getCarreraId());
-
-        System.out.println("--- NOTAS ALOJADAS EN LA CURSADA ---");
-        if (cursada.getNotas() != null && !cursada.getNotas().isEmpty()) {
-            int i = 1;
-            for (Nota nota : cursada.getNotas()) {
-                System.out.println("Nota [" + i + "]:");
-                System.out.println("  - ID Nota: " + nota.getNotaId());
-                System.out.println("  - Calificación Número: " + nota.getNotaCalificacionNotaNumero());
-                System.out.println("  - Calificación Letra: " + nota.getNotaCalificacionNotaLetra());
-                System.out.println("  - Fecha Nota: " + nota.getNotaFechaNota());
-                System.out.println("  - Condición: " + nota.getNotaCondicion());
-                System.out.println("  - Estado: " + nota.getNotaEstado());
-                System.out.println("  - Libro: " + nota.getNotaLibroNota());
-                System.out.println("  - Folio: " + nota.getNotaFolioNota());
-                System.out.println("  - Observaciones: " + nota.getNotaObservaciones());
-                System.out.println("  - Usuario: " + nota.getNotaUsuario());
-                System.out.println("  - Editable: " + nota.getEditable());
-                i++;
+        switch (condicion) {
+            case EXAMEN_REGULAR -> {
+                nota.setNotaEstado(EstadoNota.REGULAR);
+                if (sinCalificacion) {
+                    nota.setNotaCalificacionNotaNumero(6.0);
+                    nota.setNotaCalificacionNotaLetra("SEIS");
+                }
             }
-        } else {
-            System.out.println("La cursada no tiene notas alojadas.");
+            // En ambos casos la cursada no se evaluó: queda LIBRE
+            case EXAMEN_LIBRE, EQUIVALENCIA -> {
+                nota.setNotaEstado(EstadoNota.LIBRE);
+                if (sinCalificacion) {
+                    nota.setNotaCalificacionNotaNumero(1.0);
+                    nota.setNotaCalificacionNotaLetra("UNO");
+                }
+            }
+            default -> {
+                return;
+            }
         }
 
-        Optional<Nota> notaOpt = notaService.findByCursadaIdAndNotaCondicion(cursada.getId(), condicion);
-
-        if (notaOpt.isPresent()) {
-            Nota nota = notaOpt.get();
-            System.out.println("Nota:");
-            System.out.println("  - ID Nota: " + nota.getNotaId());
-            System.out.println("  - Calificación Número: " + nota.getNotaCalificacionNotaNumero());
-            System.out.println("  - Calificación Letra: " + nota.getNotaCalificacionNotaLetra());
-            System.out.println("  - Fecha Nota: " + nota.getNotaFechaNota());
-            System.out.println("  - Condición: " + nota.getNotaCondicion());
-            System.out.println("  - Estado: " + nota.getNotaEstado());
-            System.out.println("  - Libro: " + nota.getNotaLibroNota());
-            System.out.println("  - Folio: " + nota.getNotaFolioNota());
-            System.out.println("  - Observaciones: " + nota.getNotaObservaciones());
-            System.out.println("  - Usuario: " + nota.getNotaUsuario());
-            System.out.println("  - Editable: " + nota.getEditable());
-
-            nota.
-        } else {
-            System.out.println("No se encontró una nota con la condición CURSADA para esta cursada.");
-        }
-
-
+        notaService.guardarNota(nota);
     }
 
-
-    private void procesarEquivalencia(Legajo legajo, MateriaCarrera materiaCarrera, NotaImportDTO fila, List<NotaMateriaDTO> existentes) {
+    private void procesarEquivalencia(Legajo legajo,
+                                      MateriaCarrera materiaCarrera,
+                                      NotaImportDTO fila,
+                                      List<NotaMateriaDTO> existentes) {
         log.info("Procesando EQUIVALENCIA para materia {}", materiaCarrera.getId());
 
-        // Buscar si ya existe una equivalencia para esta materia
-        Optional<NotaMateriaDTO> eqExistente = existentes.stream()
-                .filter(n -> "Equivalencia".equals(n.getNotaCondicion()) && n.getMateriaCarreraId().equals(materiaCarrera.getId()))
+        List<NotaMateriaDTO> deEstaMateria = existentes.stream()
+                .filter(n -> Objects.equals(n.getMateriaCarreraId(), materiaCarrera.getId()))
+                .toList();
+
+        Optional<NotaMateriaDTO> eqExistente = deEstaMateria.stream()
+                .filter(n -> n.getNotaCondicion() == EstadoCondicion.EQUIVALENCIA)
                 .findFirst();
+
+        // Se borran exámenes y otras equivalencias; las notas CURSADA no se borran, se cierran
+        List<NotaMateriaDTO> aReemplazar = deEstaMateria.stream()
+                .filter(n -> n.getNotaCondicion() != EstadoCondicion.CURSADA)
+                .toList();
+        eliminarOtrasNotas(aReemplazar, eqExistente.map(NotaMateriaDTO::getNotaId).orElse(null));
+
+        Nota notaEq;
+        Cursada cursada;
 
         if (eqExistente.isPresent()) {
             Long notaId = eqExistente.get().getNotaId();
             log.info("Equivalencia existente encontrada ID: {}", notaId);
-            Nota nota = notaService.obtenerNotaPorId(notaId);
-            actualizarNota(nota, fila);
-            notaService.guardarNota(nota);
-
+            notaEq = notaService.obtenerNotaPorId(notaId);
+            actualizarNota(notaEq, fila);
+            notaEq.setNotaCondicion(EstadoCondicion.EQUIVALENCIA);
+            notaService.guardarNota(notaEq);
+            cursada = notaEq.getCursada();
             log.info("Equivalencia actualizada.");
         } else {
             log.info("No existe equivalencia previa. Creando nueva nota.");
 
-            Cursada cursada = cursadaService.obtenerORegistrarCursada(legajo, materiaCarrera.getId().longValue());
-            Nota nuevaNota = crearNota(fila, EstadoCondicion.EQUIVALENCIA, EstadoNota.APROBADO,cursada);
-            // Si el servicio de equivalencia guarda en cascada, podrías omitir este guardarNota
-            nuevaNota = notaService.guardarNota(nuevaNota);
+            cursada = cursadaService.obtenerORegistrarCursada(legajo, materiaCarrera.getId().longValue());
+            notaEq = crearNota(fila, EstadoCondicion.EQUIVALENCIA, EstadoNota.APROBADO, cursada);
+            notaEq = notaService.guardarNota(notaEq);
 
             Equivalencia equivalencia = new Equivalencia();
-            equivalencia.setNota(nuevaNota);
+            equivalencia.setNota(notaEq);
             equivalencia.setLegajoId(legajo.getLegajoId());
             equivalencia.setMateriaId(materiaCarrera.getMateria().getMateriaId());
 
-            // Valores iniciales por defecto
             equivalencia.setInstitucionOrigen("Pendiente");
             equivalencia.setMateriaOrigen("Pendiente");
             equivalencia.setCarreraOrigen("Pendiente");
             equivalencia.setResolucion("Pendiente");
             equivalencia.setStatus("ACEPTADA");
 
-            // Sincronizar el lado @OneToMany en memoria
-            nuevaNota.getEquivalencias().add(equivalencia);
+            notaEq.getEquivalencias().add(equivalencia);
 
-            equivalenciaService.crearEquivalenciaNota(equivalencia, nuevaNota);
-            log.info("Nueva equivalencia creada con éxito.");
+            equivalenciaService.crearEquivalenciaNota(equivalencia, notaEq);
+            log.info("Nueva equivalencia creada con éxito. Nota ID: {}", notaEq.getNotaId());
         }
-    }
 
+        // La nota CURSADA (incluida la automática "CURSANDO") queda cerrada por equivalencia
+        cerrarNotaCursada(cursada, EstadoCondicion.EQUIVALENCIA);
+    }
     // ─────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────
 
-    private Nota crearNota(NotaImportDTO fila, EstadoCondicion condicion, EstadoNota estado,Cursada cursada) {
+    private Nota crearNota(NotaImportDTO fila, EstadoCondicion condicion, EstadoNota estado, Cursada cursada) {
         Nota nota = new Nota();
         nota.setNotaFechaNota(fila.getFecha());
         nota.setNotaLibroNota(fila.getLibro());
         nota.setNotaFolioNota(fila.getFolio());
         nota.setNotaCalificacionNotaNumero(fila.getNota());
+        nota.setNotaCalificacionNotaLetra(convertirANotaEnLetras(fila.getNota()));
         nota.setNotaEstado(estado);
         nota.setNotaCondicion(condicion);
         nota.setCursada(cursada);
@@ -435,6 +388,29 @@ public class NotaFilaProcessor {
         nota.setNotaCondicion(fila.getCondicion());
         nota.setNotaEstado(fila.getNotaEstado());
     }
+
+    /** El bloqueo de edición también protege contra el borrado. */
+    private void verificarEditable(Long notaId) {
+        Nota nota = notaService.obtenerNotaPorId(notaId);
+        if (Boolean.FALSE.equals(nota.getEditable())) {
+            throw new NotaNoEditableException(notaId);
+        }
+    }
+
+    private boolean esExamen(EstadoCondicion condicion) {
+        return condicion == EstadoCondicion.EXAMEN
+                || condicion == EstadoCondicion.EXAMEN_REGULAR
+                || condicion == EstadoCondicion.EXAMEN_LIBRE;
+    }
+
+    private boolean esDelTurno(Long notaId, TurnoExamenDTO turno) {
+        TurnoExamenDTO turnoNota = turnoService.obtenerTurnoActualbyNotaId(notaId);
+        return turnoNota != null && turnoNota.getTurnoId().equals(turno.getTurnoId());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────
 
     private String convertirANotaEnLetras(Double nota) {
         if (nota == null) return null;

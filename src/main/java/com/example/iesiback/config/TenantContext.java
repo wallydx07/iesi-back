@@ -1,17 +1,8 @@
 package com.example.iesiback.config;
-
 public class TenantContext {
-    private static final ThreadLocal<String> CURRENT_TENANT = ThreadLocal.withInitial(() -> "public");
+    private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
 
-    public static void setCurrentTenant(String tenant) {
-        CURRENT_TENANT.set(tenant);
-    }
-
-    public static String getCurrentTenant() {
-        return CURRENT_TENANT.get();
-    }
-
-    public static void clear() {
-        CURRENT_TENANT.remove(); // importante: evita leaks entre requests en el mismo hilo del pool
-    }
+    public static void setCurrentTenant(String tenant) { CURRENT_TENANT.set(tenant); }
+    public static String getCurrentTenant() { return CURRENT_TENANT.get(); } // puede ser null
+    public static void clear() { CURRENT_TENANT.remove(); }
 }

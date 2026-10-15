@@ -11,9 +11,8 @@ WHERE n.nota_cursada_id = c.cursada_id
     OR (m.materia_nivel = '2do' AND CAST(ca.carrera_year AS INTEGER) + 1 = EXTRACT(YEAR FROM CURRENT_DATE))
     OR (m.materia_nivel = '3ro' AND CAST(ca.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
   )
+
 AND materia_regimen = '1ER CUATRIMESTRE';
-
-
 UPDATE nota n
 SET nota_fecha_nota = DATE '2026-12-04'
 FROM cursada c
@@ -44,8 +43,6 @@ WHERE n.nota_cursada_id = c.cursada_id
   )
 AND materia_regimen = 'ANUAL';
 
-
-
 UPDATE materia_carrera
 SET fecha = DATE '2026-07-10'
 FROM materia, carrera
@@ -58,8 +55,6 @@ WHERE materia_carrera.materia_id = materia.materia_id
     OR (materia.materia_nivel = '3ro' AND CAST(carrera.carrera_year AS INTEGER) + 2 = EXTRACT(YEAR FROM CURRENT_DATE))
   )
 AND materia.materia_regimen = '1ER CUATRIMESTRE';
-
-
 
 
 UPDATE materia_carrera

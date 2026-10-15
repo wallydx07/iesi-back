@@ -79,33 +79,29 @@ public class Nota {
     @Column(name = "nota_ausencia_justificada")
     private Boolean notaAusenciaJustificada; // null cuando no aplica (no está ausente); true/false cuando sí
 
-    public Boolean getEditable() {
-        return editable;
+    public Boolean getNotaAusenciaJustificada() {
+        return notaAusenciaJustificada;
     }
 
-    public void setEditable(Boolean editable) {
-        this.editable = editable;
+    public void setNotaAusenciaJustificada(Boolean notaAusenciaJustificada) {
+        this.notaAusenciaJustificada = notaAusenciaJustificada;
     }
 
-
-    public Cursada getCursada() {
-        return cursada;
+    public Double getNotaCalificacionNotaNumero() {
+        return notaCalificacionNotaNumero;
     }
 
-    public void setCursada(Cursada notaCursada) {
-        this.cursada = notaCursada;
+    public void setNotaCalificacionNotaNumero(Double notaCalificacionNotaNumero) {
+        this.notaCalificacionNotaNumero = notaCalificacionNotaNumero;
     }
 
-
-    // Getters y Setters
     public Long getNotaId() {
         return notaId;
     }
 
-    public void setNotaId(Long id) {
-        this.notaId = id;
+    public void setNotaId(Long notaId) {
+        this.notaId = notaId;
     }
-
 
     public String getNotaCalificacionNotaLetra() {
         return notaCalificacionNotaLetra;
@@ -121,6 +117,22 @@ public class Nota {
 
     public void setNotaFechaNota(LocalDate notaFechaNota) {
         this.notaFechaNota = notaFechaNota;
+    }
+
+    public EstadoCondicion getNotaCondicion() {
+        return notaCondicion;
+    }
+
+    public void setNotaCondicion(EstadoCondicion notaCondicion) {
+        this.notaCondicion = notaCondicion;
+    }
+
+    public EstadoNota getNotaEstado() {
+        return notaEstado;
+    }
+
+    public void setNotaEstado(EstadoNota notaEstado) {
+        this.notaEstado = notaEstado;
     }
 
     public String getNotaLibroNota() {
@@ -155,7 +167,6 @@ public class Nota {
         this.notaUsuario = notaUsuario;
     }
 
-
     public Set<Equivalencia> getEquivalencias() {
         return equivalencias;
     }
@@ -172,27 +183,19 @@ public class Nota {
         this.examen = examen;
     }
 
-    public Double getNotaCalificacionNotaNumero() {
-        return notaCalificacionNotaNumero;
+    public Cursada getCursada() {
+        return cursada;
     }
 
-    public void setNotaCalificacionNotaNumero(Double notaCalificacionNotaNumero) {
-        this.notaCalificacionNotaNumero = notaCalificacionNotaNumero;
+    public void setCursada(Cursada cursada) {
+        this.cursada = cursada;
     }
 
-    public EstadoNota getNotaEstado() {
-        return notaEstado;
+    public Boolean getEditable() {
+        return editable;
     }
 
-    public void setNotaEstado(EstadoNota notaEstado) {
-        this.notaEstado = notaEstado;
-    }
-
-    public EstadoCondicion getNotaCondicion() {
-        return notaCondicion;
-    }
-
-    public void setNotaCondicion(EstadoCondicion notaCondicion) {
-        this.notaCondicion = notaCondicion;
+    public void setEditable(Boolean editable) {
+        this.editable = editable;
     }
 }
