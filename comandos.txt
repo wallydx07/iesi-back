@@ -12,6 +12,11 @@ docker build -t iesi-front .
 docker save -o iesi-front.tar iesi-front:latest
 docker load -i iesi-front.tar
 
+------------------------Ubicacion-----------------------
+cd ..
+cd var
+cd www
+cd app
 ------------------------Reemplazar contenedores-----------------------
 # 1. Eliminar contenedores de docker-compose y órfanos
 docker-compose down --remove-orphans
@@ -34,12 +39,15 @@ sudo systemctl restart apache2
 git checkout master
 
 ssh root@147.93.35.109
-
+mudinamico
 ngrok config edit
 ngrok start --all
 ________________________________________________________________________________________
 
+-----------------------------angular con proxy----------------------------------
+
 ng serve --proxy-config proxy.conf.json
 
+-----------------------------ngrook----------------------------------
 ngrok config add-authtoken 3FnIzAbg8PLVOZA4gld6p936iZv_7TPKZtMJva5vUfJdZi7sr
 ngrok http --url=giver-unearth-pouring.ngrok-free.dev 4200

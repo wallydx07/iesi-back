@@ -19,14 +19,21 @@ import com.example.iesiback.services.TramiteService;
 import com.example.iesiback.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /*
  * CAMBIOS RESPECTO DE LA VERSIÓN ANTERIOR
@@ -48,7 +55,13 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/pagos")
+
+
+
 public class PagoController {
+
+    @Value("${app.front-url}")
+    private String frontUrl;
 
     public static final Logger logger = LoggerFactory.getLogger(PagoController.class);
 
@@ -81,55 +94,163 @@ public class PagoController {
     // La preinscripción pública usa /api/preinscripcion/publica/{codigo}/pago.
     // =====================================================
 
-    public record IniciarPagoRequest(Integer tramiteId, Integer conceptoId) {}
+
+    // ====== Request ======
+
+    /** Un ítem es del catálogo (conceptoId) o manual (descripcion + monto). */
+    public record ItemPagoRequest(Integer conceptoId, Integer cantidad, String descripcion, BigDecimal monto) {}
+
+    public record IniciarPagoRequest(Integer tramiteId, List<ItemPagoRequest> items) {}
+
+
+// ====== Endpoint ======
 
     @PostMapping("/iniciar")
     public ResponseEntity<?> iniciarPago(@RequestBody IniciarPagoRequest request) {
-        if (request == null || request.tramiteId() == null || request.conceptoId() == null) {
-            return ResponseEntity.badRequest().body("Faltan tramiteId o conceptoId");
+        if (request == null || request.tramiteId() == null
+                || request.items() == null || request.items().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Faltan el trámite o los conceptos a cobrar"));
         }
 
         Tramite tramite = tramiteService.findById(request.tramiteId())
                 .orElseThrow(() -> new BusinessException("Trámite no encontrado: " + request.tramiteId()));
 
-        ConstanciaPrecio concepto = constanciaPrecioRepository.findById(Long.valueOf(request.conceptoId()))
-                .orElseThrow(() -> new BusinessException("Concepto no encontrado: " + request.conceptoId()));
-
-        if (concepto.getPrecioMp() == null || concepto.getPrecioMp().signum() <= 0) {
-            return ResponseEntity.unprocessableEntity().body("El concepto no tiene precio para Mercado Pago");
-        }
-
-        boolean yaPagado = pagoService.findByAtencionId(tramite.getId()).stream()
-                .anyMatch(p -> p.getEstado() == EstadoPago.APROBADO
-                        && concepto.getNombre().equals(p.getTipoPago()));
-        if (yaPagado) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ese concepto ya está pagado en el trámite");
-        }
-
         Pago pago = new Pago();
+        List<PagoDetalle> detalles = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (ItemPagoRequest item : request.items()) {
+            int cantidad = item.cantidad() == null ? 1 : item.cantidad();
+
+            String nombre;
+            BigDecimal precio;
+
+            if (item.conceptoId() != null) {
+                // Del catálogo: el precio sale de la base
+                ConstanciaPrecio concepto = constanciaPrecioRepository.findById(Long.valueOf(item.conceptoId()))
+                        .orElseThrow(() -> new BusinessException("Concepto no encontrado: " + item.conceptoId()));
+                if (concepto.getPrecioMp() == null || concepto.getPrecioMp().signum() <= 0) {
+                    return ResponseEntity.unprocessableEntity()
+                            .body(Map.of("mensaje", "El concepto \"" + concepto.getNombre() + "\" no tiene precio para Mercado Pago"));
+                }
+                nombre = concepto.getNombre();
+                precio = concepto.getPrecioMp();
+            } else {
+                // Manual: lo carga el operador
+                if (item.monto() == null || item.monto().signum() <= 0) {
+                    return ResponseEntity.badRequest().body(Map.of("mensaje", "El importe manual no es válido"));
+                }
+                nombre = (item.descripcion() == null || item.descripcion().isBlank())
+                        ? "Importe manual"
+                        : item.descripcion().trim();
+                precio = item.monto();
+            }
+
+            PagoDetalle detalle = new PagoDetalle();
+            detalle.setPago(pago);
+            detalle.setConcepto(nombre);
+            detalle.setMonto(precio);
+            detalle.setCantidad(cantidad);
+            detalles.add(detalle);
+
+            total = total.add(precio.multiply(BigDecimal.valueOf(cantidad)));
+        }
+
+        String conceptos = detalles.stream()
+                .map(PagoDetalle::getConcepto)
+                .distinct()
+                .collect(Collectors.joining(", "));
+
         pago.setTramite(tramite);
-        pago.setMontoTotal(concepto.getPrecioMp());
-        pago.setTipoPago(concepto.getNombre());
+        pago.setMontoTotal(total);
+        pago.setTipoPago(conceptos.length() > 100 ? conceptos.substring(0, 100) : conceptos);
         pago.setEstado(EstadoPago.PENDIENTE);
         pago.setResponsable("Alumno");
         pago.setMetodoPago("checkout_pro");
+        pago.setDetalles(detalles);
         Pago pagoGuardado = pagoService.guardar(pago);
 
         ProductoDTO producto = new ProductoDTO();
-        producto.setNombre(concepto.getNombre());
-        producto.setDescripcion("Trámite N° " + tramite.getId());
-        producto.setPrecio(concepto.getPrecioMp());
+        producto.setNombre(tramite.getTramiteTipo() + " - N° " + tramite.getId());
+        producto.setDescripcion(conceptos);
+        producto.setPrecio(total);
+
+        // El link vence hoy a las 23:59 (como dice el mensaje de WhatsApp)
+        ZoneId zona = ZoneId.of("America/Argentina/Jujuy");
+        OffsetDateTime vence = LocalDate.now(zona).atTime(23, 59, 59).atZone(zona).toOffsetDateTime();
+        String urlRetorno = frontUrl + "/pago/resultado?pagoId=" + pagoGuardado.getId()
+                + "&tramiteId=" + tramite.getId();
 
         try {
-            Map<String, String> datos = pagoService.crearPreferencia(producto, pagoGuardado.getId(), tramite.getId());
-            logger.info("Pago {} iniciado por {} (trámite {})",
-                    pagoGuardado.getId(), pagoGuardado.getMontoTotal(), tramite.getId());
+            Map<String, String> datos = new HashMap<>(pagoService.crearPreferencia(
+                    producto, pagoGuardado.getId(), urlRetorno, vence, tramite.getTramiteCorreo()));
+            datos.put("monto", total.toPlainString());   // el front usa ESTE monto en el mensaje
+
+            logger.info("Pago {} iniciado por {} (trámite {})", pagoGuardado.getId(), total, tramite.getId());
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
             logger.error("Error al iniciar el pago del trámite {}", tramite.getId(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al iniciar el pago");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("mensaje", "Error al iniciar el pago"));
         }
     }
+
+
+
+
+
+//
+//    public record IniciarPagoRequest(Integer tramiteId, Integer conceptoId) {}
+//
+//    @PostMapping("/iniciar")
+//    public ResponseEntity<?> iniciarPago(@RequestBody IniciarPagoRequest request) {
+//        if (request == null || request.tramiteId() == null || request.conceptoId() == null) {
+//            return ResponseEntity.badRequest().body("Faltan tramiteId o conceptoId");
+//        }
+//
+//        Tramite tramite = tramiteService.findById(request.tramiteId())
+//                .orElseThrow(() -> new BusinessException("Trámite no encontrado: " + request.tramiteId()));
+//
+//        ConstanciaPrecio concepto = constanciaPrecioRepository.findById(Long.valueOf(request.conceptoId()))
+//                .orElseThrow(() -> new BusinessException("Concepto no encontrado: " + request.conceptoId()));
+//
+//        if (concepto.getPrecioMp() == null || concepto.getPrecioMp().signum() <= 0) {
+//            return ResponseEntity.unprocessableEntity().body("El concepto no tiene precio para Mercado Pago");
+//        }
+//
+//        boolean yaPagado = pagoService.findByAtencionId(tramite.getId()).stream()
+//                .anyMatch(p -> p.getEstado() == EstadoPago.APROBADO
+//                        && concepto.getNombre().equals(p.getTipoPago()));
+//        if (yaPagado) {
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ese concepto ya está pagado en el trámite");
+//        }
+//
+//        Pago pago = new Pago();
+//        pago.setTramite(tramite);
+//        pago.setMontoTotal(concepto.getPrecioMp());
+//        pago.setTipoPago(concepto.getNombre());
+//        pago.setEstado(EstadoPago.PENDIENTE);
+//        pago.setResponsable("Alumno");
+//        pago.setMetodoPago("checkout_pro");
+//        Pago pagoGuardado = pagoService.guardar(pago);
+//
+//        ProductoDTO producto = new ProductoDTO();
+//        producto.setNombre(concepto.getNombre());
+//        producto.setDescripcion("Trámite N° " + tramite.getId());
+//        producto.setPrecio(concepto.getPrecioMp());
+//
+//        try {
+//            Map<String, String> datos = pagoService.crearPreferencia(producto, pagoGuardado.getId(), tramite.getId());
+//            logger.info("Pago {} iniciado por {} (trámite {})",
+//                    pagoGuardado.getId(), pagoGuardado.getMontoTotal(), tramite.getId());
+//            return ResponseEntity.ok(datos);
+//        } catch (Exception e) {
+//            logger.error("Error al iniciar el pago del trámite {}", tramite.getId(), e);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al iniciar el pago");
+//        }
+//    }
+
+
 
     // =====================================================
     // WEBHOOK MERCADO PAGO (Checkout Pro)
@@ -286,4 +407,6 @@ public class PagoController {
         }
         return ResponseEntity.notFound().build();
     }
+
+
 }

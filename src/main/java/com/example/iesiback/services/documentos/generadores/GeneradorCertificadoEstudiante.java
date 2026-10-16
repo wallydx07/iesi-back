@@ -62,8 +62,8 @@ public class GeneradorCertificadoEstudiante implements GeneradorDocumento {
     @Override
     public Integer diasVigencia(Tramite t, DocumentoEmitido doc) {
         return switch (tipoDe(doc)) {
-            case "ESTUDIANTE REGULAR" -> 30;
-            default                   -> null;   // no vence
+            case "ESTUDIANTE REGULAR" -> 90;
+            default                   -> 90;   // no vence
         };
     }
 
