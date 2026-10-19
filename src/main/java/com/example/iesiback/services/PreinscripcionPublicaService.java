@@ -57,12 +57,16 @@ public class PreinscripcionPublicaService {
     @Value("${app.front-url}")
     private String frontUrl;
 
-    public PreinscripcionPublicaService(TramiteService tramiteService, MateriaCarreraService materiaCarreraService, CursadaService cursadaService, PersonaService personaService, PagoService pagoService) {
+
+    private final PrecioPreinscripcionService precioPreinscripcionService;
+
+    public PreinscripcionPublicaService(TramiteService tramiteService, MateriaCarreraService materiaCarreraService, CursadaService cursadaService, PersonaService personaService, PagoService pagoService, PrecioPreinscripcionService precioPreinscripcionService) {
         this.tramiteService = tramiteService;
         this.materiaCarreraService = materiaCarreraService;
         this.cursadaService = cursadaService;
         this.personaService = personaService;
         this.pagoService = pagoService;
+        this.precioPreinscripcionService = precioPreinscripcionService;
     }
 
 
@@ -186,8 +190,19 @@ public class PreinscripcionPublicaService {
                     p.setStatusDetail("reemplazado_por_nuevo_intento");
                 });
 
+//        ConstanciaPrecio concepto = oferta.getConstanciaPrecio();
+//        BigDecimal monto = concepto.getPrecioMp();
+
+
+
         ConstanciaPrecio concepto = oferta.getConstanciaPrecio();
-        BigDecimal monto = concepto.getPrecioMp();
+        PrecioPreinscripcionService.PrecioFinal precio =
+                precioPreinscripcionService.calcularOnline(concepto, tramite.getTramiteDni());
+        BigDecimal monto = precio.total();
+
+        String nombreConcepto = precio.conDescuento()
+                ? concepto.getNombre() + " (descuento " + precio.descuentoPct().stripTrailingZeros().toPlainString() + "%)"
+                : concepto.getNombre();
 
         Pago pago = new Pago();
         pago.setTramite(tramite);
@@ -195,14 +210,14 @@ public class PreinscripcionPublicaService {
         pago.setMontoTotal(monto);
         pago.setMoneda("ARS");
         pago.setMetodoPago("checkout_pro");
-        pago.setTipoPago(concepto.getNombre());
+        pago.setTipoPago(nombreConcepto);
         pago.setResponsable("WEB");
         pago.setDniPagador(String.valueOf(tramite.getTramiteDni()));
         pago.setNombrePagador(tramite.getTramiteApellidoNombre());
 
         PagoDetalle detalle = new PagoDetalle();
         detalle.setPago(pago);
-        detalle.setConcepto(concepto.getNombre());
+        detalle.setConcepto(nombreConcepto);
         detalle.setMonto(monto);
         detalle.setCantidad(1);
         pago.setDetalles(new ArrayList<>(List.of(detalle)));
@@ -210,7 +225,7 @@ public class PreinscripcionPublicaService {
         pagoService.guardar(pago);
 
         ProductoDTO producto = new ProductoDTO();
-        producto.setNombre(concepto.getNombre());
+        producto.setNombre(nombreConcepto);
         producto.setDescripcion(oferta.getMateria().getMateriaNombre() + " - Trámite " + codigo);
         producto.setPrecio(monto);
 
@@ -343,7 +358,8 @@ public class PreinscripcionPublicaService {
                 horario.isEmpty() ? null : horario,
                 mc.getFechaInicio(),
                 mc.getFechaLimite(),
-                mc.getConstanciaPrecio().getPrecioMp()
+                mc.getConstanciaPrecio().getPrecioMp(),
+                mc.getConstanciaPrecio().getDescuento()
         );
     }
 

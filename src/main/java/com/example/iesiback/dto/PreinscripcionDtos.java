@@ -106,6 +106,7 @@ public final class PreinscripcionDtos {
             String horario,
             LocalDate fechaInicio,
             LocalDate fechaLimite,
-            BigDecimal precio
+            BigDecimal precio,
+            Double descuento       // 👈 nuevo
     ) {}
 }
