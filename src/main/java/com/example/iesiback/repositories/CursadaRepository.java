@@ -79,6 +79,23 @@ public interface CursadaRepository extends JpaRepository<Cursada, Integer> {
 
 
     boolean existsByLegajo_LegajoPersonaDni_PersonaDniAndMateriaCarrera_Id(Long personaDni, Integer materiaCarreraId);
+
+
+    @Query("""
+    select count(c) from Cursada c
+    where c.legajo.legajoPersonaDni.personaDni = :dni
+      and c.materiaCarrera.carrera.carreraId = :carreraId
+      and c.materiaCarrera.id <> :ofertaId
+      and year(c.materiaCarrera.fechaInicio) = :anio
+    """)
+    long contarOtrosCursosDelAnio(@Param("dni") Long dni,
+                                  @Param("carreraId") String carreraId,
+                                  @Param("ofertaId") Integer ofertaId,
+                                  @Param("anio") int anio);
+
+
+
+
 };
 
 

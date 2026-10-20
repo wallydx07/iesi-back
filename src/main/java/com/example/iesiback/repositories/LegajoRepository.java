@@ -41,5 +41,11 @@ public interface LegajoRepository extends JpaRepository<Legajo, String> {
             String carreraId
     );
 
-
+    @Query("""
+    select count(l) > 0 from Legajo l
+    where l.legajoPersonaDni.personaDni = :dni
+      and l.inscripcion.carrera.carreraId <> :carreraCapacitacionId
+    """)
+    boolean tieneLegajoEnOtraCarrera(@Param("dni") Long dni,
+                                     @Param("carreraCapacitacionId") String carreraCapacitacionId);
 }

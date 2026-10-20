@@ -35,4 +35,6 @@ public interface LegajoService {
 
     @Transactional
     Legajo crearLegajoConInscripcion(Persona persona, Carrera carrera, String usuario);
+
+    boolean tieneLegajoEnOtraCarrera(Long dni, String carreraCapacitacionId);
 }

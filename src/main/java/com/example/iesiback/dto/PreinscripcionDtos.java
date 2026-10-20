@@ -109,4 +109,12 @@ public final class PreinscripcionDtos {
             BigDecimal precio,
             Double descuento       // 👈 nuevo
     ) {}
+
+    public record PrecioPresencialResponse(
+            String concepto,
+            BigDecimal precioBase,
+            BigDecimal descuentoPct,
+            String motivo,
+            BigDecimal total
+    ) {}
 }

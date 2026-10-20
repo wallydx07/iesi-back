@@ -258,6 +258,11 @@ public Legajo findOrCreateLegajo(Persona persona, String carreraId) {
         return legajo;
     }
 
+    @Override
+    public boolean tieneLegajoEnOtraCarrera(Long dni, String carreraCapacitacionId) {
+       return legajoRepository.tieneLegajoEnOtraCarrera(dni,carreraCapacitacionId);
+    }
+
     /** Serializa la generación de legajoId por prefijo hasta el fin de la transacción. */
     private void bloquearNumeracion(String prefijo) {
         jdbcTemplate.query("SELECT pg_advisory_xact_lock(hashtext(?))",

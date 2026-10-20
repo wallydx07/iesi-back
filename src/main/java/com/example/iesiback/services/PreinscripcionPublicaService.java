@@ -58,15 +58,19 @@ public class PreinscripcionPublicaService {
     private String frontUrl;
 
 
-    private final PrecioPreinscripcionService precioPreinscripcionService;
+    private final PromocionService promocionService;
 
-    public PreinscripcionPublicaService(TramiteService tramiteService, MateriaCarreraService materiaCarreraService, CursadaService cursadaService, PersonaService personaService, PagoService pagoService, PrecioPreinscripcionService precioPreinscripcionService) {
+    public PreinscripcionPublicaService(TramiteService tramiteService,
+                                        MateriaCarreraService materiaCarreraService,
+                                        CursadaService cursadaService,
+                                        PersonaService personaService,
+                                        PagoService pagoService, PromocionService promocionService) {
         this.tramiteService = tramiteService;
         this.materiaCarreraService = materiaCarreraService;
         this.cursadaService = cursadaService;
         this.personaService = personaService;
         this.pagoService = pagoService;
-        this.precioPreinscripcionService = precioPreinscripcionService;
+        this.promocionService = promocionService;
     }
 
 
@@ -155,6 +159,32 @@ public class PreinscripcionPublicaService {
         );
     }
 
+    /** Importe a cobrar en caja (precio presencial) con la promoción que corresponda. */
+    @Transactional(readOnly = true)
+    public PrecioPresencialResponse precioPresencial(Long dni, Integer ofertaId) {
+        MateriaCarrera oferta = ofertaAbierta(ofertaId);
+        ConstanciaPrecio concepto = oferta.getConstanciaPrecio();
+        PromocionService.PrecioFinal precio =
+                promocionService.calcularPresencial(concepto, dni, oferta.getId());
+        return new PrecioPresencialResponse(
+                concepto.getNombre(),
+                precio.base(),
+                precio.descuentoPct(),
+                precio.motivo(),
+                precio.total());
+    }
+
+    /** Lo usa la caja: descuento que corresponde a un trámite de Capacitación ya creado. */
+//    @Transactional(readOnly = true)
+//    public PrecioPresencialResponse descuentoDelTramite(Integer tramiteId) {
+//        Tramite tramite = tramiteService.findById(tramiteId)
+//                .filter(t -> TIPO_TRAMITE.equals(t.getTramiteTipo()))
+//                .orElseThrow(this::noEncontrado);
+//        return precioPresencial(
+//                tramite.getTramiteDni(),
+//                tramite.getOfertaMateriaCarreraId().intValue());
+//    }
+
     // =====================================================================
     // CANAL WEB: iniciar pago (el monto lo decide el backend)
     // =====================================================================
@@ -190,19 +220,23 @@ public class PreinscripcionPublicaService {
                     p.setStatusDetail("reemplazado_por_nuevo_intento");
                 });
 
+
+
+
 //        ConstanciaPrecio concepto = oferta.getConstanciaPrecio();
-//        BigDecimal monto = concepto.getPrecioMp();
-
-
+//        PrecioPreinscripcionService.PrecioFinal precio =
+//                precioPreinscripcionService.calcularOnline(concepto, tramite.getTramiteDni());
+//        BigDecimal monto = precio.total();
+//
+//        String nombreConcepto = precio.conDescuento()
+//                ? concepto.getNombre() + " (descuento " + precio.descuentoPct().stripTrailingZeros().toPlainString() + "%)"
+//                : concepto.getNombre();
 
         ConstanciaPrecio concepto = oferta.getConstanciaPrecio();
-        PrecioPreinscripcionService.PrecioFinal precio =
-                precioPreinscripcionService.calcularOnline(concepto, tramite.getTramiteDni());
+        PromocionService.PrecioFinal precio =
+                promocionService.calcularOnline(concepto, tramite.getTramiteDni(), oferta.getId());
         BigDecimal monto = precio.total();
-
-        String nombreConcepto = precio.conDescuento()
-                ? concepto.getNombre() + " (descuento " + precio.descuentoPct().stripTrailingZeros().toPlainString() + "%)"
-                : concepto.getNombre();
+        String nombreConcepto = precio.etiqueta(concepto.getNombre());
 
         Pago pago = new Pago();
         pago.setTramite(tramite);
@@ -400,5 +434,13 @@ public class PreinscripcionPublicaService {
 
     private static ResponseStatusException error(HttpStatus status, String mensaje) {
         return new ResponseStatusException(status, mensaje);
+    }
+
+    @Transactional(readOnly = true)
+    public PrecioPresencialResponse descuentoDelTramite(Integer tramiteId) {
+        Tramite tramite = tramiteService.findById(tramiteId)
+                .filter(t -> TIPO_TRAMITE.equals(t.getTramiteTipo()))
+                .orElseThrow(this::noEncontrado);
+        return precioPresencial(tramite.getTramiteDni(), Math.toIntExact(tramite.getOfertaMateriaCarreraId()));
     }
 }

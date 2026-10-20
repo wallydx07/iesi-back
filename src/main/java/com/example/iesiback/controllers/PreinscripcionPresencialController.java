@@ -1,5 +1,6 @@
 package com.example.iesiback.controllers;
 
+import com.example.iesiback.dto.PreinscripcionDtos;
 import com.example.iesiback.dto.PreinscripcionDtos.PreinscripcionPresencialRequest;
 import com.example.iesiback.entities.Tramite;
 import com.example.iesiback.services.PreinscripcionPublicaService;
@@ -48,5 +49,14 @@ public class PreinscripcionPresencialController {
                 .forEach(f -> campos.putIfAbsent(f.getField(), f.getDefaultMessage()));
         String primero = campos.values().stream().findFirst().orElse("Revisá los datos ingresados.");
         return ResponseEntity.badRequest().body(Map.of("mensaje", primero, "campos", campos));
+    }
+    @GetMapping("/precio")
+    public PreinscripcionDtos.PrecioPresencialResponse precio(@RequestParam Long dni, @RequestParam Integer ofertaId) {
+        return service.precioPresencial(dni, ofertaId);
+    }
+
+    @GetMapping("/descuento/{tramiteId}")
+    public PreinscripcionDtos.PrecioPresencialResponse descuentoDelTramite(@PathVariable Integer tramiteId) {
+        return service.descuentoDelTramite(tramiteId);
     }
 }
